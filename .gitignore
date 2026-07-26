@@ -1,0 +1,21 @@
+# Windows alternate-data-stream artifacts accidentally materialized as empty files.
+plan/*:Zone.Identifier
+
+# OS-generated files.
+.DS_Store
+Thumbs.db
+Desktop.ini
+._*
+
+# Editor and IDE state.
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependency directories.
+node_modules/
+
+# Regenerable AI-play transcripts; scenario and verification sources remain tracked.
+tools/AIプレイ/ログ/*.md

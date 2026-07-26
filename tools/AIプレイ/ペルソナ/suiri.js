@@ -1,0 +1,3 @@
+import { decideByScore, specialPartPolicy } from './共通.js';
+const profile = { reason: '情報と証拠を増やして真相への経路を残す', advanceReason: '本文の手掛かりを確認して読み進める', labels: { investigate: '探索・証拠', direct: '直接の確認', dialogue: '聞き取り' }, weights: { investigate: 5, direct: 2, dialogue: 1, conceal: -2, safe: -1 }, contextWeights: { investigate: 2 }, detailWeight: 1, detailReason: '具体的な文言から情報量を見込む', specificityWeight: 0.12, specificityReason: '手掛かりの対象を具体的に示す文言を優先する', actionWeight: 0.5, indexWeight: 0.12, indexReason: '同程度なら追加の検証へ進む提案を選ぶ', partAdjust: specialPartPolicy('deduce') };
+export const persona = { id: 'suiri', name: '完全主義の推理者', description: '謎解きの層。探索・証拠・反証を採点し、情報を逃さず真相へ近づく。', decide(o, m) { return decideByScore(o, m, profile); } };

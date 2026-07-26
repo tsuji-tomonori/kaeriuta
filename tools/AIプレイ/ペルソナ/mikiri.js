@@ -1,0 +1,5 @@
+import { decideByScore } from './共通.js';
+// B-3は物証の量ではなく、早すぎる告白と防衛失敗で成立する。自由行動で
+// 証拠を積み上げないよう探索語を強く減点し、必須の三択だけを目的関数化する。
+const profile = { targetEnd: 'B-3 口封じ', reason: '物証を待たずに告白し、危険な夜を正面から通す', advanceReason: '立ち止まって裏取りせず、ためらわず読み進める', labels: { care: '告白・他者への言葉', direct: '率直な行動', dialogue: '会話', investigate: '探索・証拠集め', conceal: '隠蔽', safe: '待機' }, weights: { care: 6, direct: 6, dialogue: 3, investigate: -12, conceal: -7, safe: -4 }, specificityWeight: 0.17, specificityReason: '相手と対象を明かす具体的な言葉を選ぶ', indexWeight: 0.12, indexReason: '同程度なら踏み込んだ後段の発言を選ぶ', requiredRoutes: [{ name: '告白ルートへ向かう', terms: ['少年の部屋', '扉を叩く'] }, { name: '直接告白', terms: ['このまま扉を叩く'] }, { name: '部屋に籠る', terms: ['部屋に籠る'] }, { name: '五番の夜に扉を開ける', terms: ['扉を開ける'] }], adjust({ labels }) { return { score: labels.direct * 2 - labels.conceal * 2 - labels.investigate * 4, grounds: ['見切り発車で裏取りを避け、隠れずに動く'] }; } };
+export const persona = { id: 'mikiri', name: '見切り発車の告白者', description: '焦りの層。証拠が揃う前でも率直に告白・行動し、察知を上げる口封じの危険を踏む。', decide(o, m) { return decideByScore(o, m, profile); } };

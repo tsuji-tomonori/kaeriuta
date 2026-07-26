@@ -1,0 +1,3 @@
+import { decideByScore } from './共通.js';
+const profile = { reason: '与えられた計画に従い、自分で疑ったり調べたりしない', advanceReason: '指示された順番のまま読み進める', labels: { safe: '指示待ち・安全', prepare: '計画', investigate: '独自の探索', direct: '独断の発言' }, weights: { safe: 5, prepare: 4, investigate: -5, direct: -4 }, specificityWeight: -0.12, specificityReason: '説明を足さず指示どおりに見える短い文言を選ぶ', indexWeight: -0.4, indexReason: '通常選択でも提示順の先頭へ従う', partAdjust({ observation, index }) { if (observation.kind !== 'part') return {}; return { score: -index * 16, grounds: ['特殊パートでも提示順の指示に従う'] }; } };
+export const persona = { id: 'ayatsuri', name: '指示に従うだけの者', description: '受動性の層。自発的な探索や疑いを避け、提示された計画と順番に忠実に動く。', decide(o, m) { return decideByScore(o, m, profile); } };

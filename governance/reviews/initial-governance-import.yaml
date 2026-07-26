@@ -1,0 +1,48 @@
+change_id: initial-governance-import
+summary: "倒叙ミステリーADV『帰り唄 ―手毬唄の館―』α版への開発統制と初回Git履歴の導入"
+repository:
+  product: "素のHTML/CSS/JS、外部依存ゼロの倒叙ミステリーADV"
+  scope: "本文約5万字、全7END、特殊パート5種、画像61点、AIプレイ基盤とペルソナ9体、検証ツール群"
+governance:
+  commit_convention: ".agents/skills/japanese-git-commit-gitmoji/SKILL.md をdev-standard原文のまま配置"
+  pre_commit:
+    config: ".pre-commit-config.yaml"
+    status: "実行済み・全フック通過"
+    note: "pre-commit 4.2.0。install-hooks でフック取得後、193ファイルへ pre-commit run --all-files を実行し、git-secrets / trailing-whitespace / end-of-file-fixer / check-yaml / check-added-large-files / check-merge-conflict / debug-statements / mixed-line-ending の全8フックが Passed。書き換えは発生しなかった。なお実装担当のサンドボックスは .git と .agents を読み取り専用マウントとして提供しており、かつ github.com の名前解決ができないため、git init・フック取得・コミットは実行できなかった。これらの工程はオーケストレーター側で実施している。"
+  gitignore_decisions:
+    - path: "tools/AIプレイ/ログ/*.md"
+      decision: "ignore"
+      reason: "AIペルソナの実況ログは再生成可能な生成物であり、約1.4MBの反復出力を履歴に含めない。設計・検証のソースは追跡する。"
+    - path: "assets/chara/_原本/"
+      decision: "track"
+      reason: "加工立ち絵の復旧元であり、過去に加工ミスの回帰から復旧した再生成不可欠な原本33点（約32MB）のため。"
+verification_contract:
+  github_actions: "未設定（今後追加予定）"
+  source_of_truth: "ローカル実行結果。CIは未設定のためPassとして扱わない。"
+  checks:
+    - command: "node --test"
+      result: "13件全通過"
+    - command: "node --test（本作業で再実行）"
+      result: "test/engine.test.js と test/parts.test.js の2サブテスト全通過、fail 0"
+    - command: "node tools/シナリオ検証.mjs"
+      result: "不整合0件"
+    - command: "node tools/統合検証.mjs"
+      result: "7END・全遷移確認"
+    - command: "node tools/到達可能性検査.mjs"
+      result: "通過"
+    - command: "node tools/END到達条件検査.mjs"
+      result: "全7END到達可能（ブロック予算込み）"
+    - command: "bash tools/構文検査.sh"
+      result: "50ファイル・エラー0"
+    - command: "python3 tools/透過検品.py"
+      result: "全33点合格（輪郭紫0px）"
+    - command: "python3 tools/構図検査.py"
+      result: "頭部比率 平均28.2% / 最大差1.3pt"
+    - command: "bash tools/ブラウザ検証/実行.sh"
+      result: "実行ルート→A-4 / 告白ルート→B-1、エラー0・はみ出し0"
+    - command: "bash tools/AIプレイ/実行.sh all"
+      result: "9ペルソナで全7END踏破、既定動作率 全体5%未満"
+review_result:
+  requirement_impact: "なし。ゲームの利用者向け挙動・受入条件は変更しない。"
+  design_impact: "あり。コミット規約、pre-commit、追跡方針という開発・運用統制の恒久構成を追加する。"
+  residual_risk: "GitHub Actionsは未設定のため、検証結果の正本はローカル実行に留まる。音声・BGMは未実装で、manifestに定義のみ存在する。特殊パート途中のセーブは不可。実装担当のサンドボックス制約により、git操作とブラウザ検証はオーケストレーター側で実施しており、実装担当自身による再現確認はできていない。"

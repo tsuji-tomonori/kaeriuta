@@ -1,0 +1,3 @@
+import { decideByScore, specialPartPolicy } from './共通.js';
+const profile = { reason: '安全な正解を外し、失敗分岐とビターな境界を試す', advanceReason: '失敗時の文章と遷移も確認して読み進める', labels: { disruptive: '非合理・破綻', harmful: '不誠実な行為', safe: '安全策', investigate: '正攻法の探索', direct: '正面からの解決' }, weights: { disruptive: 6, harmful: 3, safe: -5, investigate: -3, direct: -2 }, detailWeight: 0.5, detailReason: '具体的な失敗条件を試せる文言を選ぶ', specificityWeight: 0.13, specificityReason: '失敗の対象が具体的な文言を選ぶ', indexWeight: 0.35, indexReason: '同程度なら後段の不穏な提案を試す', questionWeight: 1, partAdjust: specialPartPolicy('disrupt') };
+export const persona = { id: 'ura', name: '裏取り・破壊者', description: 'システム境界の層。非合理・不利な選択を採点し、失敗分岐やビターENDを探す。', decide(o, m) { return decideByScore(o, m, profile); } };

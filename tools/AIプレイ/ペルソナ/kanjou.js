@@ -1,0 +1,3 @@
+import { decideByScore, specialPartPolicy } from './共通.js';
+const profile = { reason: '栞と周囲の人が後悔しない、誠実な関わりを選ぶ', advanceReason: '栞の心情を受け止めながら読み進める', labels: { care: '良心・他者への配慮', dialogue: '対話', direct: '誠実な行動', harmful: '冷酷な行為', conceal: '隠し事' }, weights: { care: 6, dialogue: 2, direct: 2, harmful: -5, conceal: -3 }, contextWeights: { care: 2 }, detailWeight: 0.5, detailReason: '言葉の細部から相手の心情を読む', specificityWeight: 0.14, specificityReason: '相手や気持ちを具体的に言う文言を選ぶ', actionWeight: 0.3, indexWeight: 0.12, indexReason: '同程度なら相手へ働き掛ける提案を選ぶ', partAdjust: specialPartPolicy('relic') };
+export const persona = { id: 'kanjou', name: '感情移入する読者', description: '物語・情緒の層。良心、他者への誠実さ、栞の心情を優先して選ぶ。', decide(o, m) { return decideByScore(o, m, profile); } };
