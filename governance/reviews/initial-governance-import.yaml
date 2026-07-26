@@ -16,9 +16,18 @@ governance:
     - path: "assets/chara/_原本/"
       decision: "track"
       reason: "加工立ち絵の復旧元であり、過去に加工ミスの回帰から復旧した再生成不可欠な原本33点（約32MB）のため。"
+publication:
+  url: "https://tsuji-tomonori.github.io/kaeriuta/"
+  delivery: "GitHub Pages（mainブランチのリポジトリルートをlegacy branch方式で配信）"
+  nojekyll:
+    path: ".nojekyll"
+    reason: "Jekyllが assets/chara/_原本/ のような _ 始まりのディレクトリを除外するため。"
+  post_publish_verification:
+    result: "実ブラウザで公開URLを確認し、タイトル画面の正常描画、JSエラー0、主要リソースのHTTP 200を確認。"
+    major_resources: "index.html、src/main.js、assets/manifest.json、背景、立ち絵、スチル、UI"
 verification_contract:
   github_actions: "未設定（今後追加予定）"
-  source_of_truth: "ローカル実行結果。CIは未設定のためPassとして扱わない。"
+  source_of_truth: "ローカル実行結果。CIは未設定のためPassとして扱わない。GitHub Pagesの配信・ビルド確認はテスト合格として扱わない。"
   checks:
     - command: "node --test"
       result: "13件全通過"
