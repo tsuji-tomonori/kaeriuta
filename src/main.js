@@ -11,6 +11,7 @@ import { createScreen, setBackground } from './ui/screen.js';
 import { createMessageWindow } from './ui/message-window.js';
 import { createChoice } from './ui/choice.js';
 import { createCharacterLayer } from './ui/character-layer.js';
+import { shouldShowAdvance } from './ui/advance-visibility.js';
 import { showTitle } from './ui/title.js';
 import { parts } from './systems/index.js';
 
@@ -35,7 +36,7 @@ function run() {
   const scene = scenes[state.sceneId];
   while (currentNode(scene, state)) {
     const node = currentNode(scene, state);
-    if (node.t === 'bg') { setBackground(screen.background, resolveAsset(node.id).src); state = advanceExecution(state, scene); continue; }
+    if (node.t === 'bg') { setBackground(screen.background, resolveAsset(node.id).src); charas.clear(); state = advanceExecution(state, scene); continue; }
     if (node.t === 'chara') { charas.show(node.id, node.expr, node.pos, node.action); state = advanceExecution(state, scene); continue; }
     if (node.t === 'cg') { screen.cg.style.backgroundImage = `url("${resolveAsset(node.id).src}")`; state = advanceExecution(state, scene); continue; }
     if (node.t === 'bgm') { audio.playBGM(node.id, node.fade); state = advanceExecution(state, scene); continue; }
@@ -43,20 +44,15 @@ function run() {
     if (node.t === 'flag' || node.t === 'item' || node.t === 'param' || node.t === 'log') { state = applyNodeEffect(state, node, flags); renderHud(); state = advanceExecution(state, scene); continue; }
     if (node.t === 'if') { state = enterBranch(state, scene, node, evaluateCondition(node.cond, state, flags) ? 'then' : 'else'); continue; }
     if (node.t === 'label') { state = advanceExecution(state, scene); continue; }
-    if (node.t === 'choice') { const available = node.options.filter((o) => evaluateCondition(o.cond, state, flags)); choices.show(node.prompt, available, (o) => { state = (o.effects || []).reduce((s, e) => applyEffect(s, e, flags), state); choices.clear(); const result = gotoLabel(state, scene, o.goto); if (!result.found) { console.error(`[scenario] goto label not found: ${o.goto} (scene: ${state.sceneId})`); state = advanceExecution(state, scene); } else state = result.state; renderHud(); run(); }); return; }
+    if (node.t === 'choice') { message.hide(); const available = node.options.filter((o) => evaluateCondition(o.cond, state, flags)); choices.show(node.prompt, available, (o) => { state = (o.effects || []).reduce((s, e) => applyEffect(s, e, flags), state); choices.clear(); const result = gotoLabel(state, scene, o.goto); if (!result.found) { console.error(`[scenario] goto label not found: ${o.goto} (scene: ${state.sceneId})`); state = advanceExecution(state, scene); } else state = result.state; renderHud(); run(); }); return; }
     if (node.t === 'chapterTitle') { screen.chapter.textContent = node.text; screen.chapter.classList.add('show'); setTimeout(() => screen.chapter.classList.remove('show'), 1800); state = advanceExecution(state, scene); continue; }
     if (node.t === 'stage') {
-      screen.stage.textContent = `【${String(node.text).replace(/^【\s*|\s*】$/g, '')}】`;
-      screen.stage.classList.add('show'); message.hide();
-      screen.stage.onclick = () => {
-        screen.stage.classList.remove('show');
-        screen.stage.onclick = null;
-        advance();
-      };
+      const text = `【${String(node.text).replace(/^【\s*|\s*】$/g, '')}】`;
+      message.show(null, text, true, shouldShowAdvance({ nodeType: node.t, choicesActive: choicesActive(), partActive }));
       return;
     }
-    if (node.t === 'say' || node.t === 'mono') { const who = node.t === 'say' && node.who ? characters[node.who]?.name : null; message.show(who, node.text, node.t === 'mono'); return; }
-    if (node.t === 'end') { state.endingId = node.endingId; saveGame('auto', state); message.show(null, 'END\nオートセーブしました。タイトルへ戻るには右上のボタンを押してください。'); return; }
+    if (node.t === 'say' || node.t === 'mono') { const who = node.t === 'say' && node.who ? characters[node.who]?.name : null; message.show(who, node.text, node.t === 'mono', shouldShowAdvance({ nodeType: node.t, choicesActive: choicesActive(), partActive })); return; }
+    if (node.t === 'end') { state.endingId = node.endingId; saveGame('auto', state); message.show(null, 'END\nオートセーブしました。タイトルへ戻るには右上のボタンを押してください。', false, shouldShowAdvance({ nodeType: node.t, choicesActive: choicesActive(), partActive, ending: true })); return; }
     if (node.t === 'jump') { state.sceneId = node.scene; state = resetExecution(state); run(); return; }
     if (node.t === 'call') { const part = parts[node.part]; if (!part) { console.error(`[parts] 未登録part: ${node.part}`); message.show(null, `特殊パート「${node.part}」はα版未実装です。`); return; } partActive = true; part.start({ state, mount: document.body }, node.args || {}).then((result = {}) => { partActive = false; state = (result.effects || []).reduce((s, effect) => applyEffect(s, effect, flags), state); renderHud(); if (result.endingId && node.args?.routeEnding !== false && scenes[`end_${result.endingId}`]) { state.sceneId = `end_${result.endingId}`; state = resetExecution(state); run(); return; } state = advanceExecution(state, scenes[state.sceneId]); run(); }).catch((error) => { partActive = false; console.error(error); message.show(null, `特殊パートの実行に失敗しました: ${node.part}`); }); return; }
     state = advanceExecution(state, scene);

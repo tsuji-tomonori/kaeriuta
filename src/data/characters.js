@@ -1,5 +1,5 @@
 /** 探偵側の表示名はこの一箇所だけを差し替える。画像IDは役割名で固定する。 */
-export const detectiveNames = { kogoro: '毛利 小五郎', ran: '毛利 蘭', conan: '江戸川 コナン' };
+export const detectiveNames = { kogoro: '毛塚 悟郎', ran: '毛塚 蘭子', conan: '江戸見 コウナン' };
 export const characters = {
   shiori: { name: '鬼灯 栞', sprite: 'chara_shiori', expressions: ['normal', 'uneasy', 'resolve'] },
   sogen: { name: '鬼灯 宗玄', sprite: 'chara_sogen', expressions: ['smile', 'speech', 'shadow', 'cold'] },

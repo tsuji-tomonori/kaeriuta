@@ -1,4 +1,4 @@
-export const rebuttalCh4a = { id:'day3_show', title:'眠りの小五郎・推理ショー', initialConviction:60, rule:'反証は一〜二日目に仕込んだ偽証拠・偽アリバイだけが使える。持たない札は提示できず、知りすぎた反証は勝っても疑惑を残す。', nodes:[
+export const rebuttalCh4a = { id:'day3_show', title:'眠りの悟郎・推理ショー', initialConviction:60, rule:'反証は一〜二日目に仕込んだ偽証拠・偽アリバイだけが使える。持たない札は提示できず、知りすぎた反証は勝っても疑惑を残す。', nodes:[
  {id:'n1',kind:'前提',claim:'凶行時刻、栞さんにアリバイはない',responses:[
   {kind:'rebut',label:'夜食の配膳時刻表を置く',card:'alibi_1',result:{effects:[{t:'param',key:'conviction',delta:-12}],break:true,note:'時刻表が鎖の最初の輪を外す。'}},
   {kind:'silence',label:'時刻だけは争わない',result:{effects:[],break:true,note:'事実を争わず、推測の飛躍だけを残した。'}},

@@ -18,16 +18,16 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'stage',text:'【栞、椅子を引く。食堂の扉が静かに閉まる。背後で剛蔵のフォークが、もう一度だけ皿に触れる。】'},
  {t:'bg',id:'bg_corridor_night',transition:'fade'}, {t:'mono',text:'廊下は食堂より暗かった。壁紙の花模様は、夜になると読めない外国語のように見える。窓を叩く雨粒が、誰かの急いだ指先みたいに連なっていた。'},
  {t:'chara',id:'chara_companion',expr:'uneasy',pos:'right',action:'fadeIn'}, {t:'say',who:'ran',text:'栞さん。'},
- {t:'say',who:'ran',text:'あの……変なこと言うようですけど。栞さん、昨日より顔色が悪いです。ちゃんと寝てくださいね。'},
- {t:'say',who:'ran',text:'こんな時に、って思うかもしれないけど……こういう時こそ、です。眠れなくても、横になって。温かいものを飲んで。誰かに、怖いって言っていいんですよ。'},
- {t:'mono',text:'蘭さんは、私が誰かを殺すつもりでいるとは知らない。知らないまま、私に眠ることを勧めている。その親切は、返却台にそっと置かれた本のようだった。受け取ってしまえば、私はもう以前と同じ棚には戻せない。'},
- {t:'choice',prompt:'蘭の言葉に答える',options:[
-  {label:'ありがとう。あなたは優しいのね',narrative:'蘭の手の温かさを、ほんの少しだけ信じる。',effects:[{t:'param',key:'conscience',delta:1},{t:'log',key:'ran_contact',value:'open'}],goto:'ran_done'},
-  {label:'……あなたたちが来なければよかったのに',narrative:'言葉は刃より静かに、蘭の表情を曇らせる。',effects:[{t:'param',key:'conscience',delta:-1}],goto:'ran_done'},
+ {t:'say',who:'ran',text:'あの……変なことを言うようですけど。栞さん、昨日より顔色が悪いです。ちゃんと寝てくださいね。大丈夫ですか？'},
+ {t:'say',who:'ran',text:'こんな時に、って思うかもしれないけど……こういう時こそ、です。眠れなくても、横になって。温かいものを飲んで。誰かに、怖いって言っていいんですよ。わたしでよければ聞きます。'},
+ {t:'mono',text:'蘭子さんは、私が誰かを殺すつもりでいるとは知らない。知らないまま、私に眠ることを勧めている。その親切は、返却台にそっと置かれた本のようだった。受け取ってしまえば、私はもう以前と同じ棚には戻せない。'},
+ {t:'choice',prompt:'蘭子の言葉に答える',options:[
+  {label:'ありがとう。あなたは優しいのね',narrative:'蘭子の手の温かさを、ほんの少しだけ信じる。',effects:[{t:'param',key:'conscience',delta:1},{t:'log',key:'ran_contact',value:'open'}],goto:'ran_done'},
+  {label:'……あなたたちが来なければよかったのに',narrative:'言葉は刃より静かに、蘭子の表情を曇らせる。',effects:[{t:'param',key:'conscience',delta:-1}],goto:'ran_done'},
   {label:'無言で会釈する',narrative:'会釈は、返事の代わりに閉じた頁だった。',effects:[],goto:'ran_done'}
  ]}, {t:'label',id:'ran_done'},
  {t:'if',cond:{log:{key:'ran_contact',equals:'open'}},then:[{t:'say',who:'ran',text:'優しいかどうかは分からないです。でも、栞さんが一人で平気なふりをするのは、もう見たくない。何かあったら、私の部屋を叩いてください。'}],else:[{t:'say',who:'ran',text:'……ごめんなさい。余計なことを言いました。でも、無理だけはしないでくださいね。'}]},
- {t:'stage',text:'【蘭が去る。廊下の角、子供用のスリッパがひとつ、灯りの境目にある。】'},
+ {t:'stage',text:'【蘭子が去る。廊下の角、子供用のスリッパがひとつ、灯りの境目にある。】'},
  {t:'chara',id:'chara_observer',expr:'serious',pos:'left',action:'fadeIn'},
  {t:'if',cond:{param:'overknow',gte:2},then:[
   {t:'say',who:'conan',text:'お姉さん、少しだけいい？'},
@@ -37,7 +37,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  ],else:[
   {t:'say',who:'conan',text:'あ、お姉さん。――夕食のあと、少しいいですか。聞きたいことがあるんだ。'},
   {t:'stage',text:'【子供の口調ではない。一拍おいて、取り繕うように笑う。】'},
-  {t:'say',who:'conan',text:'……えへへ、蘭姉ちゃんには内緒だよ？'}
+  {t:'say',who:'conan',text:'……えへへ、蘭子姉ちゃんには内緒だよ？'}
  ]},
  {t:'mono',text:'心臓が、一度だけ大きく鳴った。時計の音よりも近く、私の中だけで。それからは何事もなかったように、規則正しい拍に戻った。恐怖は案外、騒がない。貸出期限の印のように、黙って日付だけを示す。'},
  {t:'say',who:'shiori',text:'……夕食のあと、ね。'}, {t:'say',who:'conan',text:'うん。待ってる。'},
@@ -70,7 +70,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'stage',text:'【最後の一枚だけ、カードではなく写真。母の遺影。数秒、静止。】'},
  {t:'mono',text:'母さん。私はあなたの娘として、正しくありたかった。正しくあることは、いつも誰かを待つことだと思っていた。帰ってくる人を待ち、返される言葉を待ち、間に合わなかった理由を待つこと。'},
  {t:'mono',text:'でも「正しさ」は、二年前のあの日、あの人の背中と一緒に玄関を出ていった。残った私は、返却されない本のように、棚で古くなった。だから今夜だけは、誰かに返してもらうのではなく、自分で取りに行くのだと思った。'},
- {t:'stage',text:'【柱時計が鳴り始める。一打ごとに画面が明るくなり、廊下の分かれ道に立つ栞。左:客間棟の暗がり、佐伯の部屋の灯り。右:階段の上、コナンたちの部屋の扉。時計、十一時を打ち終える。画面中央に亀裂が走り、左右に割れる。】'},
+ {t:'stage',text:'【柱時計が鳴り始める。一打ごとに画面が明るくなり、廊下の分かれ道に立つ栞。左:客間棟の暗がり、佐伯の部屋の灯り。右:階段の上、コウナンたちの部屋の扉。時計、十一時を打ち終える。画面中央に亀裂が走り、左右に割れる。】'},
  {t:'choice',prompt:'左へ――凶器を取る　／　右へ――少年の部屋の扉を叩く',options:[
   {label:'左へ――凶器を取る',narrative:'暗がりへ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'execution'}],goto:'execution'},
   {label:'右へ――少年の部屋の扉を叩く',narrative:'階段へ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'confession'}],goto:'confession'}
@@ -102,16 +102,16 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'mono',text:'見られている。ずっと、この家に来てから。窓の多い館は、外を見るためではなかったのかもしれない。どの部屋の誰が、どの頁を開いたか。館そのものが、私たちを読むための目だった。'},
  {t:'choice',prompt:'どう接触する？',options:[
   {label:'このまま扉を叩く',narrative:'今夜のうちに話す。遅らせた一晩が、誰かの頁を閉じるかもしれない。',effects:[{t:'param',key:'awareness',delta:35}],goto:'confess_room'},
-  {label:'蘭を介して近づく',narrative:'朝まで待つ。その待ち時間にも、館の脚本は進む。',cond:{log:{key:'ran_contact',equals:'open'}},effects:[{t:'param',key:'awareness',delta:18}],goto:'confess_room'},
+  {label:'蘭子を介して近づく',narrative:'朝まで待つ。その待ち時間にも、館の脚本は進む。',cond:{log:{key:'ran_contact',equals:'open'}},effects:[{t:'param',key:'awareness',delta:18}],goto:'confess_room'},
   {label:'本にメモを挟む',narrative:'図書室の本を、誰にも見られない連絡帳にする。',cond:{flag:'other_plan'},effects:[{t:'param',key:'awareness',delta:6}],goto:'confess_room'}
  ]}, {t:'label',id:'confess_room'},
- {t:'stage',text:'【コナンの部屋。隣室から小五郎のいびき。コナン、扉を開けて栞を見上げ、数秒黙る。廊下を確認してから扉を閉める。子供の仕草が消える。】'},
- {t:'say',who:'conan',text:'……蘭姉ちゃんを呼んだほうがいい話？　それとも――呼ばないほうがいい話？'}, {t:'say',who:'shiori',text:'呼ばないほうがいい話よ。'}, {t:'say',who:'conan',text:'聞くよ。'},
+ {t:'stage',text:'【コウナンの部屋。隣室から悟郎のいびき。コウナン、扉を開けて栞を見上げ、数秒黙る。廊下を確認してから扉を閉める。子供の仕草が消える。】'},
+ {t:'say',who:'conan',text:'……蘭子姉ちゃんを呼んだほうがいい話？　それとも――呼ばないほうがいい話？'}, {t:'say',who:'shiori',text:'呼ばないほうがいい話よ。'}, {t:'say',who:'conan',text:'聞くよ。'},
  {t:'mono',text:'短い返事だった。けれどその一言の前に、少年の目は私の髪、袖口、靴、そして空の掌を順に読んでいた。私の言葉より先に、私が何を隠しているかを探している。探偵は、人を本のように開く。'},
  {t:'say',who:'shiori',text:'この館で起きていることは、事故でも、一人の犯人の仕業でもないの。'},
  {t:'say',who:'shiori',text:'――交換殺人。招待客の中に、五人。順番に、互いの標的を。自分の手では、自分の恨みを片づけない。だから足跡も動機も、別の頁に散る。'},
  {t:'say',who:'shiori',text:'そして私は、その五人目。今夜、人を殺すはずだった。'},
- {t:'stage',text:'【長い沈黙。コナンの目だけが動いている――疑い、検算、再構成。】'},
+ {t:'stage',text:'【長い沈黙。コウナンの目だけが動いている――疑い、検算、再構成。】'},
  {t:'say',who:'conan',text:'……その話、証明できる？　お姉さんが犯人グループの一人だって話は、お姉さんを一番疑わせる話でもあるんだよ。'},
  {t:'say',who:'conan',text:'オレを罠にかける手としては、悪くない筋書きだ。自分から来て、怖がらせて、オレに見張らせる。その間に本当の犯人が動ける。そういう読み方もできる。'},
  {t:'mono',text:'信じてほしい、と口にしかけてやめた。信じることは、証拠の代わりにならない。図書館でも、人は「確かにあったはずの本」を探しに来る。けれど棚にないなら、まずは記録を出すしかない。'},
