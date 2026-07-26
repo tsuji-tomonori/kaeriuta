@@ -6,6 +6,12 @@ function actionLines(action) {
   return [...new Set((action.reward || []).filter((effect) => effect.t === 'flag')
     .map((effect) => flags[effect.id]?.line).filter(Boolean))];
 }
+export function acquiredLineLabels(action) {
+  return actionLines(action).map((line) => lineHint[line]);
+}
+export function previewLineLabels(action, hintsEnabled = false) {
+  return hintsEnabled ? acquiredLineLabels(action) : [];
+}
 function flagCounts(state) {
   return Object.fromEntries(Object.keys(lineHint).map((line) => [line, (state.flags?.[line] || []).length]));
 }
@@ -57,6 +63,7 @@ const defaults = [
 
 export const freeAction = { async start(ctx, args = {}) {
   const actions = args.actions || defaults;
+  const hintsEnabled = globalThis.localStorage?.getItem('kaeriuta-exploration-hints') === 'on';
   let model = { state: stateOf(ctx), remaining: args.blocks ?? 3, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null };
   return new Promise((resolve) => {
     const modalView = modal(ctx, `第${args.day || 1}章・自由行動`);
@@ -71,15 +78,18 @@ export const freeAction = { async start(ctx, args = {}) {
       if (model.phase === FREE_ACTION_PHASE.FINISHED) return done();
       if (model.phase === FREE_ACTION_PHASE.READING) {
         const action = model.currentAction;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.narrative, `${displayText(action.desc, '情報')}を得た。`)}</p></div><footer><button id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></footer></article>`;
+        const acquired = acquiredLineLabels(action);
+        const acquiredNotice = acquired.length ? `<p class="freeaction-acquired">取得した情報：${acquired.map(displayText).join('・')}</p>` : '<p class="freeaction-acquired">この行動で得た内容は、後の会話や判断に反映されます。</p>';
+        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.narrative, `${displayText(action.desc, '情報')}を得た。`)}</p>${acquiredNotice}</div><footer><button id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></footer></article>`;
         modalView.main.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
         return;
       }
       const choices = actions.filter((action) => !model.used.includes(action.id));
       if (model.remaining <= 0 || choices.length === 0) return done();
-      const counts = flagCounts(model.state);
       const acquired = model.used.map((id) => actions.find((action) => action.id === id)?.label).filter(Boolean);
-      modalView.main.innerHTML = `<p>残り <b>${displayText(model.remaining, 0)}</b> ブロック。何を追うかは自分で決める。選ばなかった扉にも、別の頁がある。</p><p class="freeaction-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>${acquired.length ? `<p class="freeaction-used">取得済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="action-list">${choices.map((action) => `<button data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong><span class="freeaction-lines">見込める手掛かり：${actionLines(action).map((line) => lineHint[line]).join('・') || 'その他'}</span><span>内容：${displayText(action.desc, '情報')}</span></button>`).join('')}</div><button id="done">自由行動を切り上げる</button>`;
+      const counts = hintsEnabled ? flagCounts(model.state) : null;
+      const countNotice = counts ? `<p class="freeaction-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
+      modalView.main.innerHTML = `<p>残り <b>${displayText(model.remaining, 0)}</b> ブロック。行動を選ぶと時間を1つ使います。選ばなかった場所にも別の情報があります。</p>${countNotice}${acquired.length ? `<p class="freeaction-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="action-list">${choices.map((action) => { const preview = previewLineLabels(action, hintsEnabled); return `<button data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong>${preview.length ? `<span class="freeaction-lines">見込める手掛かり：${preview.map(displayText).join('・')}</span>` : ''}</button>`; }).join('')}</div><button id="done">自由行動を切り上げる</button>`;
       modalView.main.querySelectorAll('[data-id]').forEach((button) => {
         button.onclick = () => { model = selectFreeAction(model, choices.find((action) => action.id === button.dataset.id)); render(); };
       });

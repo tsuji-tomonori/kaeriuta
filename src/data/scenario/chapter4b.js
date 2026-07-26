@@ -39,7 +39,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
  {t:'say',who:'shiori',text:'宇野さん……。'},
  {t:'say',who:'uno',text:'申し訳ありません、栞さま。旦那さまは、筋書きを乱されるのをお嫌いでして。わたくしも、長く仕えておりますから。'},
  {t:'mono',text:'気のいい爺やだった男が、私を殺しに来ている。朝食のパンを薄く切る手と、今、盆を持つ手が同じだという事実だけが、理解より先に胸へ刺さった。宇野さんは目を上げない。見れば、四十年仕えた命令より、目の前の私を選ばなければならなくなるのだろう。'},
- {t:'choice',prompt:'逃げ道を選ぶ',options:[{label:'隠し通路へ走る',cond:{flag:'hidden_dimension'},effects:[],goto:'survive'},{label:'コウナンの合図を待つ',cond:{param:'trust',gte:40},effects:[],goto:'survive'},{label:'扉を開ける',effects:[],goto:'b3'}]}
+ {t:'choice',prompt:'逃げ道を選ぶ',options:[{label:'隠し通路へ走る',cond:{flag:'hidden_dimension'},effects:[],goto:'survive'},{label:'コウナンの合図を待つ',cond:{param:'trust',gte:40},effects:[],goto:'survive'},{label:'危険を承知で扉を開ける',effects:[],goto:'b3'}]}
 ],else:[
  {t:'mono',text:'夜は、ひどくゆっくり明けた。何度も廊下の影が動き、そのたび私は息を止めたが、影は扉を叩かなかった。見逃されたのではない。まだ頁をめくられていないだけだ、と分かっていた。'},
 ]},

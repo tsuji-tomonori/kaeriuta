@@ -7,4 +7,5 @@ import { persona as toubou } from './toubou.js';
 import { persona as ayatsuri } from './ayatsuri.js';
 import { persona as gyakuten } from './gyakuten.js';
 import { persona as mikiri } from './mikiri.js';
-export const personas = { suiri, bannin, kanjou, sokkyou, ura, toubou, ayatsuri, gyakuten, mikiri };
+import { persona as shoshinsha } from './shoshinsha.js';
+export const personas = { suiri, bannin, kanjou, sokkyou, ura, toubou, ayatsuri, gyakuten, mikiri, shoshinsha };

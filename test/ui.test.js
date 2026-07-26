@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { transitionCharacterPositions } from '../src/ui/character-state.js';
 import { shouldShowAdvance } from '../src/ui/advance-visibility.js';
+import { explorationHintsEnabled, toggleExplorationHints } from '../src/ui/title.js';
 
 test('立ち絵は同じ位置でreplaceすると一人だけになる', () => {
   let positions = transitionCharacterPositions({}, { id: 'chara_goko', expr: 'normal', pos: 'left', action: 'fadeIn' });
@@ -29,4 +30,12 @@ test('次へは文章を送る場面だけに表示する', () => {
   assert.equal(shouldShowAdvance({ nodeType: 'choice', choicesActive: true }), false);
   assert.equal(shouldShowAdvance({ nodeType: 'say', partActive: true }), false);
   assert.equal(shouldShowAdvance({ nodeType: 'end', ending: true }), false);
+});
+test('自由探索の事前ヒントは初期OFFで任意に切り替えられる', () => {
+  const values = new Map();
+  const storage = { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+  assert.equal(explorationHintsEnabled(storage), false);
+  assert.equal(toggleExplorationHints(storage), true);
+  assert.equal(explorationHintsEnabled(storage), true);
+  assert.equal(toggleExplorationHints(storage), false);
 });
