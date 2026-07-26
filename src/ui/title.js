@@ -1,20 +1,175 @@
+import { availableChapters, CONTINUE_SLOTS } from '../data/chapters.js';
+import { isMemoirUnlocked, loadProgress, loadSettings, saveSettings } from '../engine/progress.js';
+import { listSaves } from '../engine/save.js';
+import { openSaveMenu } from './save-menu.js';
+
 export const EXPLORATION_HINTS_KEY = 'kaeriuta-exploration-hints';
+let reasonSequence = 0;
+
 export function explorationHintsEnabled(storage = globalThis.localStorage) {
-  return storage?.getItem(EXPLORATION_HINTS_KEY) === 'on';
+  const legacy = storage?.getItem(EXPLORATION_HINTS_KEY);
+  if (legacy === 'on') {
+    const settings = loadSettings(storage);
+    if (!settings.explorationHints) saveSettings({ explorationHints: true }, storage);
+    return true;
+  }
+  return Boolean(loadSettings(storage).explorationHints);
 }
+
 export function toggleExplorationHints(storage = globalThis.localStorage) {
   const enabled = !explorationHintsEnabled(storage);
+  saveSettings({ explorationHints: enabled }, storage);
   storage?.setItem(EXPLORATION_HINTS_KEY, enabled ? 'on' : 'off');
   return enabled;
 }
 
-export function showTitle(root, { onStart, onLoad }) {
-  const hintEnabled = explorationHintsEnabled();
-  root.innerHTML = `<div class="title-screen"><h1>帰り唄 <small>―手毬唄の館―</small></h1><p>倒叙ミステリーアドベンチャー　α版</p><div class="title-actions"><button data-start>はじめから</button><button data-load="1">セーブ1をロード</button><button data-load="2">セーブ2をロード</button><button data-load="3">セーブ3をロード</button><button data-load="auto">オートセーブをロード</button></div><details class="title-settings"><summary>プレイ設定</summary><button data-exploration-hints>自由探索の事前ヒント：${hintEnabled ? '表示する' : '表示しない'}</button><small>表示すると、行動を選ぶ前に情報の系統と所持数が分かります。</small></details></div>`;
-  root.querySelector('[data-start]').onclick = onStart;
-  root.querySelectorAll('[data-load]').forEach((b) => { b.onclick = () => onLoad(b.dataset.load); });
-  root.querySelector('[data-exploration-hints]').onclick = (event) => {
-    const enabled = toggleExplorationHints();
-    event.currentTarget.textContent = `自由探索の事前ヒント：${enabled ? '表示する' : '表示しない'}`;
+function endingEffects(progress) {
+  const cleared = progress.endings ?? {};
+  return {
+    a1: Boolean(cleared.a1_arrest),
+    a2: Boolean(cleared.a2_escape),
+    a3: Boolean(cleared.a3_puppet),
+    a4: Boolean(cleared.a4_reversal),
+    b1: Boolean(cleared.b1_true),
+    b3: Boolean(cleared.b3_silenced),
+    count: Object.keys(cleared).length,
   };
+}
+
+function decorations(effects) {
+  const feathers = effects.b3
+    ? Array.from({ length: effects.count }, (_, index) => (
+      `<svg class="kaeriuta-title__feather" style="--feather:${index};--feather-y:${13 + (index % 2) * 4}%" viewBox="0 0 36 70" aria-hidden="true"><path d="M29 3C11 12 4 31 8 62c12-16 21-36 21-59ZM8 62 30 8" /></svg>`
+    )).join('')
+    : '';
+  return `
+    <div class="kaeriuta-title__decor" aria-hidden="true">
+      ${effects.a1 && !effects.b1 ? '<span class="kaeriuta-title__dark-window"></span>' : ''}
+      ${effects.a2 ? '<span class="kaeriuta-title__distant-light"></span>' : ''}
+      ${effects.a3 ? '<span class="kaeriuta-title__thread"></span>' : ''}
+      ${effects.a4 && !effects.b1 ? '<span class="kaeriuta-title__hidden-room"></span>' : ''}
+      ${feathers}
+    </div>`;
+}
+
+function disabledReason(button, reason) {
+  const reasonId = `kaeriuta-disabled-reason-${reasonSequence += 1}`;
+  button.disabled = true;
+  button.title = reason;
+  button.setAttribute('aria-describedby', reasonId);
+  const note = document.createElement('small');
+  note.id = reasonId;
+  note.className = 'kaeriuta-menu__disabled-reason';
+  note.textContent = reason;
+  button.after(note);
+}
+
+export function showTitle(root, {
+  onStart,
+  onContinue,
+  onLoad,
+  onChapter,
+  onGallery,
+} = {}) {
+  const storage = globalThis.localStorage;
+  const progress = loadProgress(storage);
+  const settings = loadSettings(storage);
+  const effects = endingEffects(progress);
+  const saves = listSaves(CONTINUE_SLOTS, storage);
+  const latest = saves.filter((save) => save.exists).sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+  const chapterEntries = availableChapters(storage);
+  const availableCount = chapterEntries.filter((chapter) => chapter.available).length;
+  const backgroundClass = effects.b1 ? ' kaeriuta-title--hidden-room' : '';
+
+  root.innerHTML = `
+    <div class="letterbox kaeriuta-menu-frame">
+      <section class="kaeriuta-title${backgroundClass}">
+        ${decorations(effects)}
+        <div class="kaeriuta-title__bookplate">
+          <p class="kaeriuta-title__eyebrow">倒叙ミステリーアドベンチャー</p>
+          <h1>帰り唄 <small>―手毬唄の館―</small></h1>
+          <nav class="kaeriuta-title__actions" aria-label="主メニュー">
+            <button type="button" data-start>はじめから</button>
+            <button type="button" id="title-continue" data-continue>つづきから</button>
+            <button type="button" data-load-menu>ロード</button>
+            <button type="button" id="title-chapters" data-chapter-toggle>章選択</button>
+            <div class="kaeriuta-title__chapters" data-chapter-list hidden></div>
+            <button type="button" id="title-gallery" data-gallery>回想モード</button>
+            ${isMemoirUnlocked(progress) ? '<button type="button" class="kaeriuta-title__memoir" data-memoir>律の手記</button>' : ''}
+          </nav>
+          <details class="kaeriuta-title__settings">
+            <summary>プレイ設定</summary>
+            <label><input type="checkbox" data-setting="explorationHints" ${explorationHintsEnabled(storage) ? 'checked' : ''}> 自由探索の事前ヒントを表示</label>
+            <label>テキスト速度
+              <input type="range" min="0.5" max="2" step="0.25" value="${settings.textSpeed}" data-setting="textSpeed">
+              <output data-output="textSpeed">${settings.textSpeed.toFixed(2)}倍</output>
+            </label>
+            <label>オート待ち時間
+              <input type="range" min="0.5" max="3" step="0.25" value="${settings.autoWait}" data-setting="autoWait">
+              <output data-output="autoWait">${settings.autoWait.toFixed(2)}秒</output>
+            </label>
+            <label><input type="checkbox" data-setting="skipRead" ${settings.skipRead ? 'checked' : ''}> 既読のみスキップ</label>
+            <label><input type="checkbox" data-setting="skipAll" ${settings.skipAll ? 'checked' : ''}> 未読もスキップ</label>
+          </details>
+        </div>
+      </section>
+    </div>`;
+
+  root.querySelector('[data-start]').onclick = () => onStart?.();
+  const continueButton = root.querySelector('[data-continue]');
+  if (!latest) {
+    disabledReason(continueButton, 'セーブデータがありません');
+  } else {
+    continueButton.onclick = () => {
+      if (onContinue) onContinue();
+      else onLoad?.(latest.slot);
+    };
+  }
+  root.querySelector('[data-load-menu]').onclick = () => openSaveMenu({
+    mount: root.querySelector('.kaeriuta-menu-frame') ?? root,
+    mode: 'load',
+    onLoad,
+    onClose: () => {},
+  });
+
+  const chapterToggle = root.querySelector('[data-chapter-toggle]');
+  const chapterList = root.querySelector('[data-chapter-list]');
+  chapterEntries.forEach((chapter) => {
+    const row = document.createElement('div');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = chapter.label;
+    row.append(button);
+    if (chapter.available) button.onclick = () => onChapter?.(chapter.key);
+    else disabledReason(button, 'まだ到達していません');
+    chapterList.append(row);
+  });
+  if (!availableCount) {
+    disabledReason(chapterToggle, '章の頭まで進むと選べます');
+  } else {
+    chapterToggle.onclick = () => {
+      chapterList.hidden = !chapterList.hidden;
+      chapterToggle.setAttribute('aria-expanded', String(!chapterList.hidden));
+    };
+  }
+
+  const galleryButton = root.querySelector('[data-gallery]');
+  if (!effects.count) disabledReason(galleryButton, 'ENDを1つ以上迎えると開きます');
+  else galleryButton.onclick = () => onGallery?.();
+  root.querySelector('[data-memoir]')?.addEventListener('click', () => onGallery?.());
+
+  root.querySelectorAll('[data-setting]').forEach((input) => {
+    input.addEventListener('input', () => {
+      const key = input.dataset.setting;
+      const value = input.type === 'checkbox' ? input.checked : Number(input.value);
+      if (key === 'explorationHints') {
+        saveSettings({ explorationHints: value }, storage);
+        storage?.setItem(EXPLORATION_HINTS_KEY, value ? 'on' : 'off');
+      } else {
+        saveSettings({ [key]: value }, storage);
+      }
+      const output = root.querySelector(`[data-output="${key}"]`);
+      if (output) output.textContent = `${value.toFixed(2)}${key === 'autoWait' ? '秒' : '倍'}`;
+    });
+  });
 }

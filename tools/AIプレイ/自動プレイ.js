@@ -155,7 +155,9 @@ function savedState() {
   const raw = localStorage.getItem('kaeriuta-alpha-auto') || localStorage.getItem('kaeriuta-alpha-1');
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const value = JSON.parse(raw);
+    if (value?.format === 3 && value.state?.version === 2) return value.state;
+    return value?.version === 2 ? value : null;
   } catch (error) {
     console.error('オートセーブを解析できませんでした', error);
     return null;
@@ -196,6 +198,9 @@ function writeResult(progress) {
   const result = {
     persona: { id: persona.id, name: persona.name, description: persona.description },
     status: progress.status,
+    screen: progress.screen,
+    stalledScreen: progress.stalledScreen || null,
+    stallReason: progress.stallReason || null,
     transcript,
     decisions,
     checkpoints,

@@ -4,7 +4,7 @@ import { createGameState } from '../src/engine/state.js';
 import { evaluateCondition, applyEffect } from '../src/engine/script-runner.js';
 import { flags } from '../src/data/flags.js';
 import { changeParam } from '../src/engine/params.js';
-import { deserializeState, serializeState } from '../src/engine/save.js';
+import { deserializeState, loadGame, saveKey, serializeState } from '../src/engine/save.js';
 import { advanceExecution, createExecutionStack, currentNode, enterBranch } from '../src/engine/execution.js';
 
 test('条件評価はフラグ、数値、論理結合を扱う', () => {
@@ -14,6 +14,13 @@ test('条件評価はフラグ、数値、論理結合を扱う', () => {
 });
 test('パラメータは上限と下限を越えない', () => { const s = createGameState(); assert.equal(changeParam(s.params, 'suspicion', 500).suspicion, 100); assert.equal(changeParam(s.params, 'conscience', -100).conscience, -10); });
 test('セーブ用シリアライズはゲーム状態を往復できる', () => { const state = createGameState(); assert.deepEqual(deserializeState(serializeState(state)), state); assert.equal(deserializeState('{bad'), null); });
+test('version 2の旧形式セーブを後方互換でロードできる', () => {
+  const state = createGameState();
+  state.sceneId = 'chapter2';
+  const values = new Map([[saveKey('2'), JSON.stringify(state)]]);
+  const storage = { getItem: (key) => values.get(key) ?? null };
+  assert.deepEqual(loadGame('2', storage), state);
+});
 
 test('ifの内部でも実行スタックをセーブ・ロードでき、シナリオ定義を変更しない', () => {
   const scene = { nodes: [
