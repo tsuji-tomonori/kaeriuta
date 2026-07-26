@@ -12,10 +12,19 @@ const partsEntered = [];
 let lastSignature = null;
 let unchangedTicks = 0;
 let finished = false;
-let saved = sessionStorage.getItem('kaeriuta-browser-save-check') === 'saved';
-let saveSnapshot = null;
 let activeModal = null;
 let activePart = null;
+const saveLoad = {
+  phase: mode === 'save-load' ? 'need-save' : null,
+  slot: '1',
+  format: null,
+  savedScene: null,
+  savedText: null,
+  loadedScene: null,
+  loadedText: null,
+  verified: false,
+  failure: null,
+};
 
 const record = (type, value) => errors.push({ type, text: String(value?.stack || value?.message || value) });
 options.onStart?.({ route, mode });
@@ -67,6 +76,44 @@ function lastScreen() {
   };
 }
 
+function titleRoot() {
+  return document.querySelector('.kaeriuta-title, .title-screen');
+}
+
+function screenState() {
+  const message = document.querySelector('.message-window:not([hidden])');
+  const saveMenu = document.querySelector('.kaeriuta-save-menu');
+  const dialog = document.querySelector('.dialog-overlay');
+  return {
+    title: Boolean(titleRoot()),
+    conversation: Boolean(message),
+    revealing: Boolean(message && !message.classList.contains('reveal-complete')),
+    choice: Boolean(document.querySelector('.choices')),
+    part: partName(),
+    overlays: {
+      saveMenu: Boolean(saveMenu),
+      saveConfirm: Boolean(saveMenu?.querySelector('[data-confirm]:not([hidden])')),
+      dialog: Boolean(dialog),
+      dialogTitle: dialog?.querySelector('.dialog-title')?.textContent?.trim() || null,
+      notebook: Boolean(document.querySelector('.notebook-overlay')),
+      backlog: Boolean(document.querySelector('.backlog-overlay')),
+      gallery: Boolean(document.querySelector('.kaeriuta-gallery')),
+    },
+  };
+}
+
+function stallReason(screen) {
+  if (screen.overlays.dialog) return `確認ダイアログで停止: ${screen.overlays.dialogTitle || '題名なし'}`;
+  if (screen.overlays.saveConfirm) return 'セーブメニューの確認ダイアログで停止';
+  const overlay = Object.entries(screen.overlays).find(([, open]) => Boolean(open));
+  if (overlay) return `オーバーレイで停止: ${overlay[0]}`;
+  if (screen.title) return 'タイトル画面で操作対象を見つけられない';
+  if (screen.part) return `特殊パートで停止: ${screen.part}`;
+  if (screen.choice) return '選択肢画面で停止';
+  if (screen.conversation) return screen.revealing ? '会話の文字表示中に停止' : '会話画面で停止';
+  return '操作可能な既知の画面を検出できない';
+}
+
 function endingId() {
   const sceneId = document.querySelector('#app')?.dataset.sceneId || '';
   if (sceneId.startsWith('end_')) return sceneId.slice(4);
@@ -76,9 +123,10 @@ function endingId() {
 function report(status, extra = {}) {
   const payload = {
     status, route, mode, elapsedMs: Math.round(performance.now() - startedAt), ending: endingId(),
-    title: document.querySelector('.title-screen h1')?.textContent?.trim() || null,
+    title: titleRoot()?.querySelector('h1')?.textContent?.trim() || null,
     scene: document.querySelector('#chapter-title')?.textContent?.trim() || null,
-    errors, overflow: overflowReport(), lastScreen: lastScreen(), visitedScenes, partsEntered,
+    screen: screenState(), errors, overflow: overflowReport(), lastScreen: lastScreen(), visitedScenes, partsEntered,
+    saveLoad: mode === 'save-load' ? { ...saveLoad } : null,
     events: events.slice(-100), ...extra,
   };
   if (options.onReport) {
@@ -142,12 +190,13 @@ function signature() {
     part: partName(modal),
     partText: modal?.querySelector('main')?.textContent?.replace(/\s+/g, ' ').trim() || '',
     partButtons: modal ? visibleButtons(modal) : [],
-    notebook: Boolean(document.querySelector('.notebook')),
+    messageRevealing: Boolean(document.querySelector('.message-window:not([hidden]):not(.reveal-complete)')),
+    overlays: screenState().overlays,
   });
 }
 
 function shouldPause() {
-  if (mode === 'title') return Boolean(document.querySelector('.title-screen'));
+  if (mode === 'title') return Boolean(titleRoot());
   if (mode === 'conversation') return Boolean(document.querySelector('.message-window:not([hidden])'));
   if (mode === 'choice') return Boolean(document.querySelector('.choices'));
   if (mode === 'rebuttal') return Boolean(document.querySelector('.parts-modal .rebut-head'));
@@ -212,26 +261,116 @@ function actPart(modal) {
   return click(modal.querySelector('#done'), 'part:done');
 }
 
+function saveSlotButton(menu, slot) {
+  return [...menu.querySelectorAll('.kaeriuta-save-slot')].find((row) => (
+    row.querySelector('h3')?.textContent?.trim() === `スロット ${slot}`
+  ))?.querySelector('.kaeriuta-save-slot__actions button:not(.kaeriuta-save-slot__delete)') || null;
+}
+
+function readSaveRecord(slot) {
+  const raw = localStorage.getItem(`kaeriuta-alpha-${slot}`);
+  if (!raw) return null;
+  try {
+    const record = JSON.parse(raw);
+    return record?.format === 3 && record.state?.version === 2 ? record : null;
+  } catch {
+    return null;
+  }
+}
+
+function actSaveLoadMenu(menu) {
+  const confirm = menu.querySelector('[data-confirm]:not([hidden])');
+  if (confirm) return click(confirm.querySelector('[data-confirm-yes]'), 'save-load:overwrite-confirm');
+
+  const heading = menu.querySelector('#save-menu-title')?.textContent?.trim();
+  if (saveLoad.phase === 'saving') {
+    const record = readSaveRecord(saveLoad.slot);
+    if (!record) return false;
+    saveLoad.format = record.format;
+    saveLoad.savedScene = record.state.sceneId || null;
+    saveLoad.savedText = document.querySelector('.message-text')?.textContent || null;
+    saveLoad.phase = 'returning-title';
+    events.push(`save-load:saved:${saveLoad.slot}:format-${record.format}`);
+    return click(menu.querySelector('[data-close]'), 'save-load:close-save-menu');
+  }
+  if (saveLoad.phase === 'need-save' && heading === 'セーブ') {
+    saveLoad.phase = 'saving';
+    return click(saveSlotButton(menu, saveLoad.slot), `save-load:save:${saveLoad.slot}`);
+  }
+  if (saveLoad.phase === 'opening-load' && heading === 'ロード') {
+    saveLoad.phase = 'loading';
+    return click(saveSlotButton(menu, saveLoad.slot), `save-load:load:${saveLoad.slot}`);
+  }
+  saveLoad.failure = `想定外のセーブメニュー状態: ${saveLoad.phase}/${heading || '見出しなし'}`;
+  return click(menu.querySelector('[data-close]'), 'save-load:close-unexpected-menu');
+}
+
+function verifyLoadedSave() {
+  if (mode !== 'save-load' || saveLoad.phase !== 'loading' || titleRoot()) return false;
+  const sceneId = document.querySelector('#app')?.dataset.sceneId || null;
+  if (!sceneId) return true;
+  const message = document.querySelector('.message-window:not([hidden])');
+  if (message && !message.classList.contains('reveal-complete')) {
+    click(message, 'save-load:complete-loaded-message');
+    return true;
+  }
+  saveLoad.loadedScene = sceneId;
+  saveLoad.loadedText = message?.querySelector('.message-text')?.textContent || null;
+  saveLoad.verified = saveLoad.format === 3
+    && sceneId === saveLoad.savedScene
+    && saveLoad.loadedText === saveLoad.savedText;
+  saveLoad.failure = saveLoad.verified
+    ? null
+    : `ロード後の表示不一致: saved=${saveLoad.savedScene}/${saveLoad.savedText}, loaded=${sceneId}/${saveLoad.loadedText}, format=${saveLoad.format}`;
+  saveLoad.phase = saveLoad.verified ? 'verified' : 'failed';
+  events.push(`save-load:${saveLoad.verified ? 'verified' : 'failed'}:${sceneId}`);
+  return true;
+}
+
 function act() {
   if (finished) return;
   if (shouldPause()) return stop('paused_for_screenshot');
   const end = document.querySelector('.message-text')?.textContent || '';
   if (end.startsWith('END\n')) return stop('ended');
-  if (document.querySelector('.notebook')) return click(document.querySelector('.notebook-close'), 'notebook:close');
-  if (document.querySelector('.title-screen')) {
-    if (mode === 'save-load' && saved) return click(document.querySelector('[data-load="1"]'), 'load:1');
+  const saveMenu = document.querySelector('.kaeriuta-save-menu');
+  if (saveMenu) {
+    if (mode === 'save-load') return actSaveLoadMenu(saveMenu);
+    return click(saveMenu.querySelector('[data-close]'), 'save-menu:close');
+  }
+  const dialog = document.querySelector('.dialog-overlay');
+  if (dialog) {
+    const confirmTitle = dialog.querySelector('.dialog-title')?.textContent?.trim() || '';
+    if (mode === 'save-load' && saveLoad.phase === 'returning-title' && confirmTitle === 'タイトルへ戻りますか？') {
+      saveLoad.phase = 'opening-load';
+      return click(dialog.querySelector('.dialog-ok'), 'save-load:title-confirm');
+    }
+    return click(dialog.querySelector('.dialog-cancel, .dialog-ok'), 'dialog:close');
+  }
+  if (document.querySelector('.notebook-overlay')) return click(document.querySelector('.notebook-close'), 'notebook:close');
+  if (document.querySelector('.backlog-overlay')) return click(document.querySelector('.backlog-close'), 'backlog:close');
+  if (titleRoot()) {
+    if (mode === 'save-load' && saveLoad.phase === 'opening-load') {
+      return click(document.querySelector('[data-load-menu]'), 'save-load:open-load-menu');
+    }
     return click(document.querySelector('[data-start]'), 'title:start');
   }
+  if (verifyLoadedSave()) return;
   const modal = document.querySelector('.parts-modal');
   if (modal) return actPart(modal);
   if (document.querySelector('.choices')) return chooseScenario();
   if (document.querySelector('#stage-note.show')) return click(document.querySelector('#stage-note.show'), 'stage:advance');
-  if (mode === 'save-load' && !saved && document.querySelector('#save')) {
-    click(document.querySelector('#save'), 'save');
-    saveSnapshot = localStorage.getItem('kaeriuta-alpha-1');
-    saved = Boolean(saveSnapshot);
-    if (saved) sessionStorage.setItem('kaeriuta-browser-save-check', 'saved');
-    return click(document.querySelector('#title'), 'title');
+  if (mode === 'save-load' && saveLoad.phase === 'need-save') {
+    const message = document.querySelector('.message-window:not([hidden])');
+    if (message && !message.classList.contains('reveal-complete')) {
+      return click(message, 'save-load:complete-before-save');
+    }
+    return click(document.querySelector('.hud-save'), 'save-load:open-save-menu');
+  }
+  if (mode === 'save-load' && saveLoad.phase === 'returning-title') {
+    return click(document.querySelector('.hud-title'), 'save-load:request-title');
+  }
+  if (mode === 'save-load' && saveLoad.phase === 'failed') {
+    return stop('save_load_failed', { saveLoad: { ...saveLoad } });
   }
   return click(document.querySelector('.message-window:not([hidden])'), 'advance');
 }
@@ -243,7 +382,14 @@ const timer = setInterval(() => {
   unchangedTicks = currentSignature === lastSignature ? unchangedTicks + 1 : 0;
   lastSignature = currentSignature;
   act();
-  if (!finished && unchangedTicks >= stalledLimit) stop('stalled', { stalledTicks: unchangedTicks });
+  if (!finished && unchangedTicks >= stalledLimit) {
+    const stalledScreen = screenState();
+    stop('stalled', {
+      stalledTicks: unchangedTicks,
+      stalledScreen,
+      stallReason: stallReason(stalledScreen),
+    });
+  }
   if (!finished && performance.now() - startedAt > safetyTimeoutMs) stop('timeout');
 }, 80);
 return { stop, report, resultElement };
