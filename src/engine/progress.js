@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   explorationHints: false,
   textSpeed: 1.0,
   bgmVolume: 0.6,
+  ambienceVolume: 0.6,
   seVolume: 0.8,
   muteAudio: false,
 });
@@ -38,6 +39,7 @@ export function normalizeSettings(settings) {
     explorationHints: Boolean(merged.explorationHints),
     textSpeed: Number.isFinite(Number(merged.textSpeed)) ? Math.max(0.5, Math.min(2, Number(merged.textSpeed))) : DEFAULT_SETTINGS.textSpeed,
     bgmVolume: Number.isFinite(Number(merged.bgmVolume)) ? Math.max(0, Math.min(1, Number(merged.bgmVolume))) : DEFAULT_SETTINGS.bgmVolume,
+    ambienceVolume: Number.isFinite(Number(merged.ambienceVolume)) ? Math.max(0, Math.min(1, Number(merged.ambienceVolume))) : DEFAULT_SETTINGS.ambienceVolume,
     seVolume: Number.isFinite(Number(merged.seVolume)) ? Math.max(0, Math.min(1, Number(merged.seVolume))) : DEFAULT_SETTINGS.seVolume,
     muteAudio: Boolean(merged.muteAudio),
   };

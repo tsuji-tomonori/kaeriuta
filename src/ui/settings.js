@@ -7,6 +7,7 @@ export const SETTINGS_FIELDS = Object.freeze([
   { key: 'skipAll', label: '未読もスキップ', type: 'checkbox' },
   { key: 'explorationHints', label: '自由探索の事前ヒントを表示', type: 'checkbox' },
   { key: 'bgmVolume', label: 'BGM音量', type: 'range', min: 0, max: 1, step: 0.05, unit: '' },
+  { key: 'ambienceVolume', label: '環境音音量', type: 'range', min: 0, max: 1, step: 0.05, unit: '' },
   { key: 'seVolume', label: 'SE音量', type: 'range', min: 0, max: 1, step: 0.05, unit: '' },
   { key: 'muteAudio', label: '音声をミュート', type: 'checkbox' },
 ]);

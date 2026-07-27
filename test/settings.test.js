@@ -13,11 +13,12 @@ function createStorage() {
 test('音量設定は既定値を持ち、範囲内に正規化される', () => {
   const storage = createStorage();
   assert.deepEqual(
-    Object.fromEntries(['bgmVolume', 'seVolume', 'muteAudio'].map((key) => [key, loadSettings(storage)[key]])),
-    { bgmVolume: 0.6, seVolume: 0.8, muteAudio: false },
+    Object.fromEntries(['bgmVolume', 'ambienceVolume', 'seVolume', 'muteAudio'].map((key) => [key, loadSettings(storage)[key]])),
+    { bgmVolume: 0.6, ambienceVolume: 0.6, seVolume: 0.8, muteAudio: false },
   );
-  const settings = saveSettings({ bgmVolume: 2, seVolume: -1, muteAudio: 'yes' }, storage);
+  const settings = saveSettings({ bgmVolume: 2, ambienceVolume: -1, seVolume: -1, muteAudio: 'yes' }, storage);
   assert.equal(settings.bgmVolume, 1);
+  assert.equal(settings.ambienceVolume, 0);
   assert.equal(settings.seVolume, 0);
   assert.equal(settings.muteAudio, true);
 });

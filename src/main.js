@@ -428,6 +428,12 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
         session.state = advanceExecution(session.state, scene);
         continue;
       }
+      if (node.t === 'amb') {
+        if (node.id) session.audio.playAmbience(node.id, node.fade);
+        else session.audio.stopAmbience(node.fade);
+        session.state = advanceExecution(session.state, scene);
+        continue;
+      }
       if (node.t === 'se') {
         session.audio.playSE(node.id);
         session.state = advanceExecution(session.state, scene);

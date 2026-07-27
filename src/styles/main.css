@@ -1,3 +1,5 @@
+@import "./追加-grading.css";
+
 :root { color-scheme: dark; font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif; background:#101216; color:#f4efd9; }
 * { box-sizing:border-box; } body { margin:0; min-height:100vh; display:grid; place-items:center; background:radial-gradient(circle,#263340,#090a0d 70%); }
 .letterbox { width:min(100vw, calc(100vh * 16 / 9)); aspect-ratio:16/9; box-shadow:0 0 50px #000; overflow:hidden; }
@@ -8,7 +10,17 @@
 #background,#cg-layer { position:absolute; inset:0; overflow:hidden; }
 #background { z-index:0; }
 #cg-layer { z-index:1; pointer-events:none; }
+.game-screen.is-grade-prologue { --environment-glow:#d38a4a; }
+.game-screen.is-grade-ch1 { --environment-glow:#aacbe0; }
+.game-screen.is-grade-ch2 { --environment-glow:#a998b2; }
+.game-screen.is-grade-ch3 { --environment-glow:#b85543; }
+.game-screen.is-grade-ch4a { --environment-glow:#83a9bd; }
+.game-screen.is-grade-ch4b { --environment-glow:#365840; }
+.game-screen.is-grade-rescue-end { --environment-glow:#d9bc70; }
+.game-screen.is-grade-ruin-end { --environment-glow:#344d70; }
 .visual-layer { position:absolute; inset:-2%; opacity:0; background:center/cover no-repeat; transform:scale(1.02); transition:opacity var(--visual-duration,720ms) cubic-bezier(.22,.61,.36,1); will-change:opacity,transform; }
+#background .visual-layer { filter:blur(.5px) brightness(.975); }
+#background .visual-dissolve { filter:blur(.5px) brightness(.975) contrast(1.015) saturate(.98); }
 .visual-layer.is-visible { opacity:1; }
 .visual-layer.is-leaving { opacity:0; }
 .visual-dissolve { filter:contrast(1.015) saturate(.98); transition-timing-function:cubic-bezier(.33,0,.18,1); }
@@ -21,13 +33,15 @@
 #character-layer { position:absolute; z-index:2; inset:0; pointer-events:none; }
 .character-layer--instant .character-slot,.character-layer--instant .character,.character-layer--instant .character-figure { transition:none!important; animation:none!important; }
 .character-slot { --character-scale:1; --character-shift:0%; position:absolute; bottom:0; width:38%; height:100%; opacity:1; transform:translateX(var(--character-shift)) scale(var(--character-scale)); transform-origin:center bottom; transition:filter 260ms ease,opacity 260ms ease,transform 260ms ease; }
-.character-slot.left { left:-2%; }
-.character-slot.center { left:31%; }
-.character-slot.right { right:-2%; }
+.character-slot::after { content:""; position:absolute; z-index:-1; left:12%; right:12%; bottom:-2%; height:15%; opacity:.24; background:radial-gradient(ellipse at center,var(--environment-glow,#7890a0aa) 0%,transparent 69%); filter:blur(9px); }
+.character-slot.left { left:-5%; }
+.character-slot.center { left:34%; }
+.character-slot.right { right:-5%; }
 .character-figure { position:absolute; inset:0; animation:characterBreath var(--breath-duration,5.6s) ease-in-out var(--breath-delay,0s) infinite; }
 .character { position:absolute; inset:auto 0 -16%; width:100%; height:118%; object-fit:contain; object-position:center bottom; opacity:1; filter:sepia(var(--character-warmth,0)) hue-rotate(var(--character-hue,0deg)) drop-shadow(0 7px 11px #0009); transition:opacity 300ms ease,filter 260ms ease; }
-.character-slot.is-speaker { z-index:2; transform:translateX(var(--character-shift)) scale(calc(var(--character-scale) * 1.018)); filter:brightness(1.08) saturate(1.03); }
-.character-slot.is-muted { z-index:1; transform:translateX(var(--character-shift)) scale(calc(var(--character-scale) * .965)); filter:brightness(.58) saturate(.58); opacity:.82; }
+.character-slot.is-speaker { z-index:2; transform:translateX(var(--character-shift)) scale(calc(var(--character-scale) * 1.018)); filter:brightness(1.08) saturate(1.07); }
+.character-slot.is-muted { z-index:1; transform:translateX(var(--character-shift)) scale(calc(var(--character-scale) * .965)); filter:brightness(.62) saturate(.66); opacity:.82; }
+#character-layer.is-cg-active { opacity:0; visibility:hidden; transition:opacity 220ms ease,visibility 0s linear 220ms; }
 .character-enter { animation:characterEnter 420ms cubic-bezier(.2,.65,.28,1) both; }
 .character-exit { animation:characterExit 340ms ease-in both; }
 .expression-enter { animation:expressionIn 300ms ease-out both; }

@@ -1,0 +1,14 @@
+/* 文字UIより下のCGレイヤーに一枚だけ重ねる章別カラーグレーディング。 */
+#cg-layer::after { content:""; position:absolute; z-index:2; inset:0; pointer-events:none; opacity:0; background:transparent; mix-blend-mode:color; transition:background 700ms ease,opacity 700ms ease; }
+.is-grade-prologue #cg-layer::after { opacity:.18; background:linear-gradient(120deg,#3c78a8 0%,transparent 52%,#d68341 100%); }
+.is-grade-ch1 #cg-layer::after { opacity:.14; background:#b7d9ec; }
+.is-grade-ch2 #cg-layer::after { opacity:.15; background:linear-gradient(135deg,#e4e2da 0%,#6e557d 100%); }
+.is-grade-ch3 #cg-layer::after { opacity:.16; background:linear-gradient(145deg,#8a2c29 0%,transparent 58%,#15121d 100%); }
+.is-grade-ch4a #cg-layer::after { opacity:.14; background:linear-gradient(120deg,#aeb7ba 0%,#5c91ae 100%); }
+.is-grade-ch4b #cg-layer::after { opacity:.17; background:linear-gradient(130deg,#1a3529 0%,transparent 53%,#8d342d 100%); }
+.is-grade-rescue-end #cg-layer::after { opacity:.13; background:linear-gradient(135deg,#e4c873 0%,#d6e0d7 100%); }
+.is-grade-ruin-end #cg-layer::after { opacity:.2; background:#172b48; }
+
+@media (prefers-reduced-motion:reduce) {
+  #cg-layer::after { transition:none; }
+}

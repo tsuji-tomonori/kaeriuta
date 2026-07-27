@@ -1,5 +1,5 @@
 export const chapter2 = { id:'chapter2', title:'二番の唄', chapter:'第二章　2日目・朝〜夕', nodes:[
-  {t:'bg',id:'bg_hall_morning',transition:'fade'},{t:'bgm',id:'bgm_storm',fade:700},{t:'chapterTitle',text:'第二章　二番の唄\n2日目・朝'},
+  {t:'bg',id:'bg_hall_morning',transition:'fade'},{t:'amb',id:'amb_hall',fade:800},{t:'bgm',id:'bgm_storm',fade:700},{t:'chapterTitle',text:'第二章　二番の唄\n2日目・朝'},
   {t:'mono',text:'朝の大広間には、誰も呼んでいない椅子が一つ増えていた。宗玄兄さんの椅子だ。いつもなら背にもたれ、客の言葉を採点するように笑う人が座る場所に、白布の下のからだがある。座った姿勢のまま、名前だけを落としていた。窓は雨雲を映し、暖炉の火は昨夜より小さい。誰も最初の一歩を踏み出せず、館全体がその椅子を中心に製本されてしまったようだった。'},
   {t:'stage',text:'志津が白布の端を掴み、叫びかけて声を失う。次いで藤乃の悲鳴。椅子が倒れ、誰かの湯呑が割れる。'},{t:'se',id:'se_glass'},
   {t:'chara',id:'chara_fujino',expr:'sad',pos:'left',action:'fadeIn'},
@@ -61,7 +61,7 @@ export const chapter2 = { id:'chapter2', title:'二番の唄', chapter:'第二�
     {id:'library',room:'study',label:'書斎をもう一度調べる',reward:[{t:'flag',id:'dedication_erasure'}],risk:[{t:'param',key:'suspicion',delta:6}],narrative:'書斎の机には恩田さんの眼鏡が残されていた。誰かが届けたのか、昨朝からここにあったのかは分からない。初版本の余白には細い鉛筆で、「初出なし」「終章のみ別人」と二度、書き込まれている。どちらも断定ではなく、読む者へ向けた細い矢印だった。\n\n私は最終章を開き、前の章と紙を撫で比べた。物語の調子まで違うように思える。前半は誰かが窓の外から館を見て書き、最後だけは室内の机に座って急いで結んだような文だった。そんなことを考えた自分に、背後の本棚が重くなった。恩田さんはこれを知っていた。だから殺されたのだろうか。\n\n扉の外で少年の咳払いがした。私は眼鏡を元の位置へ戻し、余白を閉じた。死者の鉛筆は、読む者へ向けた細い矢印のまま、私の中へ残った。'},
     {id:'old_road_song',room:'old_road',label:'五番の唄と地図を照合する',reward:[{t:'flag',id:'old_road'}],risk:[{t:'param',key:'suspicion',delta:3}],narrative:'談話室に残された唄の写しで、私は五番の「逃げた小鳥は三里先」を何度も追った。書斎の地図には、橋が落ちる前の古い山道が赤鉛筆で薄く引かれている。三里先――唄はただの脅しではなく、谷を迂回する旧道の距離だった。誰かが逃げるために残した索引を、私は頁の端へ写した。宇野さんが廊下を通る気配に、地図を閉じる。唄を読んだだけで、逃げ道を探していることまで知られそうだった。'}
   ]}},
-  {t:'bg',id:'bg_corridor_night',transition:'fade'},{t:'bgm',id:'bgm_mansion',fade:650},{t:'se',id:'se_footsteps'},{t:'stage',text:'夕方。雨は弱まるが、館の廊下はまだ夜のように暗い。書庫の奥で、共犯者たちの声が低く重なる。'},
+  {t:'bg',id:'bg_corridor_night',transition:'fade'},{t:'amb',id:'amb_corridor',fade:650},{t:'bgm',id:'bgm_mansion',fade:650},{t:'se',id:'se_footsteps'},{t:'stage',text:'夕方。雨は弱まるが、館の廊下はまだ夜のように暗い。書庫の奥で、共犯者たちの声が低く重なる。'},
   {t:'mono',text:'自由に動ける二つの時間は、気づけば終わっていた。死体の手、控えのカルテ、当番表、恩田さんの余白。それぞれは薄い紙片で、どれも単独では何も断定しない。けれど重ねると、宗玄兄さんの死だけが妙に軽くなる。死者を確かめるはずの医師は記録を恐れ、死者の手は書く者の手をしていて、死者の館には窓の数より多い暗がりがある。\n\n廊下の途中で、蘭子さんが私を呼び止めた。「栞さん、少し休んだほうがいいです」と言われ、私は笑う練習をするように口元を動かした。彼女は私の答えを待たず、掌で私の腕に触れた。温かい手だった。母が亡くなった夜、誰かがこうして私に触れていたら、私は別の頁へ進めただろうか。\n\n「大丈夫です」と答えると、蘭子さんは頷いた。でも、その目は大丈夫でない人を見る目だった。コウ君は少し離れた窓辺にいて、外ではなく私たちを見ていた。私は蘭子さんの手からそっと離れ、書庫へ向かった。優しさのそばに長くいれば、今夜の自分がさらに読めなくなる。'},
   {t:'chara',id:'chara_makabe',expr:'normal',pos:'center',action:'fadeIn'},
   {t:'chara',id:'chara_goko',expr:'normal',pos:'right',action:'fadeIn'},

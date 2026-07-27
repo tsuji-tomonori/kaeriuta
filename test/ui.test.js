@@ -186,3 +186,20 @@ test('立ち絵レイヤーはsetSpeakerで話者と非話者を分ける', () =
   assert.equal(sogen.classList.contains('is-muted'), false);
   assert.equal(uno.classList.contains('is-muted'), true);
 });
+
+test('立ち絵レイヤーはCG表示中だけ退場状態を切り替えられる', () => {
+  const container = new TestElement();
+  const layer = createCharacterLayer(container);
+  layer.setCinematicVisible(true);
+  assert.equal(container.classList.contains('is-cg-active'), true);
+  layer.setCinematicVisible(false);
+  assert.equal(container.classList.contains('is-cg-active'), false);
+});
+
+test('立ち絵の明示表示はCG解除フックを一度呼ぶ', () => {
+  const container = new TestElement();
+  let clearCalls = 0;
+  container.__screenControls = { clearCgForCharacter: () => { clearCalls += 1; } };
+  createCharacterLayer(container).show('chara_sogen', 'smile', 'left', 'fadeIn');
+  assert.equal(clearCalls, 1);
+});

@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 """単色クロマキーをアルファPNGへ変換し、輪郭帯のキー色を除去する。"""
 import argparse
+import colorsys
 from collections import deque
 from PIL import Image, ImageChops, ImageFilter
+
+
+KEY_HUE_MIN = .62
+KEY_HUE_MAX = .93
+KEY_SATURATION_MIN = .30
+
+
+def is_key_hue(red: int, green: int, blue: int) -> bool:
+    hue, saturation, _ = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
+    return KEY_HUE_MIN <= hue <= KEY_HUE_MAX and saturation >= KEY_SATURATION_MIN
+
+
+def is_legacy_purple(red: int, green: int, blue: int) -> bool:
+    return min(red, blue) - green >= 12 and abs(red - blue) <= 72
 
 
 def edge_band(alpha: Image.Image, inward: int) -> Image.Image:
@@ -63,6 +78,49 @@ def exterior_key_alpha(source: Image.Image, key: tuple[int, int, int], inner: in
     return Image.frombytes("L", (width, height), bytes(alpha))
 
 
+def suppress_edge_key_hue(source: Image.Image, alpha: Image.Image, inward: int) -> Image.Image:
+    """輪郭帯に残った青紫キーを近傍色へ寄せ、見つからなければ低彩度化する。
+
+    アルファは一切変更しない。キー色の青い縁だけを対象にし、近傍にキー域外の
+    不透明色があればその色相を使う。髪など近傍も青紫の場合は輝度を保ったまま
+    彩度を 0.26 まで落とし、背景キーとして見える筋を残さない。
+    """
+    output = source.convert("RGBA").copy()
+    src = source.convert("RGBA").load()
+    dst = output.load()
+    mask = edge_band(alpha, inward).load()
+    alpha_pixels = alpha.load()
+    width, height = source.size
+    for y in range(height):
+        for x in range(width):
+            red, green, blue, source_alpha = src[x, y]
+            if not mask[x, y] or not source_alpha or not (is_key_hue(red, green, blue) or is_legacy_purple(red, green, blue)):
+                continue
+            replacement = None
+            for radius in range(1, 13):
+                for dx, dy in ((-radius, 0), (radius, 0), (0, -radius), (0, radius)):
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < width and 0 <= ny < height and alpha_pixels[nx, ny] > 8:
+                        nr, ng, nb, _ = src[nx, ny]
+                        if not is_key_hue(nr, ng, nb) and not is_legacy_purple(nr, ng, nb):
+                            replacement = colorsys.rgb_to_hsv(nr / 255, ng / 255, nb / 255)
+                            break
+                if replacement:
+                    break
+            _, saturation, value = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
+            if replacement:
+                hue, nearby_saturation, _ = replacement
+                # 近傍の色相へ寄せつつ、キーの強い彩度は持ち込まない。
+                saturation = min(saturation, nearby_saturation, .75)
+            else:
+                hue, saturation = 0., .26
+            if KEY_HUE_MIN <= hue <= KEY_HUE_MAX and saturation >= KEY_SATURATION_MIN:
+                saturation = .26
+            nr, ng, nb = colorsys.hsv_to_rgb(hue, saturation, value)
+            dst[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), source_alpha)
+    return output
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("input")
@@ -96,6 +154,7 @@ def main() -> None:
     clean_b = Image.composite(neutral, b, mask)
     clean_g = Image.composite(neutral, g, mask)
     out = Image.merge("RGBA", (clean_r, clean_g, clean_b, alpha))
+    out = suppress_edge_key_hue(out, alpha, a.inward)
     out.save(a.output)
 
 
