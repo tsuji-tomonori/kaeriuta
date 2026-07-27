@@ -89,6 +89,6 @@ export const chapter1 = {
     { t:'mono', text:'書庫の窓には、雨でぼやけた私の顔が映っていた。母の娘としてここへ来た顔と、誰かの計画を読んでしまった共犯者の顔は、同じ輪郭のまま重ならない。私は窓を閉めた。閉じた硝子の向こうで、館はまだ一冊の本のように黙っている。けれど綴じ目の奥には、誰かの息がある。明日までに私は、その頁へ手を伸ばすのか、それとも自分の役だけを最後まで演じるのか。答えはまだ、どの封筒にも書かれていなかった。'},
     { t:'mono', text:'私は耳を澄ました。書く音は続かなかった。だからこそ、一打だけの音が合図に思えた。読者が頁をめくる前の、爪が紙へ触れる小さな予告。館のどこかで、私たちの明日がもう活字になっている。'},
     { t:'stage', text:'遠く、壁の向こうでタイプライターが一度だけ鳴る。開けなかった扉の向こうで、何かが小さく動いた気がした。' }, { t:'se', id:'se_glass' },
-    { t:'mono', text:'雨は止まない。館の綴じ目の奥で、誰かがまだ原稿を書いている。明日の夜――私の番が来る。廊下の灯りが揺れ、どこにもない手が頁をめくる音がした。' }, { t:'jump', scene:'chapter2' }
+    { t:'mono', text:'雨は止まない。館の綴じ目の奥で、誰かがまだ原稿を書いている。明日の夜――私の番が来る。廊下の灯りが揺れ、どこにもない手が頁をめくる音がした。' }, {t:'call',part:'chapterSummary',args:{id:'summary_ch1',chapter:1,watch:['suspicion','overknow','conscience','trust'],actionsLogKey:'free_action_day1',actions:[{id:'study',label:'書斎を調べる'},{id:'housekeeper',label:'家政婦と話す'},{id:'accomplice_room',label:'共犯者の部屋へ'},{id:'prepare',label:'犯行準備をする'},{id:'observe_detectives',label:'探偵一行を観察する'},{id:'explore',label:'館を探索する'}],watchLine:'選んだ探索の手つきが、コウ君の索引に残った。',monologue:'得た頁と失った余白を、私は同じ栞で挟んだ。'}}, { t:'jump', scene:'chapter2' }
   ]
 };

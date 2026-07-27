@@ -108,7 +108,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'stage',text:'【うたうこえは　とどかずに】'}, {t:'stage',text:'【知らないくちが　うたいます】'},
  {t:'stage',text:'【白。遠くで何かが倒れる音。次いで、時計の振り子。水道の蛇口をひねる音。】'},
  {t:'mono',text:'これで終わった。……終わった？'}, {t:'mono',text:'なら、どうして。廊下の突き当たりの壁の向こうで――誰かが頁をめくる音が、した気がするの。'},
- {t:'stage',text:'【頁をめくる音。】'}, {t:'jump',scene:'chapter4a'},
+ {t:'stage',text:'【頁をめくる音。】'}, {t:'call',part:'chapterSummary',args:{id:'summary_ch3a',chapter:3,kind:'route',monologue:'私は答えを選び、選ばなかった言葉を余白に残した。'}}, {t:'jump',scene:'chapter4a'},
  {t:'label',id:'confession'}, {t:'stage',text:'【右の階段へ足をかけた瞬間、視界の隅。廊下の姿見に、一瞬だけ――誰かの立ち姿。振り返ると誰もいない。】'},
  {t:'mono',text:'見られている。ずっと、この家に来てから。窓の多い館は、外を見るためではなかったのかもしれない。どの部屋の誰が、どの頁を開いたか。館そのものが、私たちを読むための目だった。'},
  {t:'choice',prompt:'どう接触する？',options:[
@@ -139,7 +139,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'say',who:'conan',text:'でもお姉さん、一つだけ確認。なんで今夜、オレのところに来たの。明日でも、警察が来てからでもよかった。'},
  {t:'choice',prompt:'最終応答',options:[
   {label:'明日の私は、もう別の人間だもの',narrative:'罪を犯す前の自分を、今だけ少年に預ける。',effects:[{t:'log',key:'confession_voice',value:'resolve'}],goto:'b_end'},
-  {label:'あの唄を書いた人に、会ってみたくなったの',narrative:'唄の向こうにいる、届かなかった声を思う。',cond:{countFlags:'past',gte:2},effects:[{t:'param',key:'trust',delta:10}],goto:'b_end'},
+  {label:'あの唄を書いた人に、会ってみたくなったの',narrative:'唄の向こうにいる、届かなかった声を思う。',cond:{countFlags:'past',gte:2},effects:[{t:'param',key:'trust',delta:10},{t:'log',key:'chapter3_final',value:'song'}],goto:'b_end'},
   {label:'分からない。気づいたら、ここにいた',narrative:'答えを探すために来たのに、答えはまだ言葉にならない。',effects:[],goto:'b_end'}
  ]}, {t:'label',id:'b_end'},
  {t:'if',cond:{log:{key:'confession_voice',equals:'resolve'}},then:[{t:'say',who:'shiori',text:'明日の私は、もう別の人間だもの。そうなる前に、誰かに読んでおいてほしかった。'}],else:[]},
@@ -148,5 +148,5 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'mono',text:'少年の声は小さい。けれど、この館の厚い壁に負けない声だった。私は初めて、明日の頁が白紙であることを怖いと思わなかった。'},
  {t:'stage',text:'【同時刻。壁の内側。覗き穴から漏れる細い光が、ふっと翳る。暗闇に、頁をめくる音。そして、万年筆がノートを走る音。】'},
  {t:'say',who:null,text:'???「――五番の配役が、決まった」'}, {t:'stage',text:'【接触方法「このまま扉を叩く」の場合のみ、遠くで小鳥の羽ばたきのSE。】'},
- {t:'mono',text:'頁をめくる音がした。誰かが読んでいる。けれど今度は、その読者の手から本を取り上げるために、私は次の頁へ進む。'}, {t:'jump',scene:'chapter4b'}
+ {t:'mono',text:'頁をめくる音がした。誰かが読んでいる。けれど今度は、その読者の手から本を取り上げるために、私は次の頁へ進む。'}, {t:'call',part:'chapterSummary',args:{id:'summary_ch3b',chapter:3,kind:'route',monologue:'白紙だった明日の頁へ、私は自分の手で一行を置いた。'}}, {t:'jump',scene:'chapter4b'}
 ]};

@@ -64,6 +64,7 @@ function partName(modal = document.querySelector('.parts-modal')) {
   if (modal.querySelector('.rebut-head, .chain')) return 'rebuttal';
   if (modal.querySelector('.node-grid, .agitation')) return 'jointReasoning';
   if (modal.querySelector('.board')) return 'temariBoard';
+  if (modal.querySelector('.chapter-summary')) return 'chapterSummary';
   return modal.querySelector('header span')?.textContent.trim() || 'unknownPart';
 }
 
@@ -205,6 +206,11 @@ function shouldPause() {
 }
 
 function actFreeAction(modal) {
+  const focuses = [...modal.querySelectorAll('.freeaction-narrative [data-focus]')];
+  if (focuses.length) {
+    const focus = options.choosePart ? focuses[options.choosePart('freeAction', focuses)] || focuses[0] : focuses[0];
+    return click(focus, `freeaction:focus:${focus.textContent.trim()}`);
+  }
   if (modal.querySelector('.freeaction-narrative #next')) return click(modal.querySelector('.freeaction-narrative #next'), 'freeaction:read-next');
   const actions = [...modal.querySelectorAll('.action-list [data-id]')];
   const action = options.choosePart ? actions[options.choosePart('freeAction', actions)] || actions[0] : actions[0];
@@ -215,7 +221,7 @@ function actFreeAction(modal) {
 function actRebuttal(modal) {
   const testimony = modal.querySelector('[data-v]');
   if (testimony) return click(testimony, `rebuttal:testimony:${testimony.textContent.trim()}`);
-  const responses = [...modal.querySelectorAll('.parts-actions [data-r]')];
+  const responses = [...modal.querySelectorAll('.parts-actions [data-r]:not([disabled])')];
   const response = options.choosePart ? responses[options.choosePart('rebuttal', responses)] || responses[0]
     : responses.find((button) => button.textContent.includes('反証')) || responses[0];
   if (response) return click(response, `rebuttal:response:${response.textContent.trim()}`);
@@ -257,6 +263,7 @@ function actPart(modal) {
   if (name === 'freeAction') return actFreeAction(modal);
   if (name === 'rebuttal') return actRebuttal(modal);
   if (name === 'temariBoard') return actTemariBoard(modal);
+  if (name === 'chapterSummary') return click(modal.querySelector('#done'), 'chapterSummary:done');
   if (name === 'jointReasoning') return actInference(modal);
   return click(modal.querySelector('#done'), 'part:done');
 }
