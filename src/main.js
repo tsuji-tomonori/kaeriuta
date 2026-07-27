@@ -43,6 +43,7 @@ import { openSettings } from './ui/settings.js';
 import { createPlayback } from './engine/playback.js';
 import { createNotebook } from './systems/notebook/index.js';
 import { parts } from './systems/index.js';
+import { buildEndingExplanation } from './data/endings-meta.js';
 
 let activeSession = null;
 let initializedRoot = null;
@@ -505,14 +506,17 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
         flushRead();
         saveGame(AUTO_SLOT, session.state);
         renderHud();
+        const ending = buildEndingExplanation(node.endingId, session.state);
         session.message.show(
           null,
-          'END\nオートセーブしました。',
+          `END\n${ending.title}\n${ending.metrics}\n${ending.reason}\n${ending.detail}\n${ending.nextHint}\nオートセーブしました。`,
           false,
           shouldShowAdvance({ nodeType: node.t, ending: true }),
         );
-        session.choices.show('', [{ label: 'タイトルへ戻る' }], () => {
-          if (activeSession === session) renderTitleScreen(root);
+        session.choices.show('', [{ label: 'タイトルへ戻る' }, { label: '回想モードへ' }], (option) => {
+          if (activeSession !== session) return;
+          if (option.label === '回想モードへ') showGallery(root, { onBack: () => renderTitleScreen(root), onReplay: (sceneId) => { const replay = createGameState(); replay.sceneId = sceneId; startGame(root, resetExecution(replay), { replay: true }); } });
+          else renderTitleScreen(root);
         });
         return;
       }

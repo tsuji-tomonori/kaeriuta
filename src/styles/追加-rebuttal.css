@@ -1,0 +1,18 @@
+/* rebuttal トラック専用のスタイル。他トラックはこのファイルを編集しない。 */
+
+.rebut-gauges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-bottom: .7rem; }
+.rebut-head { min-width: 0; }
+.rebut-head b { display: inline-block; margin-left: .25rem; }
+.rebut-head i { display: block; overflow: hidden; margin-top: .25rem; }
+.rebut-head i em { display: block; min-width: 0; }
+.rebut-gaze i em { background: #6c7586; }
+.rebut-gaze small { display: block; margin-top: .18rem; color: #687080; }
+.rebut-gaze.danger i em { background: #a84848; }
+.rebut-gaze.danger small, .rebut-result .danger { color: #a84848; font-weight: 700; }
+.parts-option .option-note { display: grid; gap: .12rem; margin: .25rem .1rem .5rem; line-height: 1.35; }
+.parts-option.is-disabled { opacity: .52; }
+.parts-option.is-disabled button { cursor: not-allowed; }
+.rebut-result { margin: .8rem 0; }
+.rebut-result p { margin: .35rem 0; }
+
+@media (max-width: 520px) { .rebut-gauges { grid-template-columns: 1fr; } }

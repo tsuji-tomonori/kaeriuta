@@ -18,6 +18,7 @@ const expectedCalls = {
   jointReasoning: new Set(['inference_final', 'inference_final_a4']),
   freeAction: new Set(['freeaction_day1', 'freeaction_day2']),
   temariBoard: new Set(['temari_board_day2']),
+  chapterSummary: new Set(['summary_ch1', 'summary_ch2', 'summary_ch3a', 'summary_ch3b']),
 };
 
 function error(where, message) { errors.push(`${where}: ${message}`); }

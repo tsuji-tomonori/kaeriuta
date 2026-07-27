@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 TARGET=${1:-}
-case "$TARGET" in suiri|bannin|kanjou|sokkyou|ura|toubou|ayatsuri|gyakuten|mikiri|shoshinsha) IDS=($TARGET) ;; all) IDS=(suiri bannin kanjou sokkyou ura toubou ayatsuri gyakuten mikiri shoshinsha) ;; *) echo '使い方: tools/AIプレイ/実行.sh <suiri|bannin|kanjou|sokkyou|ura|toubou|ayatsuri|gyakuten|mikiri|shoshinsha|all>' >&2; exit 2 ;; esac
+case "$TARGET" in suiri|bannin|kanjou|sokkyou|ura|toubou|ayatsuri|gyakuten|mikiri|shoshinsha|danzai) IDS=($TARGET) ;; all) IDS=(suiri bannin kanjou sokkyou ura toubou ayatsuri gyakuten mikiri shoshinsha danzai) ;; *) echo '使い方: tools/AIプレイ/実行.sh <suiri|bannin|kanjou|sokkyou|ura|toubou|ayatsuri|gyakuten|mikiri|shoshinsha|danzai|all>' >&2; exit 2 ;; esac
 node "$ROOT/tools/AIプレイ/生成.mjs" >/dev/null
 for id in "${IDS[@]}"; do
   echo "=== $id ==="
