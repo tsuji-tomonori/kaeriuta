@@ -52,7 +52,7 @@ tools/ブラウザ検証/実行.sh
 tools/AIプレイ/実行.sh all
 python3 tools/透過検品.py
 python3 tools/構図検査.py
-python3 tools/立ち絵同一性検査.py --contact-sheet
+python3 tools/立ち絵同一性検査.py
 ```
 
 - `node --test`: エンジン・条件・特殊パート等のユニットテストを実行する。
@@ -67,7 +67,7 @@ python3 tools/立ち絵同一性検査.py --contact-sheet
 - `tools/AIプレイ/実行.sh all`: 11ペルソナで実ブラウザを通し、判断理由・END・最終状態をログ化する。
 - `tools/透過検品.py`: 立ち絵のRGBA、内側アルファ、不透明率と、輪郭から内側7pxの明るく飽和したHSVキー色域（H=.62〜.93、S>=.30、V>=.35、3%超で不合格）を検査する。
 - `tools/構図検査.py`: 立ち絵の頭部比率・頭上余白などの構図の揃いを検査する。
-- `tools/立ち絵同一性検査.py --contact-sheet`: マスターとの差分を数値検査し、目視用コンタクトシートを一時領域へ出力する。
+- `tools/立ち絵同一性検査.py`: bbox正規化した頭部帯IoUを主指標としてマスターとの差分を数値検査する。未達の差分があれば終了コード1となる。目視用シートは `--contact-sheet` を追加する。
 
 実ブラウザ系はChromeを起動するため、実行可能な環境でのみ利用してください。詳しいブラウザ検証の結果形式は [tools/ブラウザ検証/README.md](tools/ブラウザ検証/README.md) を参照してください。
 
