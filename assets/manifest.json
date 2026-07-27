@@ -64,6 +64,15 @@
     {"id":"ui_notebook","kind":"ui","file":"assets/ui/ui_notebook.png","size":"512x512","用途":"手帳ボタン","生成方針":"古い手帳の抽象アイコン"},
     {"id":"bgm_arrival","kind":"bgm","file":"assets/audio/bgm_arrival.ogg","size":"-","用途":"到着時のBGM","生成方針":"静かな雨の館のためのオリジナル楽曲"},
     {"id":"bgm_storm","kind":"bgm","file":"assets/audio/bgm_storm.ogg","size":"-","用途":"橋崩落時のBGM","生成方針":"嵐の緊迫を表すオリジナル楽曲"},
-    {"id":"se_glass","kind":"se","file":"assets/audio/se_glass.ogg","size":"-","用途":"グラスの効果音","生成方針":"食器が触れる短いオリジナル効果音"}
+    {"id":"se_glass","kind":"se","file":"assets/audio/se_glass.ogg","size":"-","用途":"グラスの効果音","生成方針":"食器が触れる短いオリジナル効果音"},
+    {"id":"bgm_mansion","kind":"bgm","file":"assets/audio/bgm_mansion.ogg","size":"-","用途":"館の探索・自由行動のBGM","生成方針":"ごく静かな持続音と時計の刻みを合成したオリジナル楽曲"},
+    {"id":"bgm_inquiry","kind":"bgm","file":"assets/audio/bgm_inquiry.ogg","size":"-","用途":"取り調べ・尋問のBGM","生成方針":"低い鼓動のような拍を合成したオリジナル楽曲"},
+    {"id":"bgm_reasoning","kind":"bgm","file":"assets/audio/bgm_reasoning.ogg","size":"-","用途":"推理・反論の緊張BGM","生成方針":"半音でぶつかる持続音と脈打つ拍を合成したオリジナル楽曲"},
+    {"id":"bgm_ending","kind":"bgm","file":"assets/audio/bgm_ending.ogg","size":"-","用途":"終幕のBGM","生成方針":"静かで長い減衰を持つ合成オリジナル楽曲"},
+    {"id":"se_door","kind":"se","file":"assets/audio/se_door.ogg","size":"-","用途":"扉の開閉効果音","生成方針":"低い軋みと短い残響を合成したオリジナル効果音"},
+    {"id":"se_footsteps","kind":"se","file":"assets/audio/se_footsteps.ogg","size":"-","用途":"廊下の足音効果音","生成方針":"低域ノイズを断続させたオリジナル効果音"},
+    {"id":"se_thunder","kind":"se","file":"assets/audio/se_thunder.ogg","size":"-","用途":"遠雷の効果音","生成方針":"低域ノイズと正弦波を減衰させたオリジナル効果音"},
+    {"id":"se_clock","kind":"se","file":"assets/audio/se_clock.ogg","size":"-","用途":"時計の一打の効果音","生成方針":"短い倍音を合成したオリジナル効果音"},
+    {"id":"se_paper","kind":"se","file":"assets/audio/se_paper.ogg","size":"-","用途":"紙をめくる効果音","生成方針":"帯域を絞ったノイズを合成したオリジナル効果音"}
   ]
 }

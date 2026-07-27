@@ -166,7 +166,7 @@
 
 .kaeriuta-title__settings label {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) 8rem 3rem;
   align-items: center;
   gap: .55rem;
   padding: .35rem .15rem;
@@ -174,7 +174,13 @@
   font-size: .8rem;
 }
 
+.kaeriuta-title__settings .settings-label {
+  grid-column: 1;
+}
+
 .kaeriuta-title__settings input[type="checkbox"] {
+  grid-column: 2;
+  justify-self: start;
   accent-color: var(--menu-gold);
 }
 
@@ -507,7 +513,7 @@
     display: block;
   }
   .kaeriuta-title__settings label {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) 8rem 3rem;
   }
 }
 

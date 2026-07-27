@@ -1,5 +1,5 @@
 const endScene=(id,title,{bg,chapter,tail},nodes)=>({id,title,chapter,nodes:[
- {t:'bg',id:bg,transition:'fade'},{t:'chapterTitle',text:title},...nodes,...tail,{t:'end',endingId:id}
+ {t:'bg',id:bg,transition:'fade'},{t:'bgm',id:'bgm_ending',fade:900},{t:'chapterTitle',text:title},...nodes,...tail,{t:'end',endingId:id}
 ]});
 
 export const endings={

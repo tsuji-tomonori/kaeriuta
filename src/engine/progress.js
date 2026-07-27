@@ -2,12 +2,15 @@ import { flags as flagDefinitions } from '../data/flags.js';
 
 export const PROGRESS_KEY = 'kaeriuta-progress';
 
-const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = Object.freeze({
   skipRead: true,
   skipAll: false,
   autoWait: 1.0,
   explorationHints: false,
   textSpeed: 1.0,
+  bgmVolume: 0.6,
+  seVolume: 0.8,
+  muteAudio: false,
 });
 const READ_FLUSH_THRESHOLD = 24;
 const FALLBACK_UNLOCK = { ending: 'b1_true', allPastFlags: true };
@@ -26,7 +29,7 @@ function freshProgress() {
   };
 }
 
-function normalizeSettings(settings) {
+export function normalizeSettings(settings) {
   const merged = { ...DEFAULT_SETTINGS, ...(settings ?? {}) };
   return {
     skipRead: Boolean(merged.skipRead),
@@ -34,6 +37,9 @@ function normalizeSettings(settings) {
     autoWait: Number.isFinite(Number(merged.autoWait)) ? Math.max(0.5, Math.min(3, Number(merged.autoWait))) : DEFAULT_SETTINGS.autoWait,
     explorationHints: Boolean(merged.explorationHints),
     textSpeed: Number.isFinite(Number(merged.textSpeed)) ? Math.max(0.5, Math.min(2, Number(merged.textSpeed))) : DEFAULT_SETTINGS.textSpeed,
+    bgmVolume: Number.isFinite(Number(merged.bgmVolume)) ? Math.max(0, Math.min(1, Number(merged.bgmVolume))) : DEFAULT_SETTINGS.bgmVolume,
+    seVolume: Number.isFinite(Number(merged.seVolume)) ? Math.max(0, Math.min(1, Number(merged.seVolume))) : DEFAULT_SETTINGS.seVolume,
+    muteAudio: Boolean(merged.muteAudio),
   };
 }
 
@@ -141,11 +147,17 @@ export function loadSettings(storage = globalThis.localStorage) {
   return { ...loadProgress(storage).settings };
 }
 
+// The title screen used this key before settings were kept in progress.
+// Retain it as a read-only compatibility signal for existing players.
+export function explorationHintsEnabled(storage = globalThis.localStorage) {
+  return Boolean(loadSettings(storage).explorationHints)
+    || storage?.getItem('kaeriuta-exploration-hints') === 'on';
+}
+
 export function saveSettings(patch, storage = globalThis.localStorage) {
   const progress = loadProgress(storage);
   progress.settings = { ...progress.settings, ...patch };
-  saveProgress(progress, storage);
-  return { ...progress.settings };
+  return { ...saveProgress(progress, storage).settings };
 }
 
 export function resetProgress(storage = globalThis.localStorage) {

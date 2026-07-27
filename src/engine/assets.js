@@ -21,6 +21,9 @@ export function placeholder(id, usage = '未生成アセット') {
 }
 export function resolveAsset(id) {
   const info = assetInfo(id);
+  // 音声は読み込み可否の事前確認を待たず、Audio に実ファイルを委ねる。
+  // 失敗時は AudioManager 側が安全に無音へフォールバックする。
+  if (info.kind === 'bgm' || info.kind === 'se') return { ...info, src: info.file };
   if (available.has(id)) return { ...info, src: info.file };
   if (!placeholders.has(id)) placeholders.set(id, placeholder(id, info.用途));
   return { ...info, src: placeholders.get(id) };

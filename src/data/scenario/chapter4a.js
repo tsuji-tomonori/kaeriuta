@@ -1,5 +1,5 @@
 export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A　3日目',nodes:[
- {t:'bg',id:'bg_corridor_night',transition:'fade'}, {t:'bgm',id:'bgm_storm',fade:500}, {t:'chapterTitle',text:'第四章A　償いの唄\n3日目・未明'},
+ {t:'bg',id:'bg_corridor_night',transition:'fade'}, {t:'bgm',id:'bgm_mansion',fade:500}, {t:'se',id:'se_clock'}, {t:'chapterTitle',text:'第四章A　償いの唄\n3日目・未明'},
  {t:'stage',text:'【白がほどける。洗面所。蛇口から落ちる水音だけが、暗い館に続いている。】'},
  {t:'mono',text:'手を洗った水は、いつまでも冷たかった。指のあいだを流れ、排水口へ消えていく。その流れを見ていれば、さっきまでのことも、紙の文字のように薄くなっていく気がした。'},
  {t:'mono',text:'けれど洗い流したいものは、皮膚の上にはなかった。爪の下にも、袖口にも、目に見えるものは何もない。見えないものほど、丁寧に残る。本に残った消し跡は、消された言葉より長く生きる。'},
@@ -10,8 +10,8 @@ export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A�
  {t:'chara',id:'chara_shiori',expr:'normal',pos:'center',action:'fadeOut'},
  {t:'mono',text:'紙を揃える音だった。一枚ずつ端を机に当てる、編集者のような几帳面な音。こんな時間に、誰が何を綴じ直しているのだろう。予定表か。カルテか。それとも、今夜の死に添える説明書か。'},
  {t:'choice',prompt:'音の正体を確かめる？',options:[
-  {label:'階段の下を見る',narrative:'足音を殺し、館の余白に目を近づける。',effects:[{t:'flag',id:'peephole_map'},{t:'item',id:'peephole_map_card'}],goto:'a_night_done'},
-  {label:'自室へ戻る',narrative:'もう一枚も、読めない。自室の扉を閉める。',effects:[],goto:'a_night_done'}
+  {label:'階段の下を見る',hint:'不審な音の発生源を確かめる',narrative:'足音を殺し、館の余白に目を近づける。',effects:[{t:'flag',id:'peephole_map'},{t:'item',id:'peephole_map_card'}],goto:'a_night_done'},
+  {label:'自室へ戻る',hint:'危険を避けて身を隠す',narrative:'もう一枚も、読めない。自室の扉を閉める。',effects:[],goto:'a_night_done'}
  ]}, {t:'label',id:'a_night_done'},
  {t:'if',cond:{flag:'peephole_map'},then:[
   {t:'stage',text:'【螺旋階段の下。壁紙の継ぎ目が、半開きの扉になっている。隙間の奥でランプが揺れ、誰かの影が紙を抱えて遠ざかる。】'},
@@ -23,7 +23,7 @@ export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A�
  ]},
  {t:'stage',text:'【自室。眠れないまま、時計の針だけが進む。遠くで一度、何かが水へ落ちる音。雨のせいだと、栞は自分に言い聞かせる。】'},
  {t:'mono',text:'眠りは来なかった。横になるたび、掌が水より冷たくなる。耳を塞いでも、館のどこかで紙をめくる音がする。誰かが今夜を記録している。私の名前を、行間に書き込んでいる。'},
- {t:'bg',id:'bg_hall_morning',transition:'fade'}, {t:'bgm',id:'bgm_arrival',fade:800}, {t:'stage',text:'【朝。雨は細くなった。池の縁に、片方だけの靴。トヨの姿は、まだ水から上がらない。】'},
+ {t:'bg',id:'bg_hall_morning',transition:'fade'}, {t:'bgm',id:'bgm_inquiry',fade:800}, {t:'se',id:'se_thunder'}, {t:'stage',text:'【朝。雨は細くなった。池の縁に、片方だけの靴。トヨの姿は、まだ水から上がらない。】'},
  {t:'mono',text:'最初に見えたのは靴だった。古い革靴の片方が、池の黒い水に半分だけ沈んでいる。濡れた紐が藻に絡み、誰かの手首のように揺れていた。私はその先を見たくなかった。'},
  {t:'stage',text:'【家政婦の悲鳴。庭へ駆ける足音。宇野は人を押しのけず、しかし真っ先に池の縁へ立つ。剛蔵は吐き気をこらえ、真壁は誰かの肩を支えながら周囲を数える。】'},
  {t:'chara',id:'chara_fujino',expr:'uneasy',pos:'left',action:'fadeIn'}, {t:'say',who:'fujino',text:'トヨさんが……。昨日、私にお茶を淹れてくれたばかりなのに。'},
@@ -85,7 +85,7 @@ export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A�
  {t:'stage',text:'【暖炉の灰のなかで、紙片の端が赤く灯る。栞は火箸で押し込み、完全に黒くなるまで待つ。】'},
  {t:'mono',text:'火は証言しない。ただ燃えた順に、ものを灰へ戻す。私は火を見守りながら、昨夜の自分を戻せないことだけを認めた。認めることと、償うことは違う。その違いを読むには、まだ頁が足りない。'},
  {t:'stage',text:'【廊下の向こうで悟郎の声。人々が大広間へ集められる。椅子を引く音が、ひとつずつ増える。】'},
- {t:'bg',id:'bg_dining_night',transition:'dissolve'}, {t:'stage',text:'【午前。大広間のカーテンは閉じられている。中央の椅子に悟郎。コウナンは壁際で腕時計を見ている。】'},
+ {t:'bg',id:'bg_dining_night',transition:'dissolve'}, {t:'bgm',id:'bgm_inquiry',fade:600}, {t:'se',id:'se_clock'}, {t:'stage',text:'【午前。大広間のカーテンは閉じられている。中央の椅子に悟郎。コウナンは壁際で腕時計を見ている。】'},
  {t:'chara',id:'chara_detective',expr:'boast',pos:'right',action:'fadeIn'},
  {t:'chara',id:'chara_observer',expr:'watch',pos:'left',action:'fadeIn'},
  {t:'mono',text:'大広間は、推理のために作られた法廷ではない。昨夜まで祝いの言葉を置いていた卓が、今は私たちの言い分を並べる机になっている。椅子に座るたび、人は自分の役を与えられる。私は、まだ呼ばれていない被告席に近い場所へ座った。'},
@@ -134,10 +134,10 @@ export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A�
  {t:'mono',text:'窓硝子の向こうで、谷の道をゆっくり上がる車の音がした。救助は、善意の顔をして近づく締切だった。あと少しで外の人が来る。この館の中でだけ通じた嘘は、外の光に触れれば、別の輪郭を持つ。'},
  {t:'mono',text:'私は胸元の紙の重みを確かめた。図面も、計画書も、控えのカルテも、持っているだけでは言葉にならない。読む者がいて、初めて証拠は頁をめくる。コウ君の目を思い出す。あの子は待っている。私がどの本を開くのかを。'},
  {t:'choice',prompt:'推理ショーで何をする？',options:[
- {label:'挙手して割り込む',narrative:'悟郎の声を遮り、皆の前で推理の前提を問い直す。だが、根拠のない割り込みは自分の首を差し出すことになる。',effects:[],goto:'interrupt'},
- {label:'隙を見て館を出る',narrative:'人々の視線が卓へ集まる一瞬に、玄関の外へ走る。道を知らなければ、谷と追手が先に待つ。',effects:[],goto:'escape'},
- {label:'黙って耐える',narrative:'余計な言葉を飲み込み、推理が自壊する余地を待つ。沈黙が防壁になるか、認めたことになるかは積み上げ次第だ。',effects:[],goto:'endure'},
- {label:'反論を続ける',narrative:'問われたことだけへ短く返し、鎖を一本ずつほどこうとする。用意していない反証は、かえって疑いを濃くする。',effects:[],goto:'resist'}
+ {label:'挙手して割り込む',hint:'皆の前で推理の前提を崩しに行く',narrative:'悟郎の声を遮り、皆の前で推理の前提を問い直す。だが、根拠のない割り込みは自分の首を差し出すことになる。',effects:[],goto:'interrupt'},
+ {label:'隙を見て館を出る',hint:'混乱に乗じて館から離脱を試みる',narrative:'人々の視線が卓へ集まる一瞬に、玄関の外へ走る。道を知らなければ、谷と追手が先に待つ。',effects:[],goto:'escape'},
+ {label:'黙って耐える',hint:'発言を抑え相手の綻びを待つ',narrative:'余計な言葉を飲み込み、推理が自壊する余地を待つ。沈黙が防壁になるか、認めたことになるかは積み上げ次第だ。',effects:[],goto:'endure'},
+ {label:'反論を続ける',hint:'問いごとに反証を重ねて疑いをほどく',narrative:'問われたことだけへ短く返し、鎖を一本ずつほどこうとする。用意していない反証は、かえって疑いを濃くする。',effects:[],goto:'resist'}
  ]},
  {t:'label',id:'interrupt'}, {t:'if',cond:{and:[{countFlags:'past',gte:2},{countFlags:'plan',gte:4},{countFlags:'alive',gte:3},{flag:'three_plans'},{flag:'corpse_callus'},{flag:'peephole_map'}]},then:[{t:'flag',id:'confession_record'},{t:'choice',prompt:'栞は証拠を卓へ置いた。',options:[{label:'皆の前で読み上げる',effects:[],goto:'a4'}]}],else:[{t:'choice',prompt:'言葉が途切れ、視線だけが集まる。',options:[{label:'問いを受ける',effects:[],goto:'a1'}]}]},
  {t:'label',id:'escape'}, {t:'if',cond:{and:[{flag:'old_road'},{param:'suspicion',lte:69}]},then:[{t:'choice',prompt:'五番の唄の道筋が、雨の向こうに見えた。',options:[{label:'旧道を下る',effects:[],goto:'a2'}]}],else:[{t:'choice',prompt:'出口で足が止まる。知るはずのない道か、追手の足音か。',options:[{label:'振り返る',effects:[],goto:'a1'}]}]},

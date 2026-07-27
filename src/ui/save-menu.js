@@ -23,6 +23,7 @@ export function openSaveMenu({
   mount,
   mode,
   state,
+  saveMeta,
   onLoad,
   onClose,
 }) {
@@ -89,6 +90,7 @@ export function openSaveMenu({
           <p><strong>${escapeHtml(meta.chapter)}</strong> ／ ${escapeHtml(meta.sceneId)}</p>
           <p>疑惑 ${escapeHtml(meta.suspicion)}　確信 ${escapeHtml(meta.conviction)}</p>
           <p>🕯 ${escapeHtml(meta.past)}　📜 ${escapeHtml(meta.plan)}　👁 ${escapeHtml(meta.alive)}</p>
+          ${meta.resume === 'part-start' ? `<p class="kaeriuta-save-slot__resume">特殊パートの直前（${escapeHtml(meta.partName ?? '特殊パート')}）</p>` : ''}
         ` : '<p class="kaeriuta-save-slot__empty">まだ記録はありません</p>'}
         <div class="kaeriuta-save-slot__actions"></div>`;
       const actions = row.querySelector('.kaeriuta-save-slot__actions');
@@ -101,7 +103,7 @@ export function openSaveMenu({
           primary.title = 'オートセーブへは手動保存できません';
         } else {
           primary.onclick = () => {
-            const write = () => { saveGame(save.slot, state, storage); render(); };
+            const write = () => { saveGame(save.slot, state, storage, saveMeta); render(); };
             if (save.exists) ask(`${slotLabel(save.slot)}を上書きしますか？`, write);
             else write();
           };

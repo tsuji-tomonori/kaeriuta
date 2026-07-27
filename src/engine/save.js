@@ -19,7 +19,7 @@ function flagCount(state, line) {
   return Array.isArray(state?.flags?.[line]) ? state.flags[line].length : 0;
 }
 
-function saveMeta(state) {
+function saveMeta(state, extra = {}) {
   return {
     chapter: scenes[state?.sceneId]?.chapter ?? '章情報なし',
     sceneId: state?.sceneId ?? null,
@@ -29,6 +29,7 @@ function saveMeta(state) {
     past: flagCount(state, 'past'),
     plan: flagCount(state, 'plan'),
     alive: flagCount(state, 'alive'),
+    ...extra,
   };
 }
 
@@ -50,8 +51,8 @@ function parseSave(raw) {
   return null;
 }
 
-export function saveGame(slot, state, storage = globalThis.localStorage) {
-  const record = { format: 3, savedAt: Date.now(), meta: saveMeta(state), state };
+export function saveGame(slot, state, storage = globalThis.localStorage, meta = {}) {
+  const record = { format: 3, savedAt: Date.now(), meta: saveMeta(state, meta), state };
   storage?.setItem(saveKey(slot), JSON.stringify(record));
 }
 
