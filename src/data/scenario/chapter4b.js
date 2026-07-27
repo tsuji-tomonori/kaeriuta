@@ -76,7 +76,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'say',who:'shiori',text:'だから指示書は、いつも先回りしていたのね。私たちが考えたから選んだのではなく、選びそうな方へ、先に道を置かれていた。'},
  {t:'say',who:'conan',text:'でも、全部は読めなかった。鬼灯さんがオレの部屋を叩いたことも、この部屋を見つけたことも。だから今、焦ってるんだ。'},
 {t:'mono',text:'「焦っている」と少年は言った。その一言で、壁の内の怪物が急に老いた男へ戻った気がした。四十年かけて作った脚本が、一晩の告白で端からほどけていく。けれど同情は、赦しとは別の頁に置かなければならない。私は覗き穴から目を離し、指先で隠し戸の継ぎ目を探した。'},
- {t:'bg',id:'bg_hidden_room',transition:'fade'},{t:'bgm',id:'bgm_reasoning',fade:650},{t:'se',id:'se_paper'},
+ {t:'bg',id:'bg_hidden_room',transition:'fade'},{t:'amb',id:'amb_hidden_room',fade:650},{t:'bgm',id:'bgm_reasoning',fade:650},{t:'se',id:'se_paper'},
 {t:'stage',text:'【隠し戸が、本棚のように音もなく退く。灯りの届かない部屋。】'},
 {t:'chara',id:'chara_observer',expr:'normal',pos:'right',action:'fadeIn'},
 {t:'mono',text:'そこは物置ではなかった。物語の底だった。天井は低く、背の高い人なら首をすぼめなければ立てない。壁際には擦り切れた文机があり、右の引き出しだけが何度も開閉されたせいで色を失っている。椅子の片側には、左腕を預け続けた人の癖が沈んでいた。'},

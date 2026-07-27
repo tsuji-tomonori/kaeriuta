@@ -4,6 +4,7 @@ import { temariuta } from '../temariuta.js';
 export const prologue = {
   id: 'prologue', title: '招かれざる客', chapter: 'プロローグ　0日目・夜', nodes: [
     { t: 'bg', id: 'bg_mansion_exterior_rain', transition: 'fade' },
+    { t: 'amb', id: 'amb_rain_indoor', fade: 800 },
     { t: 'bgm', id: 'bgm_arrival', fade: 800 },
     { t: 'chapterTitle', text: 'プロローグ　招かれざる客\n0日目・夜' },
     { t: 'mono', text: '山道の先で、別荘の窓だけが雨のなかに浮いていた。灯りは歓迎のためというより、こちらを数えるために点いているように見えた。ワイパーがひと往復するたび、館は現れては消えた。' },
@@ -18,6 +19,7 @@ export const prologue = {
     { t: 'say', who: 'uno', text: '館におりますと、年を取る暇もありませんでな。皆さま、大広間でお待ちです。螺旋階段は濡れておりますから、こちらを。' },
     { t: 'mono', text: '宇野さんのランプが、玄関ホールの壁を丸く照らす。二階へ巻き上がる黒い階段は、古い本の背表紙に押された渦巻き模様に似ていた。子供のころはあれを上るのが好きだった。今は、どこまで続いているのか見上げる気にもなれない。' },
     { t: 'bg', id: 'bg_hall_night', transition: 'dissolve' },
+    { t: 'amb', id: 'amb_hall', fade: 700 },
     { t: 'bgm', id: 'bgm_mansion', fade: 700 },
     { t: 'chara', id: 'chara_goko', expr: 'normal', pos: 'left', action: 'replace' },
     { t: 'chara', id: 'chara_fujino', expr: 'normal', pos: 'right', action: 'fadeIn' },
@@ -104,6 +106,7 @@ export const prologue = {
     { t: 'mono', text: '私は全員分のカップを下げ、流しに並べた。白い磁器に残る指の跡は、あとで誰かの言葉を支えるかもしれない。' },
     { t: 'label', id: 'bridge' },
     { t: 'bg', id: 'bg_bridge_storm', transition: 'fade' },
+    { t: 'amb', id: 'amb_storm', fade: 500 },
     { t: 'bgm', id: 'bgm_storm', fade: 500 },
     { t: 'stage', text: '深夜。地鳴り。山の向こうで、太いものが折れる音。' },
     { t: 'se', id: 'se_thunder' },

@@ -73,6 +73,25 @@
     {"id":"se_footsteps","kind":"se","file":"assets/audio/se_footsteps.ogg","size":"-","用途":"廊下の足音効果音","生成方針":"低域ノイズを断続させたオリジナル効果音"},
     {"id":"se_thunder","kind":"se","file":"assets/audio/se_thunder.ogg","size":"-","用途":"遠雷の効果音","生成方針":"低域ノイズと正弦波を減衰させたオリジナル効果音"},
     {"id":"se_clock","kind":"se","file":"assets/audio/se_clock.ogg","size":"-","用途":"時計の一打の効果音","生成方針":"短い倍音を合成したオリジナル効果音"},
-    {"id":"se_paper","kind":"se","file":"assets/audio/se_paper.ogg","size":"-","用途":"紙をめくる効果音","生成方針":"帯域を絞ったノイズを合成したオリジナル効果音"}
+    {"id":"se_paper","kind":"se","file":"assets/audio/se_paper.ogg","size":"-","用途":"紙をめくる効果音","生成方針":"帯域を絞ったノイズを合成したオリジナル効果音"},
+    {"id":"bgm_end_arrest","kind":"bgm","file":"assets/audio/bgm_end_arrest.ogg","size":"-","用途":"逮捕終幕","生成方針":"帰り唄動機を解決音の前で断つ終止形"},
+    {"id":"bgm_end_escape","kind":"bgm","file":"assets/audio/bgm_end_escape.ogg","size":"-","用途":"脱出終幕","生成方針":"帰り唄動機を遠い笛と風のように残す終止形"},
+    {"id":"bgm_end_rescue","kind":"bgm","file":"assets/audio/bgm_end_rescue.ogg","size":"-","用途":"真相終幕","生成方針":"帰り唄動機を長調寄りの和音で初めて解決する終止形"},
+    {"id":"amb_rain_indoor","kind":"ambience","file":"assets/audio/amb_rain_indoor.ogg","size":"-","用途":"屋内から聞く雨","生成方針":"固定seedのピンクノイズを遠くへ帯域制限したループ"},
+    {"id":"amb_corridor","kind":"ambience","file":"assets/audio/amb_corridor.ogg","size":"-","用途":"廊下の雨と床の軋み","生成方針":"雨ノイズと低い不規則な軋みを合成したループ"},
+    {"id":"amb_library","kind":"ambience","file":"assets/audio/amb_library.ogg","size":"-","用途":"書斎の遠い時計と紙","生成方針":"短い時計高音と紙の帯域ノイズを合成したループ"},
+    {"id":"amb_hall","kind":"ambience","file":"assets/audio/amb_hall.ogg","size":"-","用途":"大広間の暖炉と残響","生成方針":"低域の火気と広い空気感を合成したループ"},
+    {"id":"amb_kitchen","kind":"ambience","file":"assets/audio/amb_kitchen.ogg","size":"-","用途":"厨房の金属音","生成方針":"短い高域ノイズの金属的な鳴りを合成したループ"},
+    {"id":"amb_basement","kind":"ambience","file":"assets/audio/amb_basement.ogg","size":"-","用途":"地下の水滴と空気音","生成方針":"低域ノイズと低い正弦波を合成したループ"},
+    {"id":"amb_hidden_room","kind":"ambience","file":"assets/audio/amb_hidden_room.ogg","size":"-","用途":"隠し部屋のタイプライター","生成方針":"外音を含めず、一打と紙擦れだけを反復するループ"},
+    {"id":"amb_storm","kind":"ambience","file":"assets/audio/amb_storm.ogg","size":"-","用途":"嵐の雨と風","生成方針":"固定seedのピンク/ブラウンノイズによるループ"},
+    {"id":"se_typewriter","kind":"se","file":"assets/audio/se_typewriter.ogg","size":"-","用途":"タイプライターの一打","生成方針":"高域クリックと低い機械的な打鍵を合成"},
+    {"id":"se_temari","kind":"se","file":"assets/audio/se_temari.ogg","size":"-","用途":"手毬が床を打つ音","生成方針":"弾む低い基音・倍音・木床の衝撃を合成"},
+    {"id":"se_tray","kind":"se","file":"assets/audio/se_tray.ogg","size":"-","用途":"銀盆の落下","生成方針":"金属的な倍音と衝撃ノイズを合成"},
+    {"id":"se_floor","kind":"se","file":"assets/audio/se_floor.ogg","size":"-","用途":"木造床の軋み","生成方針":"低域ノイズと木の共鳴を合成"},
+    {"id":"se_keys","kind":"se","file":"assets/audio/se_keys.ogg","size":"-","用途":"鍵束","生成方針":"短い金属倍音を合成"},
+    {"id":"se_pen","kind":"se","file":"assets/audio/se_pen.ogg","size":"-","用途":"ペンを置く音","生成方針":"筆記具の軽い接触音を合成"},
+    {"id":"se_cloth","kind":"se","file":"assets/audio/se_cloth.ogg","size":"-","用途":"布をめくる音","生成方針":"帯域を絞った布擦れノイズを合成"},
+    {"id":"se_water","kind":"se","file":"assets/audio/se_water.ogg","size":"-","用途":"低い水音","生成方針":"低域の揺らぐノイズを合成"}
   ]
 }

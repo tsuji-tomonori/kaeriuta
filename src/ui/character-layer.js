@@ -118,8 +118,10 @@ export function createCharacterLayer(container) {
     applySpeaker();
   }
 
-  return {
+  const api = {
     show(id, expr, pos, action) {
+      // CGは次の明示的な立ち絵表示までの一拍だけ保持し、ここで復帰させる。
+      container.__screenControls?.clearCgForCharacter?.();
       const previous = positions[pos];
       positions = transitionCharacterPositions(positions, { id, expr, pos, action });
       renderCommand(pos, previous, positions[pos], action || 'replace');
@@ -144,5 +146,11 @@ export function createCharacterLayer(container) {
         container.querySelectorAll('.character-exit, .expression-exit').forEach((element) => element.remove());
       }
     },
+    setCinematicVisible(value) {
+      container.classList.toggle('is-cg-active', Boolean(value));
+    },
   };
+  // screen.js がCGの表示・解除に合わせて、DOM越しにこのUI層だけを退場させる。
+  container.__characterLayer = api;
+  return api;
 }

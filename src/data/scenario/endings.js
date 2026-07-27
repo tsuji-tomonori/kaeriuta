@@ -1,10 +1,11 @@
-const endScene=(id,title,{bg,chapter,tail},nodes)=>({id,title,chapter,nodes:[
- {t:'bg',id:bg,transition:'fade'},{t:'bgm',id:'bgm_ending',fade:900},{t:'chapterTitle',text:title},...nodes,...tail,{t:'end',endingId:id}
+const endScene=(id,title,{bg,chapter,tail,bgm='bgm_ending'},nodes)=>({id,title,chapter,nodes:[
+ {t:'bg',id:bg,transition:'fade'},{t:'bgm',id:bgm,fade:900},{t:'chapterTitle',text:title},...nodes,...tail,{t:'end',endingId:id}
 ]});
 
 export const endings={
  end_a1:endScene('a1_arrest','END A-1　逮捕',{
-  bg:'bg_hall_morning',
+ bg:'bg_hall_morning',
+  bgm:'bgm_end_arrest',
   chapter:'エピローグ　3日目・朝',
   tail:[
    {t:'stage',text:'【谷の向こうから県警ヘリの音が近づき、大広間の窓硝子が細かく震える。】'},
@@ -32,7 +33,8 @@ export const endings={
   {t:'stage',text:'【回想モードに「逮捕」の頁が綴じられる。未回収の🕯があることを示すように、タイトル画面の館の窓が一つだけ消える。】'}
  ]),
  end_a2:endScene('a2_escape','END A-2　脱出',{
-  bg:'bg_old_road',
+ bg:'bg_old_road',
+  bgm:'bgm_end_escape',
   chapter:'エピローグ　3日目・朝',
   tail:[
    {t:'stage',text:'【朝靄の旧道に、館からは見えない町の屋根が一つだけ現れる。】'},
@@ -110,7 +112,8 @@ export const endings={
   {t:'stage',text:'【回想モードに「逆転」の証言録が綴じられる。タイトル画面の館の窓に代わり、地下室の文机が一瞬だけ映る。】'}
  ]),
  end_b1:endScene('b1_true','END B-1　真相',{
-  bg:'bg_rooftop_dawn',
+ bg:'bg_rooftop_dawn',
+  bgm:'bgm_end_rescue',
   chapter:'エピローグ　3日目・夜明け',
   tail:[
    {t:'stage',text:'【夜明けの風が証拠袋を鳴らし、原稿の一頁目に朝の光が差す。】'},
