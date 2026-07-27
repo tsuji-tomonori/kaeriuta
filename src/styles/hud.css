@@ -274,6 +274,7 @@
 @media (max-width: 960px) {
   .hud-root {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .hud-actions {
@@ -281,8 +282,8 @@
   }
 
   .hud-button {
-    min-height: 1.7rem;
-    padding: .2rem .4rem;
+    min-height: 2rem;
+    padding: .35rem .48rem;
     font-size: .78rem;
   }
 
@@ -292,6 +293,9 @@
 }
 
 @media (max-width: 650px) {
+  .hud-root { gap: .35rem; }
+  .hud-actions { width: 100%; justify-content: flex-start; gap: .3rem; }
+  .hud-button { flex: 1 0 auto; min-height: 2rem; }
   .hud-status {
     display: none;
   }

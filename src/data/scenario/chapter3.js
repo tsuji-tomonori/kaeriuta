@@ -1,6 +1,6 @@
 export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2日目・夜', nodes:[
  {t:'bg',id:'bg_dining_night',transition:'fade'}, {t:'bgm',id:'bgm_storm',fade:700}, {t:'chapterTitle',text:'第三章　岐路\n2日目・夜'},
- {t:'stage',text:'【暖色の照明。しかし誰も皿に手をつけていない。雨音、遠雷。】'},
+ {t:'stage',text:'【暖色の照明。しかし誰も皿に手をつけていない。雨音、遠雷。】'},{t:'se',id:'se_thunder'},
  {t:'mono',text:'食堂の灯りだけが、昨夜のまま残っていた。白い皿に盛られた料理は湯気を失い、ナイフとフォークは、まだ使われていない新品の栞のように整っている。誰も空腹を口にしない。空腹より先に、別のものが胸を満たしている。'},
  {t:'chara',id:'chara_goko',expr:'normal',pos:'left',action:'fadeIn'}, {t:'say',who:'goko',text:'……食えよ、みんな。毒見なら俺がしてやる。ほら、こうして食って見せりゃいいんだろ。'},
  {t:'stage',text:'【剛蔵、皿の肉を乱暴に切る。銀器が皿を引っ掻く。誰も笑わない。】'},
@@ -22,15 +22,15 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'chara',id:'chara_goko',expr:'normal',pos:'left',action:'fadeOut'},
  {t:'chara',id:'chara_makabe',expr:'normal',pos:'center',action:'fadeOut'},
  {t:'chara',id:'chara_fujino',expr:'normal',pos:'right',action:'fadeOut'},
- {t:'bg',id:'bg_corridor_night',transition:'fade'}, {t:'mono',text:'廊下は食堂より暗かった。壁紙の花模様は、夜になると読めない外国語のように見える。窓を叩く雨粒が、誰かの急いだ指先みたいに連なっていた。'},
+ {t:'bg',id:'bg_corridor_night',transition:'fade'}, {t:'bgm',id:'bgm_mansion',fade:650}, {t:'se',id:'se_footsteps'}, {t:'mono',text:'廊下は食堂より暗かった。壁紙の花模様は、夜になると読めない外国語のように見える。窓を叩く雨粒が、誰かの急いだ指先みたいに連なっていた。'},
  {t:'chara',id:'chara_companion',expr:'normal',pos:'right',action:'fadeIn'}, {t:'say',who:'ran',text:'栞さん。'},
  {t:'say',who:'ran',text:'あの……変なことを言うようですけど。栞さん、昨日より顔色が悪いです。ちゃんと寝てくださいね。大丈夫ですか？'},
  {t:'say',who:'ran',text:'こんな時に、って思うかもしれないけど……こういう時こそ、です。眠れなくても、横になって。温かいものを飲んで。誰かに、怖いって言っていいんですよ。わたしでよければ聞きます。'},
  {t:'mono',text:'蘭子さんは、私が誰かを殺すつもりでいるとは知らない。知らないまま、私に眠ることを勧めている。その親切は、返却台にそっと置かれた本のようだった。受け取ってしまえば、私はもう以前と同じ棚には戻せない。'},
  {t:'choice',prompt:'蘭子の言葉に答える',options:[
   {label:'ありがとう。あなたは優しいのね',narrative:'蘭子の手の温かさを、ほんの少しだけ信じる。',effects:[{t:'param',key:'conscience',delta:1},{t:'log',key:'ran_contact',value:'open'}],goto:'ran_done'},
-  {label:'……あなたたちが来なければよかったのに',narrative:'言葉は刃より静かに、蘭子の表情を曇らせる。',effects:[{t:'param',key:'conscience',delta:-1}],goto:'ran_done'},
-  {label:'無言で会釈する',narrative:'会釈は、返事の代わりに閉じた頁だった。',effects:[],goto:'ran_done'}
+  {label:'……あなたたちが来なければよかったのに',hint:'探偵側への敵意をあえて示す',narrative:'言葉は刃より静かに、蘭子の表情を曇らせる。',effects:[{t:'param',key:'conscience',delta:-1}],goto:'ran_done'},
+  {label:'無言で会釈する',hint:'返答を避けて本心を伏せる',narrative:'会釈は、返事の代わりに閉じた頁だった。',effects:[],goto:'ran_done'}
  ]}, {t:'label',id:'ran_done'},
  {t:'if',cond:{log:{key:'ran_contact',equals:'open'}},then:[{t:'say',who:'ran',text:'優しいかどうかは分からないです。でも、栞さんが一人で平気なふりをするのは、もう見たくない。何かあったら、私の部屋を叩いてください。'}],else:[{t:'say',who:'ran',text:'……ごめんなさい。余計なことを言いました。でも、無理だけはしないでくださいね。'}]},
  {t:'stage',text:'【蘭子が去る。廊下の角、子供用のスリッパがひとつ、灯りの境目にある。】'},
@@ -50,7 +50,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'say',who:'shiori',text:'……夕食のあと、ね。'}, {t:'say',who:'conan',text:'うん。待ってる。'},
  {t:'chara',id:'chara_observer',expr:'normal',pos:'left',action:'fadeOut'},
  {t:'mono',text:'少年はそう言って去った。足音は軽いのに、廊下には重い栞が挟まったままだった。私はその先の頁を、今夜、自分で破るのかもしれない。'},
- {t:'bg',id:'bg_room_fireplace',transition:'fade'}, {t:'stage',text:'【自室。暖炉の火。文机の上、栞の視点がゆっくり寄る――炉の縁に、三つ折りの紙。】'},
+ {t:'bg',id:'bg_room_fireplace',transition:'fade'}, {t:'se',id:'se_paper'}, {t:'stage',text:'【自室。暖炉の火。文机の上、栞の視点がゆっくり寄る――炉の縁に、三つ折りの紙。】'},
  {t:'mono',text:'部屋を出るときにはなかった。鍵は掛けていたはずなのに、紙はそこにあった。置かれたものは、手紙よりも雄弁だ。誰かがこの部屋に入り、私が帰る時刻まで知っていた。'},
  {t:'say',who:null,text:'『今夜、予定通りに。――六』'},
  {t:'mono',text:'差出人の署名は、いつも「六」。六番目の唄、という意味だと思っていた。終わりに書かれた数字。結末を知る者の印。……本当に、そうかしら。'},
@@ -80,8 +80,8 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'mono',text:'でも「正しさ」は、二年前のあの日、あの人の背中と一緒に玄関を出ていった。残った私は、返却されない本のように、棚で古くなった。だから今夜だけは、誰かに返してもらうのではなく、自分で取りに行くのだと思った。'},
  {t:'stage',text:'【柱時計が鳴り始める。一打ごとに画面が明るくなり、廊下の分かれ道に立つ栞。左:客間棟の暗がり、佐伯の部屋の灯り。右:階段の上、コウナンたちの部屋の扉。時計、十一時を打ち終える。画面中央に亀裂が走り、左右に割れる。】'},
  {t:'choice',prompt:'左へ――凶器を取る　／　右へ――少年の部屋の扉を叩く',options:[
-  {label:'左へ――凶器を取る',narrative:'暗がりへ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'execution'}],goto:'execution'},
-  {label:'右へ――少年の部屋の扉を叩く',narrative:'階段へ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'confession'}],goto:'confession'}
+  {label:'左へ――凶器を取る',hint:'計画を実行し復讐を選び取る',narrative:'暗がりへ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'execution'}],goto:'execution'},
+  {label:'右へ――少年の部屋の扉を叩く',hint:'少年へ真意を伝え協力を求める',narrative:'階段へ足を向ける。決定音は、手毬唄一番の最初の一音。',effects:[{t:'log',key:'route',value:'confession'}],goto:'confession'}
  ]},
  {t:'label',id:'execution'}, {t:'stage',text:'【左の暗がりへ。歩くたび、床板の軋み。モノローグのみ、立ち絵なし。】'},
  {t:'mono',text:'不思議ね。怖くない。'}, {t:'mono',text:'怖くないことが、いちばん怖い。恐ろしさにも頁数があるのなら、私はもう最後まで読み切ってしまったのかもしれない。'},
@@ -97,7 +97,7 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'choice',prompt:'佐伯の問いに答える',options:[
   {label:'どういう意味？',narrative:'知らないふりは、まだ残っている逃げ道を指でなぞることだった。',effects:[{t:'flag',id:'three_plans'}],goto:'after_saeki'},
   {label:'あなたこそ、歯型のカルテに何をしたの',narrative:'問いは、閉じたカルテの背を切る。',effects:[{t:'flag',id:'dental_tampering'},{t:'flag',id:'medical_record_copy'},{t:'item',id:'medical_record_copy'}],goto:'after_saeki'},
-  {label:'無言',narrative:'返事をしないことだけが、今の私に残った文章だった。',effects:[],goto:'after_saeki'}
+  {label:'無言',hint:'情報を渡さず相手の出方を見る',narrative:'返事をしないことだけが、今の私に残った文章だった。',effects:[],goto:'after_saeki'}
  ]}, {t:'label',id:'after_saeki'},
  {t:'if',cond:{flag:'three_plans'},then:[{t:'say',who:'saeki',text:'……知らんのなら、それでいい。哀れなことだ。あんたたちは皆、同じ紙を受け取ったつもりでいる。だが薬の処方箋と同じだ。少し書き換えるだけで、効き目も、死に方も変わる。'}],else:[]},
  {t:'if',cond:{flag:'medical_record_copy'},then:[{t:'say',who:'saeki',text:'――知っていたのか。あの控えまで。私は、求められた数字を整えただけだ。顔のない死体に名前を与えるのは、医者の仕事じゃない。だが、私は署名した。だから今夜、あんたを責める資格もない。'}],else:[]},

@@ -2,7 +2,7 @@ export const rebuttalCh4a = { id:'day3_show', title:'眠りの悟郎・推理シ
  {id:'n1',kind:'前提',claim:'凶行時刻、栞さんにアリバイはない',responses:[
   {kind:'rebut',label:'夜食の配膳時刻表を置く',card:'alibi_1',result:{effects:[{t:'param',key:'conviction',delta:-12}],break:true,note:'時刻表が鎖の最初の輪を外す。'}},
   {kind:'silence',label:'時刻だけは争わない',result:{effects:[],break:true,note:'事実を争わず、推測の飛躍だけを残した。'}},
-  {kind:'redirect',label:'剛蔵が廊下で待っていたことを言う',card:'other_plan',result:{effects:[{t:'param',key:'conviction',delta:-7},{t:'param',key:'conscience',delta:-1}],note:'守るために兄を線上へ置いた。'}}]},
+  {kind:'redirect',label:'剛蔵が廊下で待っていたことを言う',note:'兄の行動を示して疑いを分散する',card:'other_plan',result:{effects:[{t:'param',key:'conviction',delta:-7},{t:'param',key:'conscience',delta:-1}],note:'守るために兄を線上へ置いた。'}}]},
  {id:'n2',kind:'論理',claim:'現場へ通じる廊下に、栞さんの足跡がある',responses:[
   {kind:'rebut',label:'交換した雨靴の控えを示す',card:'alibi_2',result:{effects:[{t:'param',key:'conviction',delta:-14}],break:true,note:'濡れた足跡の主語が揺らぐ。'}},
   {kind:'silence',label:'足跡の話を聞き流す',result:{effects:[{t:'param',key:'conviction',delta:9}],note:'沈黙は推測を補強する。'}},
@@ -10,7 +10,7 @@ export const rebuttalCh4a = { id:'day3_show', title:'眠りの悟郎・推理シ
  {id:'n3',kind:'物証',claim:'凶器から栞さんの繊維が出た',responses:[
   {kind:'rebut',label:'替え布の繊維鑑定を出す',card:'alibi_3',result:{effects:[{t:'param',key:'conviction',delta:-13}],break:true,note:'繊維は犯行を語らず、仕込まれた布を語る。'}},
   {kind:'silence',label:'繊維の話には答えない',result:{effects:[{t:'param',key:'conviction',delta:8}],note:'ここで沈黙は逃げになる。'}},
-  {kind:'rebut',label:'凶器の傷の向きを言い当てる',result:{effects:[{t:'param',key:'conviction',delta:-16},{t:'param',key:'suspicion',delta:20},{t:'param',key:'overknow',delta:1}],break:true,overknow:true,note:'論破した瞬間、知るはずのない角度が残った。'}}]},
+  {kind:'rebut',label:'凶器の傷の向きを言い当てる',note:'知りすぎを承知で決定打を出す',result:{effects:[{t:'param',key:'conviction',delta:-16},{t:'param',key:'suspicion',delta:20},{t:'param',key:'overknow',delta:1}],break:true,overknow:true,note:'論破した瞬間、知るはずのない角度が残った。'}}]},
  {id:'n4',kind:'動機',claim:'被害者は栞さんを恐れていた',responses:[
   {kind:'rebut',label:'偽装した脅迫状の消印を示す',card:'alibi_4',result:{effects:[{t:'param',key:'conviction',delta:-12}],break:true,note:'恐怖の宛先が栞だけではなくなる。'}},
   {kind:'silence',label:'被害者の恐怖を否定しない',result:{effects:[{t:'param',key:'conviction',delta:6}],note:'恐れていた事実は争わない。動機の断定だけが宙に残る。'}},

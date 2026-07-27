@@ -1,20 +1,12 @@
 import { availableChapters, CONTINUE_SLOTS } from '../data/chapters.js';
-import { isMemoirUnlocked, loadProgress, loadSettings, saveSettings } from '../engine/progress.js';
+import { explorationHintsEnabled, isMemoirUnlocked, loadProgress, loadSettings, saveSettings } from '../engine/progress.js';
 import { listSaves } from '../engine/save.js';
 import { openSaveMenu } from './save-menu.js';
+import { bindSettingsControls, settingsControls } from './settings.js';
 
 export const EXPLORATION_HINTS_KEY = 'kaeriuta-exploration-hints';
+export { explorationHintsEnabled } from '../engine/progress.js';
 let reasonSequence = 0;
-
-export function explorationHintsEnabled(storage = globalThis.localStorage) {
-  const legacy = storage?.getItem(EXPLORATION_HINTS_KEY);
-  if (legacy === 'on') {
-    const settings = loadSettings(storage);
-    if (!settings.explorationHints) saveSettings({ explorationHints: true }, storage);
-    return true;
-  }
-  return Boolean(loadSettings(storage).explorationHints);
-}
 
 export function toggleExplorationHints(storage = globalThis.localStorage) {
   const enabled = !explorationHintsEnabled(storage);
@@ -74,6 +66,7 @@ export function showTitle(root, {
   const storage = globalThis.localStorage;
   const progress = loadProgress(storage);
   const settings = loadSettings(storage);
+  settings.explorationHints = explorationHintsEnabled(storage);
   const effects = endingEffects(progress);
   const saves = listSaves(CONTINUE_SLOTS, storage);
   const latest = saves.filter((save) => save.exists).sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
@@ -99,17 +92,7 @@ export function showTitle(root, {
           </nav>
           <details class="kaeriuta-title__settings">
             <summary>プレイ設定</summary>
-            <label><input type="checkbox" data-setting="explorationHints" ${explorationHintsEnabled(storage) ? 'checked' : ''}> 自由探索の事前ヒントを表示</label>
-            <label>テキスト速度
-              <input type="range" min="0.5" max="2" step="0.25" value="${settings.textSpeed}" data-setting="textSpeed">
-              <output data-output="textSpeed">${settings.textSpeed.toFixed(2)}倍</output>
-            </label>
-            <label>オート待ち時間
-              <input type="range" min="0.5" max="3" step="0.25" value="${settings.autoWait}" data-setting="autoWait">
-              <output data-output="autoWait">${settings.autoWait.toFixed(2)}秒</output>
-            </label>
-            <label><input type="checkbox" data-setting="skipRead" ${settings.skipRead ? 'checked' : ''}> 既読のみスキップ</label>
-            <label><input type="checkbox" data-setting="skipAll" ${settings.skipAll ? 'checked' : ''}> 未読もスキップ</label>
+            ${settingsControls(settings)}
           </details>
         </div>
       </section>
@@ -158,18 +141,10 @@ export function showTitle(root, {
   else galleryButton.onclick = () => onGallery?.();
   root.querySelector('[data-memoir]')?.addEventListener('click', () => onGallery?.());
 
-  root.querySelectorAll('[data-setting]').forEach((input) => {
-    input.addEventListener('input', () => {
-      const key = input.dataset.setting;
-      const value = input.type === 'checkbox' ? input.checked : Number(input.value);
-      if (key === 'explorationHints') {
-        saveSettings({ explorationHints: value }, storage);
-        storage?.setItem(EXPLORATION_HINTS_KEY, value ? 'on' : 'off');
-      } else {
-        saveSettings({ [key]: value }, storage);
-      }
-      const output = root.querySelector(`[data-output="${key}"]`);
-      if (output) output.textContent = `${value.toFixed(2)}${key === 'autoWait' ? '秒' : '倍'}`;
-    });
+  bindSettingsControls(root, {
+    storage,
+    onChange: (next) => {
+      storage?.setItem(EXPLORATION_HINTS_KEY, next.explorationHints ? 'on' : 'off');
+    },
   });
 }

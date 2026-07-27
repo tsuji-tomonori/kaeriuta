@@ -155,6 +155,14 @@ test('選択肢clear後はレイヤー直下の子が0になる', () => {
   assert.equal(container.children.length, 0);
 });
 
+test('ヒント付き選択肢でもbuttonの親要素はchoicesである', () => {
+  const container = new TestElement();
+  createChoice(container).show('どちらを選ぶ？', [{ label: '扉を叩く', hint: '慎重に進む' }], () => {});
+  const section = container.querySelector('.choices');
+  const button = section.children.find((child) => child.tagName === 'BUTTON');
+  assert.equal(button.parentElement, section);
+});
+
 test('文字送りはcompleteRevealで全文表示へ遷移する', () => {
   const container = new TestElement();
   const message = createMessageWindow(container, () => {});

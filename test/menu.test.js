@@ -79,6 +79,14 @@ test('format 3セーブはメタ情報を持ち、一覧とstateロードに使�
   ]);
 });
 
+test('特殊パート開始地点のセーブメタを保持する', () => {
+  const storage = createStorage();
+  const state = createGameState();
+  saveGame('1', state, storage, { resume: 'part-start', partName: 'testimony' });
+  assert.deepEqual(loadSaveRecord('1', storage).meta.resume, 'part-start');
+  assert.equal(loadSaveRecord('1', storage).meta.partName, 'testimony');
+});
+
 test('章選択は章頭スナップショットがある章だけを利用可能にする', () => {
   const storage = createStorage();
   const state = createGameState();

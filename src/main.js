@@ -38,7 +38,8 @@ import { showGallery } from './ui/gallery.js';
 import { openSaveMenu } from './ui/save-menu.js';
 import { createHud } from './ui/hud.js';
 import { createBacklog } from './ui/backlog.js';
-import { isDialogOpen, showConfirm, showNotice } from './ui/dialog.js';
+import { isDialogOpen, showConfirm } from './ui/dialog.js';
+import { openSettings } from './ui/settings.js';
 import { createPlayback } from './engine/playback.js';
 import { createNotebook } from './systems/notebook/index.js';
 import { parts } from './systems/index.js';
@@ -78,6 +79,7 @@ function latestContinueSlot(storage = globalThis.localStorage) {
 function closeTransientUi(session) {
   session?.playback?.stop();
   session?.saveMenu?.close?.();
+  session?.settings?.close?.();
   session?.backlog?.close();
   session?.notebook?.close();
   session?.message?.hide();
@@ -97,6 +99,7 @@ function disposeSession() {
 function overlaysOpen(session) {
   return isDialogOpen()
     || Boolean(session?.saveMenu)
+    || session?.settings?.isOpen?.()
     || session?.backlog?.isOpen()
     || session?.notebook?.isOpen();
 }
@@ -109,17 +112,17 @@ function bindInput(documentRef) {
   keydownHandler = (event) => {
     const session = activeSession;
     if (!session || session.disposed || event.repeat) return;
-    const tagName = event.target?.tagName?.toLowerCase();
-    const editing = event.target?.isContentEditable
-      || ['input', 'textarea', 'select', 'button'].includes(tagName);
-    if (editing) return;
-
     if (event.key === 'Escape') {
       if (session.saveMenu) session.saveMenu.close();
+      else if (session.settings?.isOpen?.()) session.settings.close();
       else if (session.backlog.isOpen()) session.backlog.close();
       else if (session.notebook.isOpen()) session.notebook.close();
       return;
     }
+    const tagName = event.target?.tagName?.toLowerCase();
+    const editing = event.target?.isContentEditable
+      || ['input', 'textarea', 'select', 'button'].includes(tagName);
+    if (editing) return;
     if (overlaysOpen(session)) return;
 
     const key = event.key.toLowerCase();
@@ -202,6 +205,8 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
     endingActive: false,
     disposed: false,
     saveMenu: null,
+    settings: null,
+    prePartState: null,
     currentDisplay: null,
   };
   activeSession = session;
@@ -217,7 +222,7 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
   const choicesActive = () => Boolean(session.screen.choice.children.length);
   const renderHud = () => {
     session.hud.render(session.state);
-    session.hud.setEnabled({ save: !session.partActive });
+    session.hud.setEnabled({ save: true });
   };
   const refreshPlayback = (revealing = session.message.isRevealing()) => {
     if (!session.currentDisplay) return;
@@ -260,11 +265,15 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
     () => session.manualAdvance(true),
   );
   session.message.setSpeed(loadSettings().textSpeed);
+  session.audio.applySettings?.(loadSettings());
   session.playback = createPlayback({
     advance: automaticAdvance,
     isReadNode: (nodeKey) => isRead(session.state.sceneId, nodeKey, loadProgress()),
     getSettings: () => loadSettings(),
-    onModeChange: (modes) => session.hud?.setModes(modes),
+    onModeChange: (modes) => {
+      session.hud?.setModes(modes);
+      session.charas.setInstant(modes.skip);
+    },
   });
 
   const openSaveMenuFor = (mode) => {
@@ -273,7 +282,11 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
     session.saveMenu = openSaveMenu({
       mount: root.querySelector('#game-screen'),
       mode,
-      state: session.state,
+      state: session.partActive && session.prePartState ? session.prePartState : session.state,
+      saveMeta: session.partActive && session.prePartState ? {
+        resume: 'part-start',
+        partName: session.partName,
+      } : undefined,
       onLoad: (slot) => {
         const saved = loadGame(slot);
         if (saved) startGame(root, saved, { fromLoad: true });
@@ -286,10 +299,14 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
   session.openSave = () => {
     if (session.partActive) {
       session.playback.stop();
-      showNotice({
+      showConfirm({
         mount: root.querySelector('#game-screen'),
-        title: 'セーブできません',
-        body: '特殊パートの途中ではセーブできません。完了後に保存してください。',
+        title: '特殊パート中のセーブ',
+        body: '特殊パートの途中です。この特殊パートの開始時点から再開できるように保存します。',
+        okLabel: 'セーブ画面へ',
+        cancelLabel: '戻る',
+      }).then((accepted) => {
+        if (accepted && activeSession === session) openSaveMenuFor('save');
       });
       return;
     }
@@ -324,10 +341,13 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
     onAuto: () => session.playback.toggleAuto(),
     onConfig: () => {
       session.playback.stop();
-      showNotice({
+      session.settings?.close?.();
+      session.settings = openSettings({
         mount: root.querySelector('#game-screen'),
-        title: 'プレイ設定',
-        body: 'テキスト速度・オート待ち時間・スキップ範囲はタイトル画面の「プレイ設定」で変更できます。',
+        onChange: (settings) => {
+          session.message.setSpeed(settings.textSpeed);
+          session.audio.applySettings?.(settings);
+        },
       });
     },
   });
@@ -511,12 +531,16 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
           session.message.show(null, `特殊パート「${node.part}」はα版未実装です。`);
           return;
         }
+        session.prePartState = structuredClone(session.state);
+        session.partName = node.part;
         session.partActive = true;
         renderHud();
         part.start({ state: session.state, mount: root.querySelector('#game-screen') }, node.args || {})
           .then((result = {}) => {
             if (session.disposed || activeSession !== session) return;
             session.partActive = false;
+            session.prePartState = null;
+            session.partName = null;
             session.state = (result.effects || []).reduce(
               (next, effect) => applyEffect(next, effect, flags),
               session.state,
@@ -537,6 +561,8 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
           .catch((error) => {
             if (session.disposed || activeSession !== session) return;
             session.partActive = false;
+            session.prePartState = null;
+            session.partName = null;
             renderHud();
             console.error(error);
             session.message.show(null, `特殊パートの実行に失敗しました: ${node.part}`);
@@ -558,25 +584,29 @@ export async function initializeApp({
   loadAssets = true,
   showInitialTitle = true,
 } = {}) {
-  if (!root) throw new Error('#app が見つかりません。');
-  if (!documentRef?.addEventListener) throw new Error('document が利用できません。');
-  disposeSession();
-  initializedRoot = root;
-  bindInput(documentRef);
-  if (loadAssets) await loadManifest();
-  if (showInitialTitle) renderTitleScreen(root);
-  return {
-    showTitle: () => renderTitleScreen(root),
-    dispose: () => {
-      disposeSession();
-      if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
-      if (inputDocument && wheelHandler) inputDocument.removeEventListener('wheel', wheelHandler);
-      inputDocument = null;
-      keydownHandler = null;
-      wheelHandler = null;
-      initializedRoot = null;
-    },
-  };
+  try {
+    if (!root) throw new Error('#app が見つかりません。');
+    if (!documentRef?.addEventListener) throw new Error('document が利用できません。');
+    disposeSession();
+    initializedRoot = root;
+    bindInput(documentRef);
+    if (loadAssets) await loadManifest();
+    if (showInitialTitle) renderTitleScreen(root);
+    return {
+      showTitle: () => renderTitleScreen(root),
+      dispose: () => {
+        disposeSession();
+        if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
+        if (inputDocument && wheelHandler) inputDocument.removeEventListener('wheel', wheelHandler);
+        inputDocument = null;
+        keydownHandler = null;
+        wheelHandler = null;
+        initializedRoot = null;
+      },
+    };
+  } finally {
+    documentRef?.querySelector?.('#boot-loader')?.remove();
+  }
 }
 
 if (typeof document !== 'undefined') {

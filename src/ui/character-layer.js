@@ -37,6 +37,7 @@ function applyProfile(slot, id) {
 export function createCharacterLayer(container) {
   let positions = {};
   let speaker = null;
+  let instant = false;
   const removalTimers = new Set();
 
   function applySpeaker() {
@@ -52,6 +53,10 @@ export function createCharacterLayer(container) {
   }
 
   function schedule(callback, delay) {
+    if (instant) {
+      callback();
+      return;
+    }
     const timer = setTimeout(() => {
       removalTimers.delete(timer);
       callback();
@@ -129,6 +134,15 @@ export function createCharacterLayer(container) {
     setSpeaker(characterId) {
       speaker = spriteId(characterId);
       applySpeaker();
+    },
+    setInstant(value) {
+      instant = Boolean(value);
+      container.classList.toggle('character-layer--instant', instant);
+      if (instant) {
+        removalTimers.forEach(clearTimeout);
+        removalTimers.clear();
+        container.querySelectorAll('.character-exit, .expression-exit').forEach((element) => element.remove());
+      }
     },
   };
 }

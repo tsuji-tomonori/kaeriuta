@@ -1,5 +1,5 @@
 export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B　3日目',nodes:[
-{t:'bg',id:'bg_corridor_night',transition:'fade'},{t:'chapterTitle',text:'第四章B　五番の夜\n3日目・未明'},
+ {t:'bg',id:'bg_corridor_night',transition:'fade'},{t:'bgm',id:'bgm_mansion',fade:500},{t:'se',id:'se_clock'},{t:'chapterTitle',text:'第四章B　五番の夜\n3日目・未明'},
 {t:'mono',text:'告白した瞬間から、館は別の本になった。昨日まで恐れた探偵の眼は隣にあり、今は壁の内側の読者が、私の失敗だけを待っている。'},
 {t:'stage',text:'【未明。廊下のランプは半分だけ落とされ、壁紙の花が暗がりで濡れたインクのように沈んでいる】【。】'},
 {t:'mono',text:'コウ君に話したのは、ほんの一時間前だった。計画書の写しを机へ置き、私は自分がどこまで手を染め、どこから先を知らないのかを、貸出簿の記入欄を埋めるように順番に話した。彼は途中で一度も大きな声を出さなかった。疑うための沈黙と、考えるための沈黙は違う。あの子の沈黙は後者だった。だからこそ、私は余計に怖かった。'},
@@ -9,7 +9,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'say',who:'conan',text:'簡単じゃないよ。だから、ひとりにならないで。廊下の角を曲がるときも、窓の前に立つときも。誰かが見てると思って。'},
 {t:'mono',text:'昨日まで私は、見られないために言葉を選んでいた。今夜からは、殺されないために息の仕方まで選ぶ。疑惑は、まだ頁の端に残せた。殺意は、余白ごと切り落とそうとする。'},
 {t:'mono',text:'暖炉の前に置かれた手毬は、誰も触れていないのに五番の位置で止まっていた。逃げた小鳥、三里先。あの節を唱えた家政婦の細い声を思い出す。唄は予告ではなく、配役表だったのだ。逃げた者には、逃げた者の死に方が用意される。'},
-{t:'choice',prompt:'夜をどう越える？',options:[{label:'共犯者のふりをして準備を続ける',effects:[{t:'param',key:'awareness',delta:-10},{t:'log',key:'night_defense',value:'decoy'}],goto:'night_event'},{label:'部屋に籠る',effects:[{t:'param',key:'awareness',delta:15},{t:'log',key:'night_defense',value:'hide'}],goto:'night_event'},{label:'コウナンの側を離れない',effects:[{t:'param',key:'trust',delta:10},{t:'param',key:'awareness',delta:5},{t:'log',key:'night_defense',value:'together'}],goto:'night_event'}]},{t:'label',id:'night_event'},
+ {t:'choice',prompt:'夜をどう越える？',options:[{label:'共犯者のふりをして準備を続ける',hint:'計画に従うふりで監視をかわす',effects:[{t:'param',key:'awareness',delta:-10},{t:'log',key:'night_defense',value:'decoy'}],goto:'night_event'},{label:'部屋に籠る',hint:'外部との接触を断って危険を避ける',effects:[{t:'param',key:'awareness',delta:15},{t:'log',key:'night_defense',value:'hide'}],goto:'night_event'},{label:'コウナンの側を離れない',hint:'少年との連携を優先して動く',effects:[{t:'param',key:'trust',delta:10},{t:'param',key:'awareness',delta:5},{t:'log',key:'night_defense',value:'together'}],goto:'night_event'}]},{t:'label',id:'night_event'},
 {t:'if',cond:{log:{key:'night_defense',equals:'decoy'}},then:[
  {t:'mono',text:'私は階下へ戻り、共犯者たちのいる応接間の扉を、わざと少し強く開けた。剛蔵兄さんは空のグラスを握り、私を見るなり眉を寄せた。藤乃姉さんはソファの端で、ほどけた毛糸を何度も巻き直している。誰も、私が一度だけ少年の部屋を訪ねたことを知らないふりをしていた。'},
  {t:'chara',id:'chara_goko',expr:'normal',pos:'center',action:'fadeIn'},
@@ -54,7 +54,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 ],else:[
  {t:'mono',text:'夜は、ひどくゆっくり明けた。何度も廊下の影が動き、そのたび私は息を止めたが、影は扉を叩かなかった。見逃されたのではない。まだ頁をめくられていないだけだ、と分かっていた。'},
 ]},
-{t:'label',id:'survive'},{t:'bg',id:'bg_storehouse',transition:'fade'},
+ {t:'label',id:'survive'},{t:'bg',id:'bg_storehouse',transition:'fade'},{t:'se',id:'se_door'},
 {t:'stage',text:'【夜明け前の食料庫。棚の瓶が白みはじめた窓を返し、湯気だけが人の息のように立つ。】'},
 {t:'mono',text:'食料庫の鍵は、宇野さんが腰から外したものだった。さっきの夜、彼が落としたのか、わざと残したのかは分からない。どちらにせよ金属は冷たく、私の掌に責任だけを渡してきた。コウ君は棚の下へ身を滑らせ、帳簿の背を順に確かめた。'},
 {t:'chara',id:'chara_observer',expr:'watch',pos:'right',action:'fadeIn'},
@@ -76,7 +76,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'say',who:'shiori',text:'だから指示書は、いつも先回りしていたのね。私たちが考えたから選んだのではなく、選びそうな方へ、先に道を置かれていた。'},
  {t:'say',who:'conan',text:'でも、全部は読めなかった。鬼灯さんがオレの部屋を叩いたことも、この部屋を見つけたことも。だから今、焦ってるんだ。'},
 {t:'mono',text:'「焦っている」と少年は言った。その一言で、壁の内の怪物が急に老いた男へ戻った気がした。四十年かけて作った脚本が、一晩の告白で端からほどけていく。けれど同情は、赦しとは別の頁に置かなければならない。私は覗き穴から目を離し、指先で隠し戸の継ぎ目を探した。'},
-{t:'bg',id:'bg_hidden_room',transition:'fade'},
+ {t:'bg',id:'bg_hidden_room',transition:'fade'},{t:'bgm',id:'bgm_reasoning',fade:650},{t:'se',id:'se_paper'},
 {t:'stage',text:'【隠し戸が、本棚のように音もなく退く。灯りの届かない部屋。】'},
 {t:'chara',id:'chara_observer',expr:'normal',pos:'right',action:'fadeIn'},
 {t:'mono',text:'そこは物置ではなかった。物語の底だった。天井は低く、背の高い人なら首をすぼめなければ立てない。壁際には擦り切れた文机があり、右の引き出しだけが何度も開閉されたせいで色を失っている。椅子の片側には、左腕を預け続けた人の癖が沈んでいた。'},
@@ -122,6 +122,6 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'chara',id:'chara_sogen',expr:'speech',pos:'center',action:'replace'},
 {t:'say',who:'sogen',text:'見事だ。だがな、栞。物語には、もう結末が書いてある。六番の唄だ。語り部が幕を引く。それで、この四十年は完成する。誰にも変えられん。作者にもだ。'},
 {t:'mono',text:'六番の紙は、原稿の上で静かだった。うそでつづった草紙なら、まことの筆で閉じましょう。閉じるとは、誰かを終わらせる言葉ではないはずだ。製本の最後に表紙をつけ、本を読者の手へ返すための言葉だ。私は初めて、律という人が地下で何を待っていたのかを考えた。復讐ではない。帰ることを。'},
-{t:'choice',prompt:'六番の唄に、何を返す？',options:[{label:'あなたを絶対に許さない',effects:[],goto:'b2'},{label:'「帰り唄」――あの題の意味を、あなたは四十年間、読み違えている',cond:{and:[{flag:'original_title'},{flag:'acrostic'},{flag:'three_plans'},{log:{key:'joint_reasoning',equals:'b1_true'}}]},effects:[],goto:'b1'},{label:'何も言えない',effects:[],goto:'b2'}]},
+ {t:'choice',prompt:'六番の唄に、何を返す？',options:[{label:'あなたを絶対に許さない',hint:'怒りを正面から宗玄へ突きつける',effects:[],goto:'b2'},{label:'「帰り唄」――あの題の意味を、あなたは四十年間、読み違えている',hint:'唄の本来の意味で宗玄を問い直す',cond:{and:[{flag:'original_title'},{flag:'acrostic'},{flag:'three_plans'},{log:{key:'joint_reasoning',equals:'b1_true'}}]},effects:[],goto:'b1'},{label:'何も言えない',hint:'言葉を選べず対峙の主導を譲る',effects:[],goto:'b2'}]},
 {t:'label',id:'b1'},{t:'jump',scene:'end_b1'},{t:'label',id:'b2'},{t:'jump',scene:'end_b2'},{t:'label',id:'b3'},{t:'jump',scene:'end_b3'}
 ]};

@@ -44,6 +44,12 @@ export function createChoice(container) {
           }, 220);
         });
         section.append(button);
+        if (option.hint) {
+          const hint = document.createElement('small');
+          hint.className = 'choice-hint';
+          hint.textContent = option.hint;
+          section.append(hint);
+        }
         return button;
       });
 
