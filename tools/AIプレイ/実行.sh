@@ -11,3 +11,6 @@ for id in "${IDS[@]}"; do
     --virtual-time-budget=960000 --dump-dom "file://$ROOT/tools/AIプレイ/harness.html?persona=$id" 2>/dev/null \
     | node "$ROOT/tools/AIプレイ/回収.mjs" "$id"
 done
+if [[ "$TARGET" == "all" ]]; then
+  node "$ROOT/tools/AIプレイ/測定死角検査.mjs"
+fi
