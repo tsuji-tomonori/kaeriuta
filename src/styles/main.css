@@ -1,8 +1,10 @@
 @import "./追加-grading.css";
 
-:root { color-scheme: dark; font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif; background:#101216; color:#f4efd9; }
-* { box-sizing:border-box; } body { margin:0; min-height:100vh; display:grid; place-items:center; background:radial-gradient(circle,#263340,#090a0d 70%); }
-.letterbox { width:min(100vw, calc(100vh * 16 / 9)); aspect-ratio:16/9; box-shadow:0 0 50px #000; overflow:hidden; }
+:root { color-scheme: dark; font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif; background:#101216; color:#f4efd9; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+* { box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow:hidden; }
+body { margin:0; min-height:100vh; min-height:100dvh; display:grid; place-items:center; background:radial-gradient(circle,#263340,#090a0d 70%); }
+.letterbox { width:min(100vw, calc(100vh * 16 / 9)); width:min(100dvw, calc(100dvh * 16 / 9)); height:min(100vh, calc(100vw * 9 / 16)); height:min(100dvh, calc(100dvw * 9 / 16)); aspect-ratio:16/9; box-shadow:0 0 50px #000; overflow:hidden; }
 .game-screen { position:relative; isolation:isolate; width:100%; height:100%; background:#18232c; overflow:hidden; }
 .game-screen::before,.game-screen::after { content:""; position:absolute; z-index:3; inset:0; pointer-events:none; }
 .game-screen::before { background:radial-gradient(ellipse at center,transparent 48%,#080b0f35 77%,#04050699 112%); }
@@ -54,6 +56,7 @@
 
 #hud { position:absolute; z-index:4; top:1.5%; left:2%; right:2%; display:flex; gap:1em; align-items:center; font-size:14px; text-shadow:1px 1px #000; }
 button { font:inherit; color:#f4efd9; background:#26323ae8; border:1px solid #cab775; border-radius:0; padding:.55em 1.2em; cursor:pointer; }
+button,summary,input { touch-action:manipulation; }
 button:hover { background:#3f4b52; }
 button:focus-visible { outline:1px solid #f0ce83; outline-offset:3px; }
 
@@ -100,6 +103,71 @@ button:focus-visible { outline:1px solid #f0ce83; outline-offset:3px; }
 .kaeriuta-settings__controls .settings-label { grid-column:1; }
 .kaeriuta-settings__controls input[type="range"] { width:9rem; accent-color:#c9b77c; }
 .kaeriuta-settings__controls input[type="checkbox"] { grid-column:2; justify-self:start; accent-color:#c9b77c; }
+
+.orientation-hint { display:none; }
+
+@media (orientation:portrait) and (max-width:900px) {
+  .orientation-hint {
+    position:fixed;
+    z-index:9998;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:.7rem;
+    padding:2rem;
+    color:#f4efd9;
+    text-align:center;
+    background:
+      linear-gradient(#080b0fd9,#101820f2),
+      url("../../assets/bg/bg_mansion_exterior_rain.png") center / cover no-repeat;
+  }
+  .orientation-hint__icon { color:#f0ce83; font-size:clamp(3rem,18vw,6rem); line-height:1; }
+  .orientation-hint strong { color:#f0ce83; font-size:clamp(1.35rem,6vw,2rem); font-weight:400; letter-spacing:.08em; }
+  .orientation-hint small { max-width:27rem; color:#d8d4c8; font-size:clamp(.9rem,4vw,1.1rem); line-height:1.8; }
+}
+
+@media (orientation:landscape) and (max-height:720px), (orientation:landscape) and (pointer:coarse) {
+  body {
+    min-height:100dvh;
+    padding:
+      env(safe-area-inset-top,0)
+      env(safe-area-inset-right,0)
+      env(safe-area-inset-bottom,0)
+      env(safe-area-inset-left,0);
+  }
+  .letterbox {
+    width:min(100%, calc((100dvh - env(safe-area-inset-top,0) - env(safe-area-inset-bottom,0)) * 16 / 9));
+    height:auto;
+    max-height:100%;
+  }
+  #hud { top:1%; left:1%; right:1%; gap:.35rem; }
+  #message-layer { left:2%; right:2%; bottom:2%; }
+  .message-window {
+    --message-lines:3;
+    --message-font-size:clamp(15px,2.65vh,18px);
+    --message-line-size:calc(var(--message-font-size) * 1.55);
+    max-height:48vh;
+    padding:.62em 1em 2.25em;
+  }
+  .speaker {
+    min-width:7em;
+    margin:0 0 .32em;
+    padding:.18em .75em .22em;
+    font-size:1em;
+  }
+  .message-text { line-height:1.55; letter-spacing:.035em; }
+  .message-window.monologue .message-text { letter-spacing:.05em; }
+  .message-window.stage-direction .message-text { font-size:clamp(14px,2.45vh,17px); }
+  .advance { right:.7em; bottom:.45em; min-width:44px; min-height:40px; padding:.3em .75em; }
+  .choice-wrapper { width:min(86%,60rem); max-height:82%; overflow-y:auto; }
+  .choices { padding:.65em .9em .8em; }
+  .choice-prompt { margin:0 0 .45em; }
+  .choices button { min-height:42px; margin:.35em 0; padding:.45em .75em; }
+  #stage-note { top:10%; left:7%; right:7%; padding:.5em 1em; font-size:clamp(13px,2.4vh,17px); }
+  #chapter-title { font-size:clamp(20px,6vh,34px); }
+}
 
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important; }
