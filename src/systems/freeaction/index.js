@@ -45,7 +45,7 @@ export function consumeBlock(model, action) {
 export function selectFreeAction(model, action) {
   if (model.phase !== FREE_ACTION_PHASE.SELECTING) return model;
   const next = consumeBlock(model, action);
-  return next === model ? model : { ...next, phase: action.scenes?.focus?.options?.length ? FREE_ACTION_PHASE.FOCUSING : FREE_ACTION_PHASE.READING, currentAction: action, focusResult: null };
+  return next === model ? model : { ...next, openRoomId: null, phase: action.scenes?.focus?.options?.length ? FREE_ACTION_PHASE.FOCUSING : FREE_ACTION_PHASE.READING, currentAction: action, focusResult: null };
 }
 
 export function focusFreeAction(model, focusId) {
@@ -67,6 +67,12 @@ export function closeFreeAction(model) {
 }
 export function selectRoom(model, roomId) {
   return mansionRooms.some((room) => room.id === roomId) ? { ...model, selectedRoom: roomId } : model;
+}
+export function openRoomPanel(model, roomId) {
+  return mansionRooms.some((room) => room.id === roomId) ? { ...model, selectedRoom: roomId, openRoomId: roomId } : model;
+}
+export function closeRoomPanel(model) {
+  return model.openRoomId === null || model.openRoomId === undefined ? model : { ...model, openRoomId: null };
 }
 
 const defaults = [
@@ -127,7 +133,6 @@ function floorViewBox(floor) {
 }
 function mapMarkup(model, actions) {
   const floor = mansionRooms.find((room) => room.id === model.selectedRoom)?.floor || '1f';
-  const indexed = roomActionIndex(actions);
   const tabs = Object.entries(floorLabels).map(([id, label]) => `<span class="mansion-floor-tab${id === floor ? ' is-selected' : ''}" role="button" tabindex="0" data-floor="${id}" aria-pressed="${id === floor}">${label}</span>`).join('');
   const rooms = roomsByFloor(floor).map((room) => {
     const status = roomStatus(room, actions, model.used, model.state);
@@ -142,19 +147,24 @@ function mapMarkup(model, actions) {
     const count = status.revealed && status.remaining ? `<text class="mansion-room-count" x="${rect.x + rect.width - 3}" y="${rect.y + rect.height - 3}" text-anchor="end">${status.remaining}</text>` : '';
     return `<g class="${classes.join(' ')}" role="button" tabindex="0" data-room="${room.id}" aria-label="${label}" aria-pressed="${selected}"><rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}"/><text x="${rect.x + rect.width / 2}" y="${rect.y + rect.height / 2}" text-anchor="middle" dominant-baseline="middle">${label}</text>${count}</g>`;
   }).join('');
-  const selectedRoom = mansionRooms.find((room) => room.id === model.selectedRoom) || roomsByFloor(floor)[0];
-  const status = roomStatus(selectedRoom, actions, model.used, model.state);
-  const available = (indexed[selectedRoom.id] || []).filter((action) => !model.used.includes(action.id));
-  const detail = !status.revealed
-    ? `<h2>？</h2><p>この区画のことは、まだ何も分かっていない。</p>`
-    : `<h2>${displayText(selectedRoom.name)}</h2><p>${displayText(selectedRoom.desc)}</p>${available.length ? `<h3>ここでできること</h3><div class="mansion-room-actions">${available.map((action) => `<button data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong>${actionPreview(action, model.hintsEnabled)}</button>`).join('')}</div>` : '<p>いまここで、できることはない。</p>'}`;
-  return `<div class="mansion-floor-tabs">${tabs}</div><svg class="mansion-map" viewBox="${floorViewBox(floor)}" role="img" aria-label="${floorLabels[floor]}の館の見取り図">${rooms}</svg><section class="mansion-room-detail">${detail}</section>`;
+  return `<div class="mansion-floor-tabs">${tabs}</div><svg class="mansion-map" viewBox="${floorViewBox(floor)}" role="img" aria-label="${floorLabels[floor]}の館の見取り図">${rooms}</svg>`;
+}
+
+function roomPanelMarkup(model, actions) {
+  const room = mansionRooms.find((item) => item.id === model.openRoomId);
+  if (!room) return '';
+  const status = roomStatus(room, actions, model.used, model.state);
+  const available = (roomActionIndex(actions)[room.id] || []).filter((action) => !model.used.includes(action.id));
+  const contents = !status.revealed
+    ? '<p>この区画のことは、まだ何も分かっていない。</p>'
+    : `<p>${displayText(room.desc)}</p>${available.length ? `<h3>ここでできること</h3><div class="mansion-room-actions">${available.map((action) => `<button data-room-action="${displayText(action.id)}"><strong>${displayText(action.label)}</strong>${actionPreview(action, model.hintsEnabled)}</button>`).join('')}</div>` : '<p>いまここで、できることはない。</p>'}`;
+  return `<div class="parts-panel mansion-room-panel" role="dialog" aria-modal="true" aria-labelledby="mansion-room-title"><header><h2 id="mansion-room-title">${status.revealed ? displayText(room.name) : '？'}</h2><button class="mansion-room-close" aria-label="閉じる">×</button></header><main>${contents}<footer><button class="mansion-room-return">見取り図に戻る</button></footer></main></div>`;
 }
 
 export const freeAction = { async start(ctx, args = {}) {
   const actions = enrichFreeActions(args.actions || defaults);
   const hintsEnabled = explorationHintsEnabled(globalThis.localStorage);
-  let model = { state: stateOf(ctx), remaining: args.blocks ?? 3, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', hintsEnabled };
+  let model = { state: stateOf(ctx), remaining: args.blocks ?? 3, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', openRoomId: null, hintsEnabled };
   return new Promise((resolve) => {
     const modalView = modal(ctx, `第${args.day || 1}章・自由行動`);
     let resolved = false;
@@ -194,9 +204,9 @@ export const freeAction = { async start(ctx, args = {}) {
         button.onclick = () => chooseAction(button.dataset.id);
       });
       modalView.main.querySelectorAll('[data-room]').forEach((room) => {
-        const select = () => { model = selectRoom(model, room.dataset.room); render(); };
-        room.onclick = select;
-        room.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } };
+        const open = () => { model = openRoomPanel(model, room.dataset.room); render(); };
+        room.onclick = open;
+        room.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } };
       });
       modalView.main.querySelectorAll('[data-floor]').forEach((tab) => {
         const select = () => { model = { ...model, selectedRoom: roomsByFloor(tab.dataset.floor)[0].id }; render(); };
@@ -204,6 +214,32 @@ export const freeAction = { async start(ctx, args = {}) {
         tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } };
       });
       modalView.main.querySelector('#done').onclick = done;
+      if (model.openRoomId) {
+        const roomPanel = document.createElement('section');
+        roomPanel.className = 'mansion-room-modal';
+        roomPanel.innerHTML = roomPanelMarkup(model, actions);
+        modalView.root.append(roomPanel);
+        const closePanel = () => {
+          const roomId = model.openRoomId;
+          roomPanel.remove();
+          model = closeRoomPanel(model);
+          render();
+          modalView.main.querySelector(`[data-room="${roomId}"]`)?.focus();
+        };
+        roomPanel.querySelectorAll('.mansion-room-close, .mansion-room-return').forEach((button) => { button.onclick = closePanel; });
+        roomPanel.querySelectorAll('[data-room-action]').forEach((button) => {
+          button.onclick = () => {
+            roomPanel.remove();
+            model = selectFreeAction(model, choices.find((action) => action.id === button.dataset.roomAction));
+            render();
+          };
+        });
+        roomPanel.onclick = (event) => { if (event.target === roomPanel) closePanel(); };
+        const keydown = (event) => { if (event.key === 'Escape') { event.preventDefault(); closePanel(); } };
+        roomPanel.addEventListener('keydown', keydown);
+        const firstAction = roomPanel.querySelector('[data-room-action]');
+        (firstAction || roomPanel.querySelector('.mansion-room-close')).focus();
+      }
     };
     modalView.close.onclick = done;
     render();

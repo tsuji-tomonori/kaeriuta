@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { boardCards } from '../src/data/temariuta-board.js';
 import { placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
-import { FREE_ACTION_PHASE, continueFreeAction, enrichFreeActions, focusFreeAction, selectFreeAction } from '../src/systems/freeaction/index.js';
+import { FREE_ACTION_PHASE, closeRoomPanel, continueFreeAction, enrichFreeActions, focusFreeAction, openRoomPanel, selectFreeAction } from '../src/systems/freeaction/index.js';
 import { applyResponse, responseOptions } from '../src/systems/rebuttal/index.js';
 import { chapter1 } from '../src/data/scenario/chapter1.js';
 import { rebuttalCh2 } from '../src/data/parts/rebuttal-ch2.js';
@@ -42,9 +42,22 @@ mustTerminate('反論', () => {
 
 // actFreeAction と同じく、行動→最初の注目→読了を機械的に繰り返す。
 const freeActions = enrichFreeActions(chapter1.nodes.find((node) => node.t === 'call' && node.part === 'freeAction').args.actions);
-let free = { state:{ flags:{ past:[], plan:[], alive:[] }, items:[] }, remaining:2, used:[], effects:[], phase:FREE_ACTION_PHASE.SELECTING, currentAction:null, focusResult:null };
+let free = { state:{ flags:{ past:[], plan:[], alive:[] }, items:[] }, remaining:2, used:[], effects:[], phase:FREE_ACTION_PHASE.SELECTING, currentAction:null, focusResult:null, selectedRoom:'study', openRoomId:null };
+let roomPanelChecked = false;
 mustTerminate('自由行動', () => {
   if (free.phase === FREE_ACTION_PHASE.SELECTING) {
+    if (roomPanelChecked === false) {
+      free = openRoomPanel(free, 'study');
+      assert.equal(free.openRoomId, 'study', '部屋パネルを開く');
+      roomPanelChecked = 'opened';
+      return;
+    }
+    if (roomPanelChecked === 'opened') {
+      free = closeRoomPanel(free);
+      assert.equal(free.openRoomId, null, '部屋パネルを閉じる');
+      roomPanelChecked = true;
+      return;
+    }
     const action = freeActions.find((candidate) => !free.used.includes(candidate.id));
     assert.ok(action, '押せる自由行動がない');
     free = selectFreeAction(free, action);

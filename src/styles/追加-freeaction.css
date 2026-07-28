@@ -1,5 +1,5 @@
 /* 自由行動：見返りは任意のヒント、代償は常に読める。 */
 .freeaction-gain,.freeaction-cost{display:block;margin-top:.3rem;font-size:.88em;line-height:1.45;overflow-wrap:anywhere}
-.freeaction-gain{color:#704f1f}.freeaction-cost{color:#842f36}
+.freeaction-gain{color:#ffd78a}.freeaction-cost{color:#ffb3bb}
 .freeaction-focuses{display:grid;gap:.55rem}.freeaction-focuses button{text-align:left;white-space:normal}
 .freeaction-narrative-body{max-width:100%;overflow-x:hidden}.freeaction-acquired{border-left:3px solid #87683a;padding-left:.75rem;margin-top:1rem}
