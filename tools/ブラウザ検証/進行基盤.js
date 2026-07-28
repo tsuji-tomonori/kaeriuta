@@ -8,6 +8,7 @@ const startedAt = performance.now();
 const safetyTimeoutMs = 600000;
 const stalledLimit = 40;
 const errors = [];
+const warnings = [];
 const events = [];
 const visitedScenes = [];
 const partsEntered = [];
@@ -128,7 +129,7 @@ function report(status, extra = {}) {
     status, route, mode, elapsedMs: Math.round(performance.now() - startedAt), ending: endingId(),
     title: titleRoot()?.querySelector('h1')?.textContent?.trim() || null,
     scene: document.querySelector('#chapter-title')?.textContent?.trim() || null,
-    screen: screenState(), errors, overflow: overflowReport(), lastScreen: lastScreen(), visitedScenes, partsEntered,
+    screen: screenState(), errors, warnings, overflow: overflowReport(), lastScreen: lastScreen(), visitedScenes, partsEntered,
     saveLoad: mode === 'save-load' ? { ...saveLoad } : null,
     events: events.slice(-100), ...extra,
   };
@@ -243,7 +244,24 @@ function actTemariBoard(modal) {
   if (!modal.querySelector('.board') && !modal.querySelector('.confirm-hypothesis')) {
     return click(modal.querySelector('#done'), 'temari:result-done-fallback');
   }
-  const state = activePart ? (activePart.temari ||= { lastAction:null, warned:null }) : { lastAction:null, warned:null };
+  const state = activePart
+    ? (activePart.temari ||= { lastAction:null, warned:null, operations:0, placedKeys:[], operationLimitReached:false })
+    : { lastAction:null, warned:null, operations:0, placedKeys:[], operationLimitReached:false };
+  const operationLimit = 200;
+  const boardClick = (element, note) => {
+    if (!element || element.disabled) return false;
+    state.operations++;
+    return click(element, note);
+  };
+  if (state.operations >= operationLimit) {
+    if (!state.operationLimitReached) {
+      state.operationLimitReached = true;
+      const warning = `手毬唄ボードが操作上限${operationLimit}回へ到達したため、盤を伏せて終了します`;
+      warnings.push(warning);
+      events.push(`warning:temari-operation-limit:${operationLimit}`);
+    }
+    return click(modal.querySelector('#done'), 'temari:done-operation-limit');
+  }
   const choose = (elements) => {
     if (!elements.length) return null;
     const index = options.choosePart ? options.choosePart('temariBoard', elements) : 0;
@@ -251,44 +269,50 @@ function actTemariBoard(modal) {
   };
   const currentFace = modal.querySelector('[data-face][aria-pressed="true"]')?.dataset.face || 'show';
   const selected = modal.querySelector('.cards .selected');
-  const emptySlots = [...modal.querySelectorAll('.board .slot')]
-    .filter((button) => button.textContent.includes('—'));
+  const slots = [...modal.querySelectorAll('.board .slot')];
+  const placementKey = (cardId, slot) => `${currentFace}:${slot.dataset.number}:${slot.dataset.kind}:${cardId}`;
+  const availableSlots = (cardId) => slots.filter((slot) => !state.placedKeys.includes(placementKey(cardId, slot)));
 
   // 不適合な札は最初の警告を見てから、同じ欄をもう一度押して初めて仮説になる。
   // 警告クリックを選んだこと自体はペルソナの判断であり、再クリックだけを機械的に行う。
   if (selected && state.warned) {
-    const retry = emptySlots.find((slot) => slot.dataset.number === state.warned.number && slot.dataset.kind === state.warned.kind);
+    const retry = availableSlots(selected.dataset.card)
+      .find((slot) => slot.dataset.number === state.warned.number && slot.dataset.kind === state.warned.kind);
     if (retry) {
       state.warned = null;
       state.lastAction = 'slot';
-      return click(retry, `temari:place-hypothesis:${retry.dataset.number}:${retry.dataset.kind}`);
+      state.placedKeys.push(placementKey(selected.dataset.card, retry));
+      return boardClick(retry, `temari:place-hypothesis:${retry.dataset.number}:${retry.dataset.kind}`);
     }
     state.warned = null;
   }
 
   if (selected) {
-    const slot = choose(emptySlots);
-    if (!slot) return click(modal.querySelector('#done'), 'temari:done-no-slot');
+    const candidateSlots = availableSlots(selected.dataset.card);
+    const slot = choose(candidateSlots);
+    if (!slot) return boardClick(modal.querySelector('#done'), 'temari:done-no-placement');
     const card = boardCards[selected.dataset.card];
     if (!card?.kinds?.includes(slot.dataset.kind)) {
       state.warned = { number:slot.dataset.number, kind:slot.dataset.kind };
+    } else {
+      state.placedKeys.push(placementKey(selected.dataset.card, slot));
     }
     state.lastAction = 'slot';
-    return click(slot, `temari:place:${selected.dataset.card}:${slot.dataset.number}:${slot.dataset.kind}`);
+    return boardClick(slot, `temari:place:${selected.dataset.card}:${slot.dataset.number}:${slot.dataset.kind}`);
   }
 
   const otherFace = modal.querySelector(`[data-face="${currentFace === 'truth' ? 'show' : 'truth'}"]`);
-  // 非表示側の空欄は DOM に無いため、タブを選んだ後に改めて判定する。
-  const otherFaceHasEmpty = Boolean(otherFace);
+  // 非表示側の配置履歴は DOM に無いため、タブを選んだ後に改めて候補を絞る。
+  const otherFaceAvailable = Boolean(otherFace);
   const cards = [...modal.querySelectorAll('.cards [data-card]')];
-  const currentFilled = [...modal.querySelectorAll('.board .slot')].some((button) => !button.textContent.includes('—'));
+  const currentFilled = slots.some((button) => !button.textContent.includes('—'));
   const confirm = modal.querySelector('.confirm-hypothesis');
-  const allCurrentFilled = emptySlots.length === 0;
+  const allCurrentFilled = slots.every((button) => !button.textContent.includes('—'));
   // A tab is offered as an ordinary action, but never twice in succession:
   // a persona that switches faces must next take a card or leave the board.
   const candidates = [
     ...cards,
-    ...(state.lastAction !== 'face' && otherFaceHasEmpty ? [otherFace] : []),
+    ...(state.lastAction !== 'face' && otherFaceAvailable ? [otherFace] : []),
     ...(currentFilled ? [modal.querySelector('#done')] : []),
     ...(allCurrentFilled ? [confirm] : []),
   ].filter(Boolean);
@@ -296,18 +320,18 @@ function actTemariBoard(modal) {
   if (!action) return click(modal.querySelector('#done'), 'temari:done');
   if (action.dataset.face) {
     state.lastAction = 'face';
-    return click(action, `temari:face:${action.dataset.face}`);
+    return boardClick(action, `temari:face:${action.dataset.face}`);
   }
   if (action.dataset.card) {
     state.lastAction = 'card';
-    return click(action, `temari:select-card:${action.dataset.card}`);
+    return boardClick(action, `temari:select-card:${action.dataset.card}`);
   }
   if (action.classList.contains('confirm-hypothesis')) {
     state.lastAction = 'confirm';
-    return click(action, 'temari:confirm-hypothesis');
+    return boardClick(action, 'temari:confirm-hypothesis');
   }
   state.lastAction = 'done';
-  return click(action, 'temari:done');
+  return boardClick(action, 'temari:done');
 }
 
 function actInference(modal) {
