@@ -35,10 +35,12 @@ md += `## 取り逃した情報\n\n${(analysis.missedInformation || []).map(x =>
 md += `## 特殊パートの成績\n\n- 反論の確信度推移: ${(analysis.rebuttal?.convictionTrend || []).join(' → ') || '未取得'}\n- 共同推理: 崩したノード ${analysis.joint?.broken ?? 0}、失敗・未完了 ${analysis.joint?.failures ?? 0}、手段 ${(analysis.joint?.methods || []).join(' / ') || 'なし'}\n\n`;
 md += `## END条件の未達\n\n- 到達END: ${data.final?.endingId || '未確定'}\n- 条件データはゲーム本体から公開されないため、実プレイDOMで確認できる未達条件は特定不能（最終パラメータ・フラグ・選択ログを併記）。\n\n`;
 md += `# 結果\n\n- 状態: ${data.status}\n- END: ${data.final.endingId}\n- 所要ステップ数: ${data.final.steps}\n- 最終画面: ${JSON.stringify(data.final.lastScreen ?? null)}\n`;
+md += `- 手毬唄ボード: ${JSON.stringify(data.final.temari ?? null)}\n`;
+md += `- 警告: ${(data.warnings || []).join(' / ') || 'なし'}\n`;
 md += `\n# 振り返り\n\n${line(data.reflection || '振り返りは取得できませんでした。')}\n`;
 await writeFile(new URL(`./ログ/${persona}.md`, import.meta.url), md);
 const summaryUrl = new URL('./ログ/サマリ.json', import.meta.url);
 let summary = {}; try { summary = JSON.parse(await readFile(summaryUrl, 'utf8')); } catch { /* first run */ }
-summary[persona] = { persona: data.persona, status: data.status, final: data.final, errors: data.errors, transcriptSteps: data.transcript.length, decisions: data.decisions.length, diagnosis: data.diagnosis, analysis: data.analysis, reflection: data.reflection };
+summary[persona] = { persona: data.persona, status: data.status, final: data.final, errors: data.errors, warnings:data.warnings || [], transcriptSteps: data.transcript.length, decisions: data.decisions.length, diagnosis: data.diagnosis, analysis: data.analysis, reflection: data.reflection };
 await writeFile(summaryUrl, `${JSON.stringify(summary, null, 2)}\n`);
 console.log(`ログを書き出しました: tools/AIプレイ/ログ/${persona}.md`);
