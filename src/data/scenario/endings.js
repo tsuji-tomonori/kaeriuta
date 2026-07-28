@@ -174,7 +174,7 @@ export const endings={
  ]),
  end_b3:endScene('b3_silenced','END B-3　口封じ',{
   bg:'bg_corridor_night',
-  chapter:'エピローグ　2日目・深夜',
+  chapter:'エピローグ　3日目・未明',
   tail:[
    {t:'stage',text:'【廊下の灯が消え、白い羽と「帰る」の一語だけが暗がりに残る。】'},
    {t:'mono',text:'声を奪われても、一語は頁の外へこぼれた。いつか拾う読者のために、それは館の夜を閉じずにいた。'}
