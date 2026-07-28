@@ -18,16 +18,34 @@ function mustTerminate(name, advance, complete) {
   assert.fail(`${name}: ${maxSteps}操作以内に終端しなかった`);
 }
 
-// actTemariBoard と同じく、常に先頭の札を選び、先頭の空欄へ置く。
+// actTemariBoard と同じく、札を選んでから欄を押す。不適合な種別では
+// 1回目は警告だけなので、同じ欄をもう1回押して仮説として置く。
 const verses = selectBoardVerses({}, {});
 let board = Object.fromEntries(verses.map((verse) => [verse.number, Object.fromEntries(slots.map((slot) => [slot, null]))]));
 let selectedCard = null;
+let warnedSlot = null;
+let boardOperations = 0;
 mustTerminate('手毬唄ボード', () => {
-  if (!selectedCard) selectedCard = Object.keys(boardCards)[0];
+  if (!selectedCard) {
+    selectedCard = Object.keys(boardCards)[0];
+    boardOperations++;
+    return;
+  }
   const empty = verses.flatMap((verse) => slots.map((kind) => ({ number:verse.number, kind }))).find(({ number, kind }) => !board[number][kind]);
-  if (empty) board = placeBoardCard(board, empty.number, empty.kind, selectedCard);
+  assert.ok(empty, '選択中の札に対応する空欄がある');
+  const incompatible = !boardCards[selectedCard].kinds.includes(empty.kind);
+  const isRetry = warnedSlot?.number === empty.number && warnedSlot?.kind === empty.kind;
+  boardOperations++;
+  if (incompatible && !isRetry) {
+    warnedSlot = empty;
+    return;
+  }
+  board = placeBoardCard(board, empty.number, empty.kind, selectedCard);
   selectedCard = null;
+  warnedSlot = null;
 }, () => verses.every((verse) => slots.every((kind) => board[verse.number][kind])));
+assert.ok(boardOperations > 0, '手毬唄ボード検査が0操作で終端していない');
+console.log(`手毬唄ボード: 実操作 ${boardOperations}回（選択・警告・再クリックを含む）`);
 
 // actRebuttal と同じく、disabled の札を候補から除き、先頭の押せる反応を選ぶ。
 let rebuttal = { conviction:rebuttalCh2.initialConviction, overknow:0, broken:[] };

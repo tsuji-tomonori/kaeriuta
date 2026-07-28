@@ -1,5 +1,6 @@
 import { personas } from './ペルソナ/index.js';
 import { startProgression } from '../ブラウザ検証/進行基盤.js';
+import { boardCards } from '../../src/data/temariuta-board.js';
 
 const personaId = new URLSearchParams(location.search).get('persona') || 'sokkyou';
 const persona = personas[personaId];
@@ -81,6 +82,20 @@ function observation() {
     text: text(modal.querySelector('main')),
     options: buttons(modal).filter((button) => button.label !== '閉じる'),
   } : null;
+  if (part?.name === 'temariBoard') {
+    part.temari = {
+      face: modal.querySelector('[data-face][aria-pressed="true"]')?.dataset.face || 'show',
+      notice: text(modal.querySelector('.board-notice')) || null,
+      cards: [...modal.querySelectorAll('.cards [data-card]')].map((button) => ({
+        id: button.dataset.card, name: boardCards[button.dataset.card]?.name || text(button),
+        kinds: boardCards[button.dataset.card]?.kinds || [], note: boardCards[button.dataset.card]?.note || '',
+        selected: button.classList.contains('selected'),
+      })),
+      slots: [...modal.querySelectorAll('.board .slot')].map((button) => ({
+        number: Number(button.dataset.number), kind: button.dataset.kind, label: text(button), empty: button.textContent.includes('—'),
+      })),
+    };
+  }
   return {
     step,
     chapter: text(document.querySelector('#chapter-title')) || null,
@@ -121,7 +136,18 @@ function decidePart(name, elements) {
   current.kind = 'part';
   current.part = current.part || { name, options: [] };
   current.part.name = name;
-  current.part.options = elements.map((element, index) => ({ index, label: text(element), enabled: true }));
+  current.part.options = elements.map((element, index) => ({
+    index, label: text(element), enabled: true,
+    meta: {
+      cardId: element.dataset.card || null,
+      face: element.dataset.face || null,
+      number: element.dataset.number ? Number(element.dataset.number) : null,
+      kind: element.dataset.kind || null,
+      action: element.classList.contains('confirm-hypothesis') ? 'confirm'
+        : element.id === 'done' ? 'done' : element.dataset.card ? 'card'
+          : element.dataset.face ? 'face' : element.dataset.kind ? 'slot' : 'other',
+    },
+  }));
   const decision = persona.decide(current, memory) || {};
   const index = decision.part ?? decision.choice ?? 0;
   decisions.push({ step, action: `part:${name}`, selected: current.part.options[index]?.label || current.part.options[0]?.label || '', reason: decision.reason || '理由なし', diagnostic: decision.diagnostic || null });

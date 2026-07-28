@@ -86,6 +86,59 @@ export function specialPartPolicy(strategy) {
   };
 }
 
+// 手毬唄は正解表を使わず、画面に出る札の説明・現在の面・選択済み札の種別だけを読む。
+function temariPolicy(option, observation, memory, strategy = 'safe') {
+  if (observation.part?.name !== 'temariBoard') return { score:0, grounds:[] };
+  const meta = option.meta || {}; const temari = observation.part.temari || {};
+  const selected = temari.cards?.find((card) => card.selected);
+  const card = temari.cards?.find((entry) => entry.id === meta.cardId);
+  const add = (score, reason) => ({ score, grounds:score ? [reason] : [] });
+  const compatible = selected?.kinds?.includes(meta.kind);
+  const clue = `${card?.name || ''} ${card?.note || ''}`;
+  if (meta.action === 'face') {
+    if (strategy === 'deduce') return add(meta.face === 'truth' ? 15 : -4, '真相をまことの盤に綴じる');
+    if (strategy === 'hide') return add(meta.face === 'show' ? 15 : -4, '悟郎へ見せる盤を先に整える');
+    if (strategy === 'relic') return add(meta.face === 'truth' ? 9 : 4, '栞の余白と皆へ示す読みを両方残す');
+    if (strategy === 'disrupt') return add(meta.face === 'show' ? 7 : 5, '二つの盤を同じ読みへ固定しない');
+    if (strategy === 'quick') return add(meta.face === 'show' ? 8 : -3, '初期表示の盤だけを手早く扱う');
+    if (strategy === 'ordered') return add(meta.face === 'show' ? 9 : -2, '提示された見せる盤から順に従う');
+    if (strategy === 'rush') return add(meta.face === 'truth' ? 7 : 3, '言い切るための盤を選ぶ');
+    return add(meta.face === 'show' ? 8 : 0, 'まず説明どおりの見せる盤を読む');
+  }
+  if (meta.action === 'card') {
+    const used = memory.temariCards || [];
+    let score = used.includes(meta.cardId) ? -5 : 3;
+    if (strategy === 'deduce') score += /栞|宗玄|顔|真実|地下/.test(clue) ? 7 : 1;
+    if (strategy === 'hide') score += /表|珈琲|恩田|偽り/.test(clue) ? 7 : 0;
+    if (strategy === 'relic') score += /栞|宗玄|歌|真実/.test(clue) ? 8 : 1;
+    if (strategy === 'disrupt') score += /共犯|偽り|口封じ|すげ替え/.test(clue) ? 8 : 1;
+    if (strategy === 'quick' || strategy === 'ordered') score -= option.index / 4;
+    if (strategy === 'rush') score += /栞|宗玄|口封じ/.test(clue) ? 6 : 0;
+    return add(score, '札の名前と注記から仮説に使う人物・意味を選ぶ');
+  }
+  if (meta.action === 'slot') {
+    if (strategy === 'disrupt') return add(compatible ? -5 : 14, compatible ? '整合する欄を避けて矛盾文を読む' : '種別の違う欄へ仮説を置き、矛盾文を引き出す');
+    if (compatible) return add(12 - (meta.number || 0) / 10, '札の種別に合う欄へ一度で置く');
+    return add(strategy === 'rush' ? 1 : -9, '札の種別と欄が合わないため保留する');
+  }
+  if (meta.action === 'confirm') return add(strategy === 'quick' ? -4 : strategy === 'disrupt' ? -2 : strategy === 'hide' ? 12 : strategy === 'deduce' ? 10 : 7, '盤を差し出して結果と効果を引き受ける');
+  if (meta.action === 'done') return add(strategy === 'quick' ? 12 : strategy === 'disrupt' ? 9 : strategy === 'hide' ? 1 : strategy === 'rush' ? 4 : -6, '効果を使わず盤を伏せて退く');
+  return { score:0, grounds:[] };
+}
+
+function temariStrategy(profile) {
+  if (profile.temariStrategy) return profile.temariStrategy;
+  const reason = profile.reason || '';
+  if (profile.targetEnd === 'A-4 逆転' || /情報と証拠/.test(reason)) return 'deduce';
+  if (/疑惑と知りすぎ|旧道と退路/.test(reason)) return 'hide';
+  if (/栞と周囲/.test(reason)) return 'relic';
+  if (/手間が少なく/.test(reason)) return 'quick';
+  if (/安全な正解を外し|断罪して/.test(reason)) return 'disrupt';
+  if (/与えられた計画/.test(reason)) return 'ordered';
+  if (/物証を待たず/.test(reason)) return 'rush';
+  return 'safe';
+}
+
 function optionScore(option, observation, memory, profile, index) {
   const label = option.label || '';
   const context = `${observation.text || ''} ${observation.part?.text || ''} ${observation.chapter || ''}`;
@@ -139,6 +192,11 @@ function optionScore(option, observation, memory, profile, index) {
     score += adjustment.score || 0;
     grounds.push(...(adjustment.grounds || []));
   }
+  if (observation.kind === 'part') {
+    const adjustment = temariPolicy(option, observation, memory, temariStrategy(profile));
+    score += adjustment.score || 0;
+    grounds.push(...(adjustment.grounds || []));
+  }
   // 同じ語群の候補にも、既に選んだ行動の繰り返しを抑えることで方針の一貫性を作る。
   if (memory.lastLabel === label) score -= 1.5;
   return { option, score, grounds: [...new Set(grounds)] };
@@ -156,6 +214,7 @@ export function decideByScore(observation, memory, profile) {
   // 特殊パートはボタンの役割（反証、代理、遺品、沈黙など）も明示的な方針根拠。
   const grounded = selected.grounds.length > 0 && (!runnerUp || margin >= 0.05);
   memory.lastLabel = selected.option.label;
+  if (selected.option.meta?.action === 'card') memory.temariCards = [...new Set([...(memory.temariCards || []), selected.option.meta.cardId])];
   memory.decisions = (memory.decisions || 0) + 1;
   const scoreText = ranked.map(({ option, score }) => `${option.label}:${score.toFixed(3)}`).join(' / ');
   const orderedGrounds = [...selected.grounds].sort((a, b) => Number(b.startsWith('目標')) - Number(a.startsWith('目標')));

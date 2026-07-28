@@ -1,3 +1,5 @@
+import { boardCards } from '../../src/data/temariuta-board.js';
+
 export function startProgression(options = {}) {
 const params = new URLSearchParams(location.search);
 const route = options.route || params.get('route') || 'execution';
@@ -231,11 +233,81 @@ function actRebuttal(modal) {
 }
 
 function actTemariBoard(modal) {
+  // 札と欄の読み、および二面のどちらを仕上げるかはペルソナへ委ねる。
+  // boardSolution は参照しない。これは正解を作る処理ではなく、画面で見える
+  // 札・欄・矛盾文を材料にプレイヤーの仮説を操作する処理である。
+  const commitClose = modal.querySelector('.board-commit-close');
+  if (commitClose) return click(commitClose, 'temari:commit-close');
+  // 確定結果の実装がまだ close ボタンを出さない版でも、盤面が消えたら
+  // #done へ落として終端させる。commit-close があれば必ずそちらを優先する。
+  if (!modal.querySelector('.board') && !modal.querySelector('.confirm-hypothesis')) {
+    return click(modal.querySelector('#done'), 'temari:result-done-fallback');
+  }
+  const state = activePart ? (activePart.temari ||= { lastAction:null, warned:null }) : { lastAction:null, warned:null };
+  const choose = (elements) => {
+    if (!elements.length) return null;
+    const index = options.choosePart ? options.choosePart('temariBoard', elements) : 0;
+    return elements[index] || elements[0];
+  };
+  const currentFace = modal.querySelector('[data-face][aria-pressed="true"]')?.dataset.face || 'show';
   const selected = modal.querySelector('.cards .selected');
-  if (!selected) return click(modal.querySelector('.cards [data-card]'), 'temari:select-card');
-  const empty = [...modal.querySelectorAll('.board .slot')].find((button) => button.textContent.includes('—'));
-  if (empty) return click(empty, 'temari:place-card');
-  return click(modal.querySelector('#done'), 'temari:done');
+  const emptySlots = [...modal.querySelectorAll('.board .slot')]
+    .filter((button) => button.textContent.includes('—'));
+
+  // 不適合な札は最初の警告を見てから、同じ欄をもう一度押して初めて仮説になる。
+  // 警告クリックを選んだこと自体はペルソナの判断であり、再クリックだけを機械的に行う。
+  if (selected && state.warned) {
+    const retry = emptySlots.find((slot) => slot.dataset.number === state.warned.number && slot.dataset.kind === state.warned.kind);
+    if (retry) {
+      state.warned = null;
+      state.lastAction = 'slot';
+      return click(retry, `temari:place-hypothesis:${retry.dataset.number}:${retry.dataset.kind}`);
+    }
+    state.warned = null;
+  }
+
+  if (selected) {
+    const slot = choose(emptySlots);
+    if (!slot) return click(modal.querySelector('#done'), 'temari:done-no-slot');
+    const card = boardCards[selected.dataset.card];
+    if (!card?.kinds?.includes(slot.dataset.kind)) {
+      state.warned = { number:slot.dataset.number, kind:slot.dataset.kind };
+    }
+    state.lastAction = 'slot';
+    return click(slot, `temari:place:${selected.dataset.card}:${slot.dataset.number}:${slot.dataset.kind}`);
+  }
+
+  const otherFace = modal.querySelector(`[data-face="${currentFace === 'truth' ? 'show' : 'truth'}"]`);
+  // 非表示側の空欄は DOM に無いため、タブを選んだ後に改めて判定する。
+  const otherFaceHasEmpty = Boolean(otherFace);
+  const cards = [...modal.querySelectorAll('.cards [data-card]')];
+  const currentFilled = [...modal.querySelectorAll('.board .slot')].some((button) => !button.textContent.includes('—'));
+  const confirm = modal.querySelector('.confirm-hypothesis');
+  const allCurrentFilled = emptySlots.length === 0;
+  // A tab is offered as an ordinary action, but never twice in succession:
+  // a persona that switches faces must next take a card or leave the board.
+  const candidates = [
+    ...cards,
+    ...(state.lastAction !== 'face' && otherFaceHasEmpty ? [otherFace] : []),
+    ...(currentFilled ? [modal.querySelector('#done')] : []),
+    ...(allCurrentFilled ? [confirm] : []),
+  ].filter(Boolean);
+  const action = choose(candidates);
+  if (!action) return click(modal.querySelector('#done'), 'temari:done');
+  if (action.dataset.face) {
+    state.lastAction = 'face';
+    return click(action, `temari:face:${action.dataset.face}`);
+  }
+  if (action.dataset.card) {
+    state.lastAction = 'card';
+    return click(action, `temari:select-card:${action.dataset.card}`);
+  }
+  if (action.classList.contains('confirm-hypothesis')) {
+    state.lastAction = 'confirm';
+    return click(action, 'temari:confirm-hypothesis');
+  }
+  state.lastAction = 'done';
+  return click(action, 'temari:done');
 }
 
 function actInference(modal) {
