@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { transitionCharacterPositions } from '../src/ui/character-state.js';
 import { shouldShowAdvance } from '../src/ui/advance-visibility.js';
 import { explorationHintsEnabled, toggleExplorationHints } from '../src/ui/title.js';
@@ -7,6 +8,14 @@ import { setBackground } from '../src/ui/screen.js';
 import { createChoice } from '../src/ui/choice.js';
 import { createMessageWindow } from '../src/ui/message-window.js';
 import { createCharacterLayer } from '../src/ui/character-layer.js';
+
+const mainCss = readFileSync(new URL('../src/styles/main.css', import.meta.url), 'utf8');
+function cssRule(selector) {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = mainCss.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
+  assert.ok(match, `${selector} のCSSルールがあること`);
+  return match[1];
+}
 
 class TestClassList {
   constructor(element) { this.element = element; this.values = new Set(); }
@@ -171,6 +180,25 @@ test('文字送りはcompleteRevealで全文表示へ遷移する', () => {
   message.completeReveal();
   assert.equal(message.isRevealing(), false);
   assert.equal(container.querySelector('.message-text').textContent, '雨音が続いている。');
+});
+
+test('話者名の有無と文字送り前後でメッセージ枠の指定寸法を変えない', () => {
+  const windowRule = cssRule('.message-window');
+  const speakerRule = cssRule('.speaker');
+  const speakerEmptyRule = cssRule('.speaker:empty::before');
+  const speakerHiddenRule = cssRule('.speaker[hidden]');
+  const advanceRule = cssRule('.advance');
+  const textRule = cssRule('.message-text');
+  assert.doesNotMatch(windowRule, /\b(?:min|max)-height\s*:/);
+  assert.match(windowRule, /display\s*:\s*flex/);
+  assert.match(windowRule, /flex-direction\s*:\s*column/);
+  assert.match(speakerRule, /align-self\s*:\s*flex-start/);
+  assert.match(speakerEmptyRule, /content\s*:\s*["']\\00A0["']/);
+  assert.match(speakerHiddenRule, /visibility\s*:\s*hidden/);
+  assert.doesNotMatch(speakerHiddenRule, /display\s*:\s*none/);
+  assert.doesNotMatch(advanceRule, /\bfloat\s*:/);
+  assert.match(advanceRule, /position\s*:\s*absolute/);
+  assert.match(textRule, /block-size\s*:/);
 });
 
 test('立ち絵レイヤーはsetSpeakerで話者と非話者を分ける', () => {

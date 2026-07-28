@@ -46,7 +46,7 @@ function resultElement() {
 }
 
 function overflowReport() {
-  return [...document.querySelectorAll('.message-window, .choices, .parts-panel, .node-grid, .board')]
+  return [...document.querySelectorAll('.message-window, .message-text, .choices, .parts-panel, .node-grid, .board')]
     .filter((el) => el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2)
     .map((el) => `${el.className || el.id}: ${el.scrollWidth}x${el.scrollHeight}/${el.clientWidth}x${el.clientHeight}`);
 }

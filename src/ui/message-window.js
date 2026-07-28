@@ -22,6 +22,7 @@ export function createMessageWindow(container, onAdvance, options = {}) {
   function finishReveal() {
     stopTimer();
     text.textContent = fullText;
+    text.scrollTop = text.scrollHeight;
     cursor = glyphs.length;
     revealing = false;
     advanceButton.hidden = !showAdvance;
@@ -32,6 +33,7 @@ export function createMessageWindow(container, onAdvance, options = {}) {
     if (!revealing) return;
     cursor += 1;
     text.textContent = glyphs.slice(0, cursor).join('');
+    text.scrollTop = text.scrollHeight;
     if (cursor >= glyphs.length) {
       finishReveal();
       return;
