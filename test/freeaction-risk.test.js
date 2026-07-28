@@ -4,7 +4,7 @@ import { chapter1 } from '../src/data/scenario/chapter1.js';
 import { chapter2 } from '../src/data/scenario/chapter2.js';
 import { flags } from '../src/data/flags.js';
 import { items } from '../src/data/items.js';
-import { FREE_ACTION_PHASE, enrichFreeActions, selectFreeAction, focusFreeAction, continueFreeAction } from '../src/systems/freeaction/index.js';
+import { FREE_ACTION_PHASE, actionDetails, costDescription, enrichFreeActions, selectFreeAction, focusFreeAction, continueFreeAction } from '../src/systems/freeaction/index.js';
 
 function actionsOf(chapter) { return chapter.nodes.find((node) => node.t === 'call' && node.part === 'freeAction').args.actions; }
 function model() { return { state:{ flags:{past:[],plan:[],alive:[]},items:[] }, remaining:2, used:[], effects:[], phase:FREE_ACTION_PHASE.SELECTING, currentAction:null, focusResult:null }; }
@@ -29,11 +29,12 @@ test('注目の効果は分岐し、主要報酬はどちらでも既に得て�
   assert.notDeepEqual(first.effects, second.effects);
   for (const current of [first, second]) assert.ok(current.state.flags.past.includes('dedication_erasure'));
 });
-test('全行動は見返り、代償、実際の危険を持ち、参照先が存在する', () => {
+test('全行動は見返り、正本の危険、焦点を持ち、参照先が存在する', () => {
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   assert.equal(actions.length, 11);
   for (const action of actions) {
-    assert.ok(action.gain && action.cost && action.risk?.length, action.id);
+    assert.ok(action.gain && action.risk?.length, action.id);
+    assert.equal('cost' in action, false, `${action.id}: 手書きの代償文を持たない`);
     assert.ok(action.scenes?.focus?.options?.length, action.id);
     for (const effect of [...action.reward, ...action.scenes.focus.options.flatMap((option) => option.effects || [])]) {
       if (effect.t === 'flag') assert.ok(flags[effect.id], `${action.id}:${effect.id}`);
@@ -41,16 +42,20 @@ test('全行動は見返り、代償、実際の危険を持ち、参照先が�
     }
   }
 });
-test('代償文にあるパラメータは、連結後の risk と焦点の実効果に一致する', () => {
+test('全行動の代償表示は、常時効果と焦点ごとの実効果を区別して列挙する', () => {
   const names = { suspicion:'疑い', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   for (const action of actions) {
-    const actual = new Set([
-      ...(action.risk || []),
-      ...action.scenes.focus.options.flatMap((option) => option.effects || []),
-    ].filter((effect) => effect.t === 'param').map((effect) => names[effect.key]));
-    const mentioned = new Set(Object.values(names).filter((name) => action.cost.includes(name)));
-    assert.deepEqual([...mentioned].sort(), [...actual].sort(), `${action.id}: ${action.cost}`);
+    const fixed = action.risk.filter((effect) => effect.t === 'param').map((effect) => `${names[effect.key]}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`);
+    const conditional = action.scenes.focus.options.map((option) => {
+      const effects = option.effects.filter((effect) => effect.t === 'param').map((effect) => `${names[effect.key]}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`);
+      return effects.length ? `\n（「${option.label}」を選ぶと、さらに ${effects.join('、')}）` : '';
+    }).join('');
+    const expected = `${fixed.join('、')}${conditional}`;
+    assert.equal(costDescription(action), expected, `${action.id}: ${costDescription(action)}`);
+    for (const option of action.scenes.focus.options.filter((option) => option.effects.some((effect) => effect.t === 'param'))) {
+      assert.match(costDescription(action), new RegExp(`「${option.label}」を選ぶと、さらに`), action.id);
+    }
   }
 });
 test('全行動・全焦点で知りすぎを最大化しても第二章終了時に2を超えない', () => {
@@ -74,10 +79,23 @@ test('全行動・全焦点で知りすぎを最大化しても第二章終了�
   assert.equal(chapter2Overknow, 1);
   assert.ok(chapter1Overknow + chapter2Overknow <= 2);
 });
-test('シナリオ側の危険と追加の危険をどちらも保持する', () => {
+test('危険の正本はシナリオ側だけで、詳細側には重複定義を置かない', () => {
+  for (const [id, details] of Object.entries(actionDetails)) {
+    assert.equal('risk' in details, false, `${id}: details.risk`);
+    assert.equal('cost' in details, false, `${id}: details.cost`);
+  }
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   const paramsFor = (id) => actions.find((action) => action.id === id).risk.filter((effect) => effect.t === 'param').map(({ key, delta }) => [key, delta]);
   assert.deepEqual(paramsFor('accomplice_room'), [['suspicion', 6], ['trust', -1]]);
   assert.deepEqual(paramsFor('observe_detectives'), [['suspicion', 7], ['awareness', 1]]);
   assert.deepEqual(paramsFor('morgue'), [['suspicion', 9], ['overknow', 1]]);
+});
+
+test('以前は同じ効果だった4つの焦点二択は、片方だけ小さな代償を持つ', () => {
+  const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
+  for (const id of ['prepare', 'kitchen', 'morgue', 'old_road_song']) {
+    const action = actions.find((item) => item.id === id);
+    const paramCounts = action.scenes.focus.options.map((option) => option.effects.filter((effect) => effect.t === 'param').length);
+    assert.deepEqual(paramCounts, [0, 1], id);
+  }
 });

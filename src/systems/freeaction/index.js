@@ -3,6 +3,8 @@ import { flags } from '../../data/flags.js';
 import { items } from '../../data/items.js';
 import { mansionRooms, roomsByFloor, roomActionIndex, roomRect, roomStatus } from '../../data/mansion-map.js';
 import { explorationHintsEnabled } from '../../engine/progress.js';
+import { chapter1 } from '../../data/scenario/chapter1.js';
+import { chapter2 } from '../../data/scenario/chapter2.js';
 
 const lineHint = { past: '🕯 過去', plan: '📜 計画', alive: '👁 生存' };
 function actionLines(action) {
@@ -84,30 +86,49 @@ const defaults = [
 // Scenario prose remains the source text; this layer supplies the playable
 // margins around it for older scenario nodes as well as newer ones.
 export const actionDetails = {
-  study:{gain:'消された献辞の行を読める',cost:'コウ君に本を読む手つきを見られ、差し替えられた綴じまで読んだことが残る（疑いが10増し、知りすぎが1増す）',scenes:{intro:'私は書斎の扉を指二本ぶんだけ開け、初版本を司書の手つきで背から抜いた。',focus:{prompt:'どこを読む？',options:[{id:'dedication',label:'献辞の頁を光にかざす',text:'献辞の頁に薄い消し跡がある。「――友、Rに」。消された箇所ほど目に残る。',effects:[{t:'log',key:'study_focus',value:'dedication'}]},{id:'binding',label:'最終章の綴じを見る',text:'最終章だけ紙がわずかに白く、手触りが硬い。頁の綴じ目は別の手を示している。',effects:[{t:'log',key:'study_focus',value:'binding'},{t:'param',key:'overknow',delta:1}]}]},reaction:'コウ君は私の指先を見ていた。「図書館の人って、本を触ると分かるんだね」問いではなく記録だった。'}},
-  housekeeper:{gain:'地下から聞こえた音の記憶に触れる',cost:'母の過去に触れ、地下を問い詰めた顔を覚えられる（良心が1増し、警戒が1増す）',risk:[{t:'param',key:'conscience',delta:1}],scenes:{intro:'志津さんは洗濯室で、濡れた客用タオルを何度も畳み直していた。',focus:{prompt:'どこに注目する？',options:[{id:'hands',label:'震える指先を見る',text:'「夜中」という語に触れた途端、彼女の手が止まった。',effects:[{t:'log',key:'housekeeper_focus',value:'hands'}]},{id:'underground',label:'地下の音をたずねる',text:'若いころ、地下からことん、ことん、と物を打つ音が聞こえたという。',effects:[{t:'log',key:'housekeeper_focus',value:'underground'},{t:'param',key:'awareness',delta:1}]}]},reaction:'志津さんは宇野さんの名を出しかけて飲み込んだ。廊下の咳払いが近すぎた。'}},
-  accomplice_room:{gain:'共犯者ごとに違う計画書を読む',cost:'剛蔵兄さんとの綴じ目がほころび、余白まで覗いた気配も残る（信頼が1下がり、疑いが6増し、警戒が1増す）',risk:[{t:'param',key:'trust',delta:-1}],scenes:{intro:'剛蔵兄さんの上着のポケットに、三つ折りの紙が半分だけ覗いていた。',focus:{prompt:'どこを確かめる？',options:[{id:'time',label:'唄の時刻を照合する',text:'私の紙は夜食のあと、剛蔵兄さんの紙は散会の直後。二枚は別の場所へ送り出されている。',effects:[{t:'log',key:'accomplice_focus',value:'time'}]},{id:'note',label:'余白の注記まで読む',text:'恩田さんの名の脇に「読ませるな」とある。紙は別々の札だった。',effects:[{t:'log',key:'accomplice_focus',value:'note'},{t:'param',key:'awareness',delta:1}]}]},reaction:'剛蔵兄さんは窓でなく私の手を見た。紙を確かめる顔から笑いが消えた。'}},
-  prepare:{gain:'配膳時刻と自室の記録を揃える',cost:'当番表へ目を通したことを残す（疑いが4増す）',scenes:{intro:'私は厨房の隅にある当番表を、皿洗い用の棚からそっと抜き取った。紙がこちらを読む。',focus:{prompt:'どの余白を整える？',options:[{id:'roster',label:'配膳の刻限を覚える',text:'誰が湯を沸かし、誰がカップを運ぶかを、一つも書き換えずに覚えた。',effects:[{t:'log',key:'prepare_focus',value:'roster'}]},{id:'record',label:'自室の読書記録を辿る',text:'昨夜の私が本を読んでいた時間を支える、小さな頁を作る。',effects:[{t:'log',key:'prepare_focus',value:'record'}]}]},reaction:'準備は、生き残るための小さな嘘を棚へ戻す作業だった。'}},
-  observe_detectives:{gain:'悟郎の質問の順序が読めるようになる',cost:'コウ君にも見張られ、靴の泥まで追った気配が残る（警戒が2増し、疑いが7増す）',risk:[{t:'param',key:'awareness',delta:1}],scenes:{intro:'談話室では悟郎さんが椅子を動かし、客間の見取り図を作っていた。',focus:{prompt:'誰の手順を追う？',options:[{id:'goro',label:'悟郎の聞く順番を数える',text:'誰を長く見るか、何を見たあと誰へ質問するかを覚える。',effects:[{t:'log',key:'detective_focus',value:'goro'}]},{id:'conan',label:'コウ君の靴の読み方を見る',text:'少年は雨の泥の違いを読んでいく。索引を先に読むほど、こちらも読まれる。',effects:[{t:'log',key:'detective_focus',value:'conan'},{t:'param',key:'awareness',delta:1}]}]},reaction:'「栞お姉さんも、靴を見るの？」私は、もう一つの現場として整理され始めていた。'}},
-  explore:{gain:'壁内の空白と旧道を見つける',cost:'逃げ道を数え、旧道まで目で追った足跡を残す（疑いが8増す）',risk:[{t:'param',key:'suspicion',delta:5}],scenes:{intro:'二階の窓は九つあるのに、廊下には窓三つ分の距離が残る。私は歩数を数え直した。',focus:{prompt:'どの空白を追う？',options:[{id:'walls',label:'壁の寸法を測る',text:'棚一段ぶんでは済まない、暗い余白が壁の内側にある。',effects:[{t:'log',key:'explore_focus',value:'walls'}]},{id:'road',label:'笹の向こうの旧道を見る',text:'谷を迂回して三里先へ続く旧道。五番の唄が地図の上で羽を持った。',effects:[{t:'log',key:'explore_focus',value:'road'},{t:'param',key:'suspicion',delta:3}]}]},reaction:'宇野さんは散歩以外を考えていると知る返事をした。'}},
-  morgue:{gain:'死因を崩す筆だこの手を読む',cost:'知るはずのない死因へ近づき、安置室へ入った気配を残す（知りすぎが1増し、疑いが9増す）',risk:[{t:'param',key:'overknow',delta:1}],scenes:{intro:'安置室にされた客間へ、私は時計と人の隙を読んで入った。',focus:{prompt:'白布のどこを見る？',options:[{id:'hand',label:'左手の筆だこを見る',text:'中指の横には固いペンだこがあり、親指には紙を押さえる摩耗がある。',effects:[{t:'log',key:'morgue_focus',value:'hand'}]},{id:'ink',label:'爪の根元の黒さを読む',text:'沈んだ黒さは土でなく、長いあいだインクを扱った人の影だった。',effects:[{t:'log',key:'morgue_focus',value:'ink'}]}]},reaction:'床板が鳴り、私は布を戻した。手を洗っても、指先に視線の冷たさが残った。'}},
-  doctor:{gain:'歯型照合を揺らす控えを読む',cost:'医師の秘密を覗き、言いよどみまで拾った気配を残す（疑いが8増す）',scenes:{intro:'佐伯先生は古いカルテを膝に置いていた。頁の端だけが白い傷のようだった。',focus:{prompt:'どの記録を見る？',options:[{id:'copy',label:'複写紙の端を覚える',text:'訂正液の下に別の筆跡があり、歯の記号が一つ消されている。',effects:[{t:'log',key:'doctor_focus',value:'copy'}]},{id:'words',label:'佐伯先生の言いよどみを読む',text:'「照合は書類で作れる」告白でなく、自分の喉を塞ぐ仕草だった。',effects:[{t:'log',key:'doctor_focus',value:'words'},{t:'param',key:'suspicion',delta:3}]}]},reaction:'先生は「頼まれたとおりに、空欄を埋めた」と言った。'}},
-  kitchen:{gain:'夜食の当番表と献立を照合する',cost:'死者の朝の茶に触れ、犯行を続けにくくなる（良心が1増す）',risk:[{t:'param',key:'conscience',delta:1}],scenes:{intro:'厨房では志津さんが、誰にも頼まれていないのにカップを煮沸していた。',focus:{prompt:'何を確かめる？',options:[{id:'roster',label:'夜食の当番欄を読む',text:'夜食の欄には家政婦の名があり、補助の欄には空白がある。',effects:[{t:'log',key:'kitchen_focus',value:'roster'}]},{id:'tea',label:'余った朝の茶葉を嗅ぐ',text:'館には、まだ誰かのために用意される量がある。',effects:[{t:'log',key:'kitchen_focus',value:'tea'}]}]},reaction:'志津さんは朝の紅茶を口にして、すぐ口を押さえた。'}},
-  library:{gain:'初版本の余白から別の筆を読む',cost:'恩田の遺した頁を撫で、少年の咳払いを招く（疑いが6増し、警戒が1増す）',scenes:{intro:'書斎の机には恩田さんの眼鏡が残され、初版本の余白には細い鉛筆の矢印があった。',focus:{prompt:'どの頁を開く？',options:[{id:'margin',label:'余白の鉛筆を追う',text:'「初出なし」「終章のみ別人」と二度、読む者へ細い矢印が引かれている。',effects:[{t:'log',key:'library_focus',value:'margin'}]},{id:'ending',label:'最終章の紙を撫で比べる',text:'最後だけ室内の机に座って急いで結んだような文だった。',effects:[{t:'log',key:'library_focus',value:'ending'},{t:'param',key:'awareness',delta:1}]}]},reaction:'扉の外で少年が咳払いをした。死者の鉛筆は私の中へ残った。'}},
-  old_road_song:{gain:'三里先へ抜ける旧道を地図に重ねる',cost:'逃走路を読んだことが露見しかける（疑いが3増す）',scenes:{intro:'談話室の唄の写しで、私は五番の「逃げた小鳥は三里先」を追った。',focus:{prompt:'どこを照合する？',options:[{id:'song',label:'唄の距離を数える',text:'唄はただの脅しでなく、谷を迂回する旧道の距離だった。',effects:[{t:'log',key:'old_road_focus',value:'song'}]},{id:'map',label:'赤鉛筆の山道を辿る',text:'誰かが逃げるために残した索引を、私は頁の端へ写した。',effects:[{t:'log',key:'old_road_focus',value:'map'}]}]},reaction:'宇野さんが通る気配に地図を閉じた。逃げ道を探すことまで知られそうだった。'}}
+  study:{gain:'消された献辞の行を読める',scenes:{intro:'私は書斎の扉を指二本ぶんだけ開け、初版本を司書の手つきで背から抜いた。',focus:{prompt:'どこを読む？',options:[{id:'dedication',label:'献辞の頁を光にかざす',text:'献辞の頁に薄い消し跡がある。「――友、Rに」。消された箇所ほど目に残る。',effects:[{t:'log',key:'study_focus',value:'dedication'}]},{id:'binding',label:'最終章の綴じを見る',text:'最終章だけ紙がわずかに白く、手触りが硬い。頁の綴じ目は別の手を示している。',effects:[{t:'log',key:'study_focus',value:'binding'},{t:'param',key:'overknow',delta:1}]}]},reaction:'コウ君は私の指先を見ていた。「図書館の人って、本を触ると分かるんだね」問いではなく記録だった。'}},
+  housekeeper:{gain:'地下から聞こえた音の記憶に触れる',scenes:{intro:'志津さんは洗濯室で、濡れた客用タオルを何度も畳み直していた。',focus:{prompt:'どこに注目する？',options:[{id:'hands',label:'震える指先を見る',text:'「夜中」という語に触れた途端、彼女の手が止まった。',effects:[{t:'log',key:'housekeeper_focus',value:'hands'}]},{id:'underground',label:'地下の音をたずねる',text:'若いころ、地下からことん、ことん、と物を打つ音が聞こえたという。',effects:[{t:'log',key:'housekeeper_focus',value:'underground'},{t:'param',key:'awareness',delta:1}]}]},reaction:'志津さんは宇野さんの名を出しかけて飲み込んだ。廊下の咳払いが近すぎた。'}},
+  accomplice_room:{gain:'共犯者ごとに違う計画書を読む',scenes:{intro:'剛蔵兄さんの上着のポケットに、三つ折りの紙が半分だけ覗いていた。',focus:{prompt:'どこを確かめる？',options:[{id:'time',label:'唄の時刻を照合する',text:'私の紙は夜食のあと、剛蔵兄さんの紙は散会の直後。二枚は別の場所へ送り出されている。',effects:[{t:'log',key:'accomplice_focus',value:'time'}]},{id:'note',label:'余白の注記まで読む',text:'恩田さんの名の脇に「読ませるな」とある。紙は別々の札だった。',effects:[{t:'log',key:'accomplice_focus',value:'note'},{t:'param',key:'awareness',delta:1}]}]},reaction:'剛蔵兄さんは窓でなく私の手を見た。紙を確かめる顔から笑いが消えた。'}},
+  prepare:{gain:'配膳時刻と自室の記録を揃える',scenes:{intro:'私は厨房の隅にある当番表を、皿洗い用の棚からそっと抜き取った。紙がこちらを読む。',focus:{prompt:'どの余白を整える？',options:[{id:'roster',label:'配膳の刻限を覚える',text:'誰が湯を沸かし、誰がカップを運ぶかを、一つも書き換えずに覚えた。',effects:[{t:'log',key:'prepare_focus',value:'roster'}]},{id:'record',label:'自室の読書記録を辿る',text:'昨夜の私が本を読んでいた時間を支える、小さな頁を作る。',effects:[{t:'log',key:'prepare_focus',value:'record'},{t:'param',key:'suspicion',delta:1}]}]},reaction:'準備は、生き残るための小さな嘘を棚へ戻す作業だった。'}},
+  observe_detectives:{gain:'悟郎の質問の順序が読めるようになる',scenes:{intro:'談話室では悟郎さんが椅子を動かし、客間の見取り図を作っていた。',focus:{prompt:'誰の手順を追う？',options:[{id:'goro',label:'悟郎の聞く順番を数える',text:'誰を長く見るか、何を見たあと誰へ質問するかを覚える。',effects:[{t:'log',key:'detective_focus',value:'goro'}]},{id:'conan',label:'コウ君の靴の読み方を見る',text:'少年は雨の泥の違いを読んでいく。索引を先に読むほど、こちらも読まれる。',effects:[{t:'log',key:'detective_focus',value:'conan'},{t:'param',key:'awareness',delta:1}]}]},reaction:'「栞お姉さんも、靴を見るの？」私は、もう一つの現場として整理され始めていた。'}},
+  explore:{gain:'壁内の空白と旧道を見つける',scenes:{intro:'二階の窓は九つあるのに、廊下には窓三つ分の距離が残る。私は歩数を数え直した。',focus:{prompt:'どの空白を追う？',options:[{id:'walls',label:'壁の寸法を測る',text:'棚一段ぶんでは済まない、暗い余白が壁の内側にある。',effects:[{t:'log',key:'explore_focus',value:'walls'}]},{id:'road',label:'笹の向こうの旧道を見る',text:'谷を迂回して三里先へ続く旧道。五番の唄が地図の上で羽を持った。',effects:[{t:'log',key:'explore_focus',value:'road'},{t:'param',key:'suspicion',delta:3}]}]},reaction:'宇野さんは散歩以外を考えていると知る返事をした。'}},
+  morgue:{gain:'死因を崩す筆だこの手を読む',scenes:{intro:'安置室にされた客間へ、私は時計と人の隙を読んで入った。',focus:{prompt:'白布のどこを見る？',options:[{id:'hand',label:'左手の筆だこを見る',text:'中指の横には固いペンだこがあり、親指には紙を押さえる摩耗がある。',effects:[{t:'log',key:'morgue_focus',value:'hand'}]},{id:'ink',label:'爪の根元の黒さを読む',text:'沈んだ黒さは土でなく、長いあいだインクを扱った人の影だった。',effects:[{t:'log',key:'morgue_focus',value:'ink'},{t:'param',key:'awareness',delta:1}]}]},reaction:'床板が鳴り、私は布を戻した。手を洗っても、指先に視線の冷たさが残った。'}},
+  doctor:{gain:'歯型照合を揺らす控えを読む',scenes:{intro:'佐伯先生は古いカルテを膝に置いていた。頁の端だけが白い傷のようだった。',focus:{prompt:'どの記録を見る？',options:[{id:'copy',label:'複写紙の端を覚える',text:'訂正液の下に別の筆跡があり、歯の記号が一つ消されている。',effects:[{t:'log',key:'doctor_focus',value:'copy'}]},{id:'words',label:'佐伯先生の言いよどみを読む',text:'「照合は書類で作れる」告白でなく、自分の喉を塞ぐ仕草だった。',effects:[{t:'log',key:'doctor_focus',value:'words'},{t:'param',key:'suspicion',delta:3}]}]},reaction:'先生は「頼まれたとおりに、空欄を埋めた」と言った。'}},
+  kitchen:{gain:'夜食の当番表と献立を照合する',scenes:{intro:'厨房では志津さんが、誰にも頼まれていないのにカップを煮沸していた。',focus:{prompt:'何を確かめる？',options:[{id:'roster',label:'夜食の当番欄を読む',text:'夜食の欄には家政婦の名があり、補助の欄には空白がある。',effects:[{t:'log',key:'kitchen_focus',value:'roster'}]},{id:'tea',label:'余った朝の茶葉を嗅ぐ',text:'館には、まだ誰かのために用意される量がある。',effects:[{t:'log',key:'kitchen_focus',value:'tea'},{t:'param',key:'conscience',delta:1}]}]},reaction:'志津さんは朝の紅茶を口にして、すぐ口を押さえた。'}},
+  library:{gain:'初版本の余白から別の筆を読む',scenes:{intro:'書斎の机には恩田さんの眼鏡が残され、初版本の余白には細い鉛筆の矢印があった。',focus:{prompt:'どの頁を開く？',options:[{id:'margin',label:'余白の鉛筆を追う',text:'「初出なし」「終章のみ別人」と二度、読む者へ細い矢印が引かれている。',effects:[{t:'log',key:'library_focus',value:'margin'}]},{id:'ending',label:'最終章の紙を撫で比べる',text:'最後だけ室内の机に座って急いで結んだような文だった。',effects:[{t:'log',key:'library_focus',value:'ending'},{t:'param',key:'awareness',delta:1}]}]},reaction:'扉の外で少年が咳払いをした。死者の鉛筆は私の中へ残った。'}},
+  old_road_song:{gain:'三里先へ抜ける旧道を地図に重ねる',scenes:{intro:'談話室の唄の写しで、私は五番の「逃げた小鳥は三里先」を追った。',focus:{prompt:'どこを照合する？',options:[{id:'song',label:'唄の距離を数える',text:'唄はただの脅しでなく、谷を迂回する旧道の距離だった。',effects:[{t:'log',key:'old_road_focus',value:'song'}]},{id:'map',label:'赤鉛筆の山道を辿る',text:'誰かが逃げるために残した索引を、私は頁の端へ写した。',effects:[{t:'log',key:'old_road_focus',value:'map'},{t:'param',key:'suspicion',delta:1}]}]},reaction:'宇野さんが通る気配に地図を閉じた。逃げ道を探すことまで知られそうだった。'}}
 };
+const scenarioFreeActions = [chapter1, chapter2].flatMap((chapter) => chapter.nodes)
+  .filter((node) => node.t === 'call' && node.part === 'freeAction')
+  .flatMap((node) => node.args.actions);
 export function enrichFreeActions(actions) {
   return actions.map((action) => {
     const details = actionDetails[action.id] || {};
-    return { ...action, ...details, risk:[...(action.risk || []), ...(details.risk || [])] };
+    const scenarioAction = scenarioFreeActions.find((item) => item.id === action.id);
+    return { ...action, ...details, risk:[...(action.risk ?? scenarioAction?.risk ?? [])] };
   });
+}
+
+const paramNames = { suspicion:'疑い', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
+function paramText(effect) {
+  const name = paramNames[effect.key] || effect.key;
+  return `${name}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`;
+}
+export function costDescription(action) {
+  const fixed = (action.risk || []).filter((effect) => effect.t === 'param').map(paramText);
+  const conditional = (action.scenes?.focus?.options || []).map((option) => ({
+    label: option.label,
+    effects: (option.effects || []).filter((effect) => effect.t === 'param').map(paramText),
+  })).filter(({ effects }) => effects.length);
+  return `${fixed.length ? fixed.join('、') : '数えられる代償はない'}${conditional.map(({ label, effects }) => `\n（「${label}」を選ぶと、さらに ${effects.join('、')}）`).join('')}`;
 }
 
 const floorLabels = { '1f':'一階', '2f':'二階', under:'地下・屋外' };
 function roomName(roomId) { return mansionRooms.find((room) => room.id === roomId)?.name || '館のどこか'; }
 function actionPreview(action, hintsEnabled) {
   const preview = previewLineLabels(action, hintsEnabled);
-  return `${preview.length ? `<span class="freeaction-lines">見込める手掛かり：${preview.map(displayText).join('・')}</span>` : ''}<span class="freeaction-gain">見返り：${displayText(action.gain, action.desc || '頁を読む')}</span><span class="freeaction-cost">代償：${displayText(action.cost, '足跡を残す')}</span>`;
+  const cost = displayText(costDescription(action)).replace(/\n/g, '<br>');
+  return `${preview.length ? `<span class="freeaction-lines">見込める手掛かり：${preview.map(displayText).join('・')}</span>` : ''}<span class="freeaction-gain">見返り：${displayText(action.gain, action.desc || '頁を読む')}</span><span class="freeaction-cost">代償：${cost}</span>`;
 }
 function effectNotices(effects) {
   const notices = [];
