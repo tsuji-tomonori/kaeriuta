@@ -1,5 +1,9 @@
 import { boardCards } from '../../src/data/temariuta-board.js';
 
+export function hasUntriedBoardPlacement(face, cardId, slots, placedKeys = []) {
+  return slots.some((slot) => !placedKeys.includes(`${face}:${slot.number}:${slot.kind}:${cardId}`));
+}
+
 export function startProgression(options = {}) {
 const params = new URLSearchParams(location.search);
 const route = options.route || params.get('route') || 'execution';
@@ -304,7 +308,13 @@ function actTemariBoard(modal) {
   const otherFace = modal.querySelector(`[data-face="${currentFace === 'truth' ? 'show' : 'truth'}"]`);
   // 非表示側の配置履歴は DOM に無いため、タブを選んだ後に改めて候補を絞る。
   const otherFaceAvailable = Boolean(otherFace);
-  const cards = [...modal.querySelectorAll('.cards [data-card]')];
+  const cards = [...modal.querySelectorAll('.cards [data-card]')]
+    .filter((card) => hasUntriedBoardPlacement(
+      currentFace,
+      card.dataset.card,
+      slots.map((slot) => ({ number:slot.dataset.number, kind:slot.dataset.kind })),
+      state.placedKeys,
+    ));
   const currentFilled = slots.some((button) => !button.textContent.includes('—'));
   const confirm = modal.querySelector('.confirm-hypothesis');
   const allCurrentFilled = slots.every((button) => !button.textContent.includes('—'));
