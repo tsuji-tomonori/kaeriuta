@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { boardCards, boardSolution } from '../src/data/temariuta-board.js';
 import { assessBoardHypothesis, boardCompletionEffects, placeBoardCard } from '../src/systems/temariuta-board/index.js';
 import { decideByScore, reconcileTemariAttempt, temariPolicy } from '../tools/AIプレイ/ペルソナ/共通.js';
+import { hasUntriedBoardPlacement } from '../tools/ブラウザ検証/進行基盤.js';
 
 const card = { id:'poison', name:'珈琲の毒', note:'金の盃に残された眠りの読み', kinds:['meaning'], selected:true };
 const slots = [
@@ -43,6 +44,14 @@ test('推理型は全欄が正解になってから確定する', () => {
   const complete = temariPolicy({ meta:{ action:'confirm' } }, completeObservation, {}, 'deduce');
   assert.ok(incomplete.score < 0);
   assert.ok(complete.score > 0);
+});
+
+test('ライト層と指示待ち層は一枚を試した後、自分で盤を伏せる', () => {
+  const done = { meta:{ action:'done' } };
+  assert.ok(temariPolicy(done, observation, {}, 'quick').score < 0);
+  assert.ok(temariPolicy(done, observation, { temariCards:['poison'] }, 'quick').score > 0);
+  assert.ok(temariPolicy(done, observation, {}, 'ordered').score < 0);
+  assert.ok(temariPolicy(done, observation, { temariCards:['onda'] }, 'ordered').score > 0);
 });
 
 test('推理型ペルソナは正解表を渡されず、画面の金色フィードバックだけで6/6へ到達する', () => {
@@ -135,4 +144,19 @@ test('推理型ペルソナは正解表を渡されず、画面の金色フィ�
   const score = assessBoardHypothesis(faces.truth, faces.show, verses.map((number) => ({ number })));
   assert.equal(score.truthAccuracy, 6);
   assert.deepEqual(boardCompletionEffects(score, 6, true).at(-1), { t:'flag', id:'other_scriptwriter_noticed' });
+});
+
+test('全欄で試し終えた札を再び操作候補へ出さない', () => {
+  const boardSlots = [
+    { number:'1', kind:'dead' },
+    { number:'1', kind:'actor' },
+    { number:'1', kind:'meaning' },
+    { number:'2', kind:'dead' },
+    { number:'2', kind:'actor' },
+    { number:'2', kind:'meaning' },
+  ];
+  const exhausted = boardSlots.map((slot) => `show:${slot.number}:${slot.kind}:onda`);
+  assert.equal(hasUntriedBoardPlacement('show', 'onda', boardSlots, exhausted), false);
+  assert.equal(hasUntriedBoardPlacement('show', 'poison', boardSlots, exhausted), true);
+  assert.equal(hasUntriedBoardPlacement('truth', 'onda', boardSlots, exhausted), true);
 });
