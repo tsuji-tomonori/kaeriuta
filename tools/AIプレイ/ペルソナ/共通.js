@@ -164,7 +164,13 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
     }
     return add(strategy === 'quick' ? -4 : strategy === 'disrupt' ? -2 : strategy === 'hide' ? 12 : 7, '盤を差し出して結果と効果を引き受ける');
   }
-  if (meta.action === 'done') return add(strategy === 'quick' ? 12 : strategy === 'disrupt' ? 9 : strategy === 'hide' ? 1 : strategy === 'rush' ? 4 : -6, '効果を使わず盤を伏せて退く');
+  if (meta.action === 'done') {
+    if (strategy === 'quick' || strategy === 'ordered') {
+      const triedCard = (memory.temariCards || []).length > 0;
+      return add(triedCard ? 30 : -6, triedCard ? '一枚だけ試したところで盤を伏せ、会話へ戻る' : 'まだ札を一枚も試していない');
+    }
+    return add(strategy === 'disrupt' ? 9 : strategy === 'hide' ? 1 : strategy === 'rush' ? 4 : -6, '効果を使わず盤を伏せて退く');
+  }
   return { score:0, grounds:[] };
 }
 
@@ -229,7 +235,9 @@ function optionScore(option, observation, memory, profile, index) {
     score += adjustment.score || 0;
     grounds.push(...(adjustment.grounds || []));
   }
-  if (profile.partAdjust && observation.kind === 'part') {
+  // 手毬唄ボードは面・札・欄・確定という固有の操作を temariPolicy が評価する。
+  // 通常の特殊パート向けindex補正を重ねると、先頭札の反復が固有方針を上書きする。
+  if (profile.partAdjust && observation.kind === 'part' && observation.part?.name !== 'temariBoard') {
     const adjustment = profile.partAdjust({ option, observation, memory, labels, scene, bias, index }) || {};
     score += adjustment.score || 0;
     grounds.push(...(adjustment.grounds || []));
