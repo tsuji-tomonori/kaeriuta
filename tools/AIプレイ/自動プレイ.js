@@ -92,7 +92,12 @@ function observation() {
         selected: button.classList.contains('selected'),
       })),
       slots: [...modal.querySelectorAll('.board .slot')].map((button) => ({
-        number: Number(button.dataset.number), kind: button.dataset.kind, label: text(button), empty: button.textContent.includes('—'),
+        number: Number(button.dataset.number),
+        kind: button.dataset.kind,
+        label: text(button),
+        empty: button.textContent.includes('—'),
+        correct: button.classList.contains('correct'),
+        cardId: Object.values(boardCards).find((card) => text(button).endsWith(card.name))?.id || null,
       })),
     };
   }
@@ -143,6 +148,7 @@ function decidePart(name, elements) {
       face: element.dataset.face || null,
       number: element.dataset.number ? Number(element.dataset.number) : null,
       kind: element.dataset.kind || null,
+      correct: element.classList.contains('correct'),
       action: element.classList.contains('confirm-hypothesis') ? 'confirm'
         : element.id === 'done' ? 'done' : element.dataset.card ? 'card'
           : element.dataset.face ? 'face' : element.dataset.kind ? 'slot' : 'other',
