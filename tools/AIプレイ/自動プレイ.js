@@ -200,14 +200,14 @@ function writeResult(progress) {
   const state = savedState();
   const temariText = [...transcript].reverse().find((entry) => (
     entry.part?.name === 'temariBoard'
-    && /見せる盤の説得力：\d+\/\d+/.test(entry.text || '')
+    && /表の読みへの一致：\d+\/\d+/.test(entry.text || '')
   ))?.text || '';
-  const temariMatch = temariText.match(/見せる盤の説得力：(\d+)\/(\d+).*まことの盤とのズレ：(\d+).*まことの盤の正確さ：(\d+)\/(\d+)/);
+  const temariMatch = temariText.match(/表の読みへの一致：(\d+)\/(\d+).*まことの盤の正確さ：(\d+)\/(\d+).*見せる盤の栞の名指し：(\d+)/);
   const temari = temariMatch ? {
     showCredibility:Number(temariMatch[1]),
-    divergence:Number(temariMatch[3]),
-    truthAccuracy:Number(temariMatch[4]),
-    total:Number(temariMatch[5]),
+    total:Number(temariMatch[2]),
+    truthAccuracy:Number(temariMatch[3]),
+    shioriExposure:Number(temariMatch[5]),
   } : null;
   const scored = decisions.filter((decision) => decision.diagnostic);
   const ambiguous = scored.filter((decision) => !decision.diagnostic.grounded);
