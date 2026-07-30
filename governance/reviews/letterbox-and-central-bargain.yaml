@@ -1,0 +1,102 @@
+change_id: letterbox-and-central-bargain
+summary: "viewport高720px以下でゲーム画面が潰れる公開版の退行を修正し、共同推理の無料代行と手毬唄ボードの二枚看板という2つの空回りを機構として成立させた"
+repository:
+  product: "素のHTML/CSS/JS、外部依存ゼロの倒叙ミステリーADV"
+  scope: "本文41,774字・588ノード、全7END、特殊パート6種、AIプレイ基盤とペルソナ11体、検証ツール群"
+
+origin:
+  trigger: "最新コードを取得したうえで通しプレイし、面白いかを評価する依頼。11ペルソナの実ブラウザ通しプレイと、実ブラウザでの寸法実測を土台にした。"
+  diagnosis: >
+    読み物としての完成度は高い一方、看板である3系統のうち2系統が実データ側で空回りしていた。
+    加えて直前のスマホ横向き最適化が、意図した端末より広く当たってPCの表示を壊していた。
+    いずれも静的検査・単体テストを全て通り抜ける型の欠陥である。
+  method: "Claudeがオーケストレーションと独立検証、実装はcodex execへ委譲。A（CSS）を単独で先行、B（共同推理）とC（ボード）を排他分割で並行、D・Eは実測で判明した取りこぼしの差し戻し。"
+
+changes:
+  - id: "レターボックス崩壊の修正"
+    detail: >
+      @media (orientation:landscape) and (max-height:720px), (pointer:coarse) の中で
+      .letterbox に width:min(100%, …) を書いていた。body は display:grid; place-items:center のため
+      グリッド領域が shrink-to-fit になり、100% が潰れた内容幅に対して解決されていた。
+      実ブラウザ実測で 1366×768（実viewport 681px）と 1280×720（同 633px）が 318×179px まで縮小し、
+      .letterbox の overflow:hidden によりタイトル画面の「ロード」「章選択」「回想モード」が
+      画面外へ出て押せない状態だった。幅・高さともに viewport 単位（dvw/dvh）基準へ改め、
+      セーフエリアの控除を .letterbox 側へ一元化して body の padding と二重に引かないようにした。
+      修正後の実測は 1366×768→1211×681、1280×720→1125×633、1920/1440 は変化なし。
+  - id: "共同推理の「コウナンに任せる」を取引へ変える"
+    detail: >
+      11ノード中8ノードで選べ、カード不要・実質コストゼロだった。唯一の代償 narrator は
+      書き込み1箇所・読み取り0箇所の死にパラメータで、END条件にも章末サマリにも現れなかった。
+      実測では撃破40ノードのうち23件（57%）がこのボタンで、失敗は11ペルソナ通して0件。
+      自分で暴くと宗玄の動揺が上がり、任せると上がらない形へ改め、動揺97をB-1（真相）の門とした。
+      未達のまま最終局面へ来た場合はB-2（未完）へ落ちる。開き直り（bravado）の発火も
+      フェーズ判定から動揺50へ移し、「自分で暴く線は扉を開けるがその先が厳しい」取引にした。
+      narrator は畳んだ。
+  - id: "手毬唄ボードの二枚の盤を機構化する"
+    detail: >
+      見せる盤の説得力が boardSolution との一致数で測られ、二面のズレは警戒+3の罰だけだった。
+      よって最適解は「二枚とも正解を置く」の一択で、嘘の盤を作る理由が機構として存在しなかった。
+      悟郎たちが納得する表向きの読み boardCover を正本データとして追加し、見せる盤はこれとの一致で採点する。
+      ズレの罰は廃し、代わりに「見せる盤に栞自身を置く」ことを警戒+8・疑い+6の罰とした。
+      配置中の金色（正解表示）は総当たりで答えが割れるため廃し、矛盾文を面ごとに分離して導線の主役にした。
+  - id: "死にデータの解消と再発防止"
+    detail: >
+      jointReasoning は args.debugData と args.variant しか読まないのに、chapter4b が
+      phases/final/bravado（約2,300字）を渡しており全て無視されていた。chapter4a も同様で、
+      A-4「推理ショー乗っ取り」は1ノードのつもりで全11ノードが出ていた（実測で確認）。
+      inference-final.js を正本にして両者のインライン定義を削除し、A-4は variant で実際に1ノードへ絞る。
+      再発防止として tools/シナリオ検証.mjs に「パート実装が参照しない args キー」の検出を追加した。
+  - id: "測定基盤の追従"
+    detail: >
+      ボードの表示文を実効果へ合わせた際、tools/AIプレイ/自動プレイ.js の
+      スコア読み取り正規表現が一致しなくなり、11ペルソナ全員の final.temari が null になった。
+      読み取り項目を showCredibility / truthAccuracy / shioriExposure へ更新し、
+      表示と読み取りを片方だけ変えたら落ちる検査を tools/ボード整合検査.mjs へ入れた。
+      tools/AIプレイ/測定死角検査.mjs は基準線の assertion で落ちると以降の検査が走らなかったため、
+      全ペルソナ・全メトリクスを集計してからまとめて報告する形へ改めた。
+
+requirement_impact:
+  judgement: "あり"
+  requirement_ids: "none（要件IDは未整備）"
+  reason: >
+    利用者向け挙動が変わる。viewport高720px以下の環境で画面が正しく表示されるようになり、
+    共同推理の到達ENDが選択の質に依存するようになり、手毬唄ボードの採点軸と罰が変わる。
+    A-4の推理ショー乗っ取りは提示ノード数が11から1へ変わる。
+
+design_impact:
+  judgement: "あり"
+  targets: "公開契約、as-built構造、検証基盤の契約"
+  detail:
+    - "src/data/temariuta-board.js が boardCover を named export。見せる盤の正本はここ1箇所とする"
+    - "boardVerses[].contradictions を面別（truth / show）構造へ変更"
+    - "src/systems/inference/index.js が B1_AGITATION_THRESHOLD / BRAVADO_AGITATION_THRESHOLD / isB1Open を named export"
+    - "triggersBravado(node, broken) を triggersBravado(agitation, threshold) へ変更（破壊的、内部利用のみ）"
+    - "src/engine/params.js から narrator を削除。createParams() の返り値が変わる"
+    - "jointReasoning の args から phases / final / bravado を廃止。パート定義の正本は src/data/parts/inference-final.js のみ"
+    - "board-axis の表示文は tools/AIプレイ/自動プレイ.js が正規表現で読む契約。片方だけの変更は検査で落ちる"
+
+verification:
+  local:
+    - "node --test: 117件 pass"
+    - "node tools/シナリオ検証.mjs / 統合検証.mjs / 到達可能性検査.mjs / END到達条件検査.mjs / パート終端検査.mjs / ボード整合検査.mjs: すべて pass"
+    - "tools/構文検査.sh: 68ファイル、エラー0"
+    - "tools/AIプレイ/実行.sh all: 11/11完走、errors 0、7END全踏破"
+    - "headless Chrome で .letterbox の getBoundingClientRect() を4サイズ実測"
+  source_of_truth: "GitHub Actions"
+
+compatibility:
+  - "narrator を含む既存セーブデータは、changeParam() が未知キーを無視するため読み込みに支障はないが、値は捨てられる"
+  - "boardVerses[].contradictions の構造変更は外部利用者がいないため影響なし"
+
+residual_risk:
+  - id: "まことの盤6/6が実プレイで到達不能"
+    detail: >
+      配置中の金色表示を廃止した結果、収束の手掛かりが矛盾文だけになり、
+      11ペルソナ全員が最高3/6で終わっている。報酬の other_scriptwriter_noticed
+      （plan系列＝A-4/A-1/A-3の分岐に効く旗）が実質取得不能。
+      静的には配布札で組めることを保証しているが、人間が解けるかは未検証。
+      本PRでは未解決とし、issueへ切り出す。
+  - id: "テンポは未着手"
+    detail: "最初の判断まで36ノード、プロローグ46、第三章35、第四章B 51の無操作区間は今回の範囲外。"
+  - id: "B-3が山場を素通りする"
+    detail: "B-3は反論の決闘も共同推理も通らない唯一のEND。情報最大化型のペルソナが落ちやすい。今回の範囲外。"

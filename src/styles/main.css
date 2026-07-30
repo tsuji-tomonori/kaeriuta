@@ -131,16 +131,10 @@ button:focus-visible { outline:1px solid #f0ce83; outline-offset:3px; }
 @media (orientation:landscape) and (max-height:720px), (orientation:landscape) and (pointer:coarse) {
   body {
     min-height:100dvh;
-    padding:
-      env(safe-area-inset-top,0)
-      env(safe-area-inset-right,0)
-      env(safe-area-inset-bottom,0)
-      env(safe-area-inset-left,0);
   }
   .letterbox {
-    width:min(100%, calc((100dvh - env(safe-area-inset-top,0) - env(safe-area-inset-bottom,0)) * 16 / 9));
-    height:auto;
-    max-height:100%;
+    width:min(calc(100dvw - env(safe-area-inset-left,0) - env(safe-area-inset-right,0)), calc((100dvh - env(safe-area-inset-top,0) - env(safe-area-inset-bottom,0)) * 16 / 9));
+    height:min(calc(100dvh - env(safe-area-inset-top,0) - env(safe-area-inset-bottom,0)), calc((100dvw - env(safe-area-inset-left,0) - env(safe-area-inset-right,0)) * 9 / 16));
   }
   #hud { top:1%; left:1%; right:1%; gap:.35rem; }
   #message-layer { left:2%; right:2%; bottom:2%; }

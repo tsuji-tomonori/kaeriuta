@@ -150,6 +150,6 @@ export const chapter4a={id:'chapter4a',title:'償いの唄',chapter:'第四章A�
  {t:'say',who:'shiori',text:'――待って。その推理、前提から間違っています。'},
  {t:'say',who:'kogoro',text:'何だと？'}, {t:'say',who:'shiori',text:'佐伯先生のことも、トヨさんのことも、私たちが受け取った計画書のことも。死んだ人が書いた筋書きだと思っている。その最初の一頁が違うの。'},
  {t:'mono',text:'声は震えなかった。震えないことが許されたわけではない。ただ、今は震えるより先に、読み上げなければならない。私が隠した罪も、この館が隠した四十年も、同じ本の中にある。'},
- {t:'call',part:'jointReasoning',args:{id:'inference_final_a4',phases:[{id:'p1',title:'私は死んでいた',nodes:[{id:'n1',claim:'君たちは私の死体を見た',requirements:[['corpse_callus']],conanProxy:true,relicBonus:false,agitation:15}]}],final:{id:'n10',requirements:[['acrostic']],conanProxy:false,relicBonus:true},bravado:{triggerPhases:['p3','p4'],extraRequirement:1}}},
+ {t:'call',part:'jointReasoning',args:{id:'inference_final_a4',variant:'a4'}},
  {t:'stage',text:'【推理の後。壁のどこかで、隠し扉の錠が外れる音。誰も拍手をしない。栞は自分の手を見てから、ゆっくり顔を上げる。】'}, {t:'mono',text:'逆転とは、罪が消えることではない。自分を縛っていた文章の主語を、ようやく見つけることだ。'}, {t:'jump',scene:'end_a4'}
 ]};

@@ -94,14 +94,31 @@ function placementKey(face, cardId, number, kind) {
 export function reconcileTemariAttempt(observation, memory) {
   const pending = memory.temariPending;
   const temari = observation.part?.temari;
-  if (!pending || !temari || pending.face !== temari.face) return;
-  const slot = temari.slots?.find((entry) => (
-    entry.number === pending.number && entry.kind === pending.kind
-  ));
-  if (!slot || slot.cardId !== pending.cardId) return;
-  const key = placementKey(pending.face, pending.cardId, pending.number, pending.kind);
-  if (!slot.correct) memory.temariFailedPlacements = [...new Set([...(memory.temariFailedPlacements || []), key])];
-  memory.temariPending = null;
+  if (!temari) return;
+  const fail = (face, cardId, number, kind) => {
+    const key = placementKey(face, cardId, number, kind);
+    memory.temariFailedPlacements = [...new Set([...(memory.temariFailedPlacements || []), key])];
+  };
+  if (pending && pending.face === temari.face) {
+    const slot = temari.slots?.find((entry) => entry.number === pending.number && entry.kind === pending.kind);
+    if (slot?.cardId === pending.cardId) {
+      // 正解色は読まない。画面に出た「矛盾」の文だけを、次の仮説から除外する。
+      if (temari.notice?.includes('矛盾')) fail(pending.face, pending.cardId, pending.number, pending.kind);
+      else memory.temariVerifiedPlacements = [...new Set([...(memory.temariVerifiedPlacements || []), placementKey(pending.face, pending.cardId, pending.number, pending.kind)])];
+      memory.temariPending = null;
+    }
+  }
+  // 確定時の矛盾文には、置かれていた札・番・欄がそのまま表示される。
+  // 初期札を含め、未記録の誤配置も画面文から除外対象にできる。
+  if (!temari.notice?.includes('矛盾')) return;
+  const arabicNumber = temari.notice.match(/第?(\d+)番/)?.[1];
+  const number = temari.notice.match(/([一二三四五六])番/)?.[1];
+  const numberMap = { 一:1, 二:2, 三:3, 四:4, 五:5, 六:6 };
+  const kind = [['死者', 'dead'], ['実行者', 'actor'], ['意味', 'meaning']].find(([label]) => temari.notice.includes(label))?.[1];
+  const card = temari.cards?.find((entry) => entry.name && temari.notice.includes(entry.name));
+  const slot = kind && (arabicNumber || number) && temari.slots?.find((entry) => entry.number === Number(arabicNumber || numberMap[number]) && entry.kind === kind);
+  if (slot?.cardId) fail(temari.face, slot.cardId, slot.number, kind);
+  else if (number && kind && card) fail(temari.face, card.id, numberMap[number], kind);
 }
 
 export function temariPolicy(option, observation, memory, strategy = 'safe') {
@@ -115,6 +132,7 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   const compatible = selected?.kinds?.includes(meta.kind);
   const clue = `${card?.name || ''} ${card?.note || ''}`;
   if (meta.action === 'face') {
+    if (meta.face === temari.face) return add(-100, 'すでに開いている面は切り替えない');
     if (strategy === 'deduce') return add(meta.face === 'truth' ? 60 : -20, '真相をまことの盤に綴じる');
     if (strategy === 'hide') return add(meta.face === 'show' ? 15 : -4, '悟郎へ見せる盤を先に整える');
     if (strategy === 'relic') return add(meta.face === 'truth' ? 9 : 4, '栞の余白と皆へ示す読みを両方残す');
@@ -126,13 +144,14 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   }
   if (meta.action === 'card') {
     if (strategy === 'deduce') {
-      const untestedSlots = slots.filter((slot) => (
-        !slot.correct
-        && card?.kinds?.includes(slot.kind)
-        && !failed.has(placementKey(temari.face, meta.cardId, slot.number, slot.kind))
-      ));
+      const untestedSlots = slots.filter((slot) => {
+        const currentFailed = slot.cardId && failed.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind));
+        return (slot.empty || currentFailed)
+          && card?.kinds?.includes(slot.kind)
+          && !failed.has(placementKey(temari.face, meta.cardId, slot.number, slot.kind));
+      });
       return add(untestedSlots.length ? 35 + untestedSlots.length : -60,
-        untestedSlots.length ? '金色の正解枠を保持し、未検証の欄で札を照合する' : 'この札で試せる未検証の欄は残っていない');
+        untestedSlots.length ? '空欄と札の注記を照合し、未試行の組合せを試す' : 'この札で試せる未検証の欄は残っていない');
     }
     const used = memory.temariCards || [];
     let score = used.includes(meta.cardId) ? -5 : 3;
@@ -148,9 +167,10 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
     if (strategy === 'deduce') {
       const slot = slots.find((entry) => entry.number === meta.number && entry.kind === meta.kind);
       const key = placementKey(temari.face, selected?.id, meta.number, meta.kind);
-      if (slot?.correct) return add(-100, '金色になった正解枠は上書きしない');
+      const currentFailed = slot?.cardId && failed.has(placementKey(temari.face, slot.cardId, meta.number, meta.kind));
+      if (!slot?.empty && !currentFailed) return add(-100, '矛盾が出ていない札は上書きせず、別の欄を読む');
       if (failed.has(key)) return add(-90, '同じ札と欄の不正解配置は繰り返さない');
-      if (compatible) return add(55 - (meta.number || 0) / 10, '札の種別に合う未検証の欄へ置き、金色になるか確かめる');
+      if (compatible) return add(55 - (meta.number || 0) / 10, '札の種別に合う空欄へ置き、矛盾文を手掛かりに読む');
       return add(-100, '札の種別と欄が合わないため試さない');
     }
     if (strategy === 'disrupt') return add(compatible ? -5 : 14, compatible ? '整合する欄を避けて矛盾文を読む' : '種別の違う欄へ仮説を置き、矛盾文を引き出す');
@@ -159,8 +179,8 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   }
   if (meta.action === 'confirm') {
     if (strategy === 'deduce') {
-      const allCorrect = slots.length > 0 && slots.every((slot) => slot.correct);
-      return add(allCorrect ? 100 : -80, allCorrect ? 'すべての欄が金色になった盤を確定する' : '未検証または不正解の欄が残るため確定を待つ');
+      const allFilled = slots.length > 0 && slots.every((slot) => !slot.empty);
+      return add(allFilled ? 100 : -80, allFilled ? 'すべての欄を仮説で埋め、矛盾文を受けて確定する' : '空欄が残るため確定を待つ');
     }
     return add(strategy === 'quick' ? -4 : strategy === 'disrupt' ? -2 : strategy === 'hide' ? 12 : 7, '盤を差し出して結果と効果を引き受ける');
   }

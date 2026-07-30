@@ -1,6 +1,7 @@
 import { boardCards } from '../../src/data/temariuta-board.js';
 
 export function hasUntriedBoardPlacement(face, cardId, slots, placedKeys = []) {
+  // 正誤の色は盤面に出さない。面・札・欄ごとの既試行だけで候補を管理する。
   return slots.some((slot) => !placedKeys.includes(`${face}:${slot.number}:${slot.kind}:${cardId}`));
 }
 

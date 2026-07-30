@@ -34,6 +34,19 @@ test('横向きでは背景を残す3行メッセージ窓とタッチ領域を�
   assert.match(hudCss, /\.hud-button\s*\{[\s\S]*?min-height:\s*40px/);
 });
 
+test('横向きのレターボックスはshrink-to-fit の親に対する百分率で寸法を決めない', () => {
+  const landscapeSection = mainCss.slice(
+    mainCss.search(landscapeQuery),
+    mainCss.indexOf('@media', mainCss.search(landscapeQuery) + 1),
+  );
+  const letterboxRule = landscapeSection.match(/\.letterbox\s*\{([\s\S]*?)\n  \}/)?.[1];
+
+  assert.ok(letterboxRule, '横向き用の .letterbox ルールが必要です');
+  assert.match(letterboxRule, /width:\s*min\([^;]*100dvw[^;]*\)/);
+  assert.match(letterboxRule, /height:\s*min\([^;]*100dvh[^;]*\)/);
+  assert.doesNotMatch(letterboxRule, /width:\s*min\(\s*100%/);
+});
+
 test('横向きではタイトル・セーブ・特殊パートも高さへ収める', () => {
   assert.match(menuCss, landscapeQuery);
   assert.match(menuCss, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
