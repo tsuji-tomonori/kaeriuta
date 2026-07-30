@@ -2,6 +2,15 @@ import { modal, finish, stateOf, has, condition, displayText } from '../common.j
 import { addTestimony } from '../notebook/index.js';
 import { items } from '../../data/items.js';
 
+// シナリオ側の ID と正本を一箇所で対応させる。day3_show は互換性のため
+// rebuttal-ch4a を指す既存の別名として残す。
+export const rebuttalRegistry = Object.freeze({
+ rebuttal_ch2: async () => (await import('../../data/parts/rebuttal-ch2.js')).rebuttalCh2,
+ rebuttal_ch4a: async () => (await import('../../data/parts/rebuttal-ch4a.js')).rebuttalCh4a,
+ day3_show: async () => (await import('../../data/parts/rebuttal-ch4a.js')).rebuttalCh4a,
+ rebuttal_b3: async () => (await import('../../data/parts/rebuttal-b3.js')).rebuttalB3,
+});
+
 const clamp = value => Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
 
 // 知りすぎ一回で 45、二回で 90。疑いは補助的に最大 10 だけを加える。
@@ -32,7 +41,9 @@ const outcomeText = {
 };
 
 export const rebuttal = { async start(ctx, args) {
- const source = (args?.id === 'rebuttal_ch4a' || args?.id === 'day3_show') ? (await import('../../data/parts/rebuttal-ch4a.js')).rebuttalCh4a : (await import('../../data/parts/rebuttal-ch2.js')).rebuttalCh2;
+ const loadSource = rebuttalRegistry[args?.id];
+ if (!loadSource) throw new Error(`未知の反論パートID: ${args?.id ?? '(なし)'}`);
+ const source = await loadSource();
  const data = args?.nodes ? { ...source, ...args, testimony: args.testimony, nodes: args.nodes.map((node, index) => ({ ...source.nodes[index], ...node, kind: node.kind ?? node.type ?? source.nodes[index]?.kind ?? source.nodes[index]?.type })) } : source;
  const s = stateOf(ctx);
  return new Promise(resolve => {

@@ -4,6 +4,7 @@ import { flags } from '../src/data/flags.js';
 import { items } from '../src/data/items.js';
 import { characters } from '../src/data/characters.js';
 import { parts } from '../src/systems/index.js';
+import { rebuttalRegistry } from '../src/systems/rebuttal/index.js';
 
 const manifest = JSON.parse(fs.readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
 const assetIds = new Set(manifest.assets.map((asset) => asset.id));
@@ -14,7 +15,7 @@ const calls = [];
 const endings = new Map();
 const sceneJumps = [];
 const expectedCalls = {
-  rebuttal: new Set(['rebuttal_ch2', 'rebuttal_ch4a']),
+  rebuttal: new Set(Object.keys(rebuttalRegistry)),
   jointReasoning: new Set(['inference_final', 'inference_final_a4']),
   freeAction: new Set(['freeaction_day1', 'freeaction_day2']),
   temariBoard: new Set(['temari_board_day2']),
