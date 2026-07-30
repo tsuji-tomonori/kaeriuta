@@ -15,6 +15,16 @@ export const prologue = {
     { t: 'se', id: 'se_door' },
     { t: 'chara', id: 'chara_uno', expr: 'normal', pos: 'left', action: 'fadeIn' },
     { t: 'say', who: 'uno', text: 'よくお越しくださいました、栞お嬢さま。足元にお気をつけて。雨脚が強うございます。' },
+    { t: 'choice', prompt: '到着のことを、どう記す？', options: [
+      { label: '時刻だけを書き留める', hint: 'まずは返却記録のように要点を残す', effects: [{ t: 'log', key: 'arrival_record', value: 'time' }], goto: 'arrival_recorded' },
+      { label: '雨と館の様子も書く', hint: 'あとで読み返せるように印象まで残す', effects: [{ t: 'log', key: 'arrival_record', value: 'detail' }], goto: 'arrival_recorded' },
+    ] },
+    { t: 'label', id: 'arrival_recorded' },
+    { t: 'if', cond: { log: { key: 'arrival_record', equals: 'time' } }, then: [
+      { t: 'mono', text: '私は手帳の隅に、到着時刻だけを書いた。返却日を記すように、余計なことは添えなかった。' },
+    ], else: [
+      { t: 'mono', text: '私は手帳の隅に、雨の匂いと館の窓の数まで書いた。読み返すときのために、頁の余白も残した。' },
+    ] },
     { t: 'say', who: 'shiori', text: '宇野さん。変わりませんね。' },
     { t: 'say', who: 'uno', text: '館におりますと、年を取る暇もありませんでな。皆さま、大広間でお待ちです。螺旋階段は濡れておりますから、こちらを。' },
     { t: 'mono', text: '宇野さんのランプが、玄関ホールの壁を丸く照らす。二階へ巻き上がる黒い階段は、古い本の背表紙に押された渦巻き模様に似ていた。子供のころはあれを上るのが好きだった。今は、どこまで続いているのか見上げる気にもなれない。' },
