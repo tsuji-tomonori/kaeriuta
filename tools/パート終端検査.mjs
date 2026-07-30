@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { boardCards } from '../src/data/temariuta-board.js';
+import { boardCards, boardSolution } from '../src/data/temariuta-board.js';
 import { placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
 import { FREE_ACTION_PHASE, closeRoomPanel, continueFreeAction, enrichFreeActions, focusFreeAction, openRoomPanel, selectFreeAction } from '../src/systems/freeaction/index.js';
 import { applyResponse, responseOptions } from '../src/systems/rebuttal/index.js';
 import { chapter1 } from '../src/data/scenario/chapter1.js';
+import { chapter2 } from '../src/data/scenario/chapter2.js';
 import { rebuttalCh2 } from '../src/data/parts/rebuttal-ch2.js';
 import { buildChapterSummary, completeChapterSummary } from '../src/systems/summary/index.js';
 
@@ -20,32 +21,60 @@ function mustTerminate(name, advance, complete) {
 
 // actTemariBoard と同じく、札を選んでから欄を押す。不適合な種別では
 // 1回目は警告だけなので、同じ欄をもう1回押して仮説として置く。
-const verses = selectBoardVerses({}, {});
-let board = Object.fromEntries(verses.map((verse) => [verse.number, Object.fromEntries(slots.map((slot) => [slot, null]))]));
+const temariCall = chapter2.nodes.find((node) => node.t === 'call' && node.part === 'temariBoard');
+assert.ok(temariCall, '第二章に手毬唄ボードの呼び出しがある');
+const verses = selectBoardVerses(temariCall.args, {});
+let board = Object.fromEntries(verses.map((verse) => [
+  verse.number,
+  Object.fromEntries(slots.map((slot) => [slot, verse.slots?.[slot] ?? null])),
+]));
 let selectedCard = null;
 let warnedSlot = null;
 let boardOperations = 0;
+let replacementOperations = 0;
+const placedKeys = new Set();
 mustTerminate('手毬唄ボード', () => {
   if (!selectedCard) {
-    selectedCard = Object.keys(boardCards)[0];
+    const target = verses.flatMap((verse) => slots.map((kind) => ({
+      number:verse.number,
+      kind,
+      cardId:boardSolution[verse.number - 1][kind],
+    }))).find(({ number, kind, cardId }) => (
+      board[number][kind] !== cardId
+      && !placedKeys.has(`truth:${number}:${kind}:${cardId}`)
+    ));
+    assert.ok(target, '置換可能な未試行配置がある');
+    selectedCard = target.cardId;
     boardOperations++;
     return;
   }
-  const empty = verses.flatMap((verse) => slots.map((kind) => ({ number:verse.number, kind }))).find(({ number, kind }) => !board[number][kind]);
-  assert.ok(empty, '選択中の札に対応する空欄がある');
-  const incompatible = !boardCards[selectedCard].kinds.includes(empty.kind);
-  const isRetry = warnedSlot?.number === empty.number && warnedSlot?.kind === empty.kind;
+  const target = verses.flatMap((verse) => slots.map((kind) => ({
+    number:verse.number,
+    kind,
+    cardId:boardSolution[verse.number - 1][kind],
+  }))).find(({ number, kind, cardId }) => (
+    cardId === selectedCard
+    && board[number][kind] !== cardId
+    && !placedKeys.has(`truth:${number}:${kind}:${cardId}`)
+  ));
+  assert.ok(target, '選択中の札に対応する未試行欄がある');
+  const incompatible = !boardCards[selectedCard].kinds.includes(target.kind);
+  const isRetry = warnedSlot?.number === target.number && warnedSlot?.kind === target.kind;
   boardOperations++;
   if (incompatible && !isRetry) {
-    warnedSlot = empty;
+    warnedSlot = target;
     return;
   }
-  board = placeBoardCard(board, empty.number, empty.kind, selectedCard);
+  if (board[target.number][target.kind]) replacementOperations++;
+  board = placeBoardCard(board, target.number, target.kind, selectedCard);
+  placedKeys.add(`truth:${target.number}:${target.kind}:${selectedCard}`);
   selectedCard = null;
   warnedSlot = null;
-}, () => verses.every((verse) => slots.every((kind) => board[verse.number][kind])));
+}, () => verses.every((verse) => slots.every((kind) => board[verse.number][kind] === boardSolution[verse.number - 1][kind])));
 assert.ok(boardOperations > 0, '手毬唄ボード検査が0操作で終端していない');
-console.log(`手毬唄ボード: 実操作 ${boardOperations}回（選択・警告・再クリックを含む）`);
+assert.ok(replacementOperations > 0, '初期配置済みの欄を置換していない');
+assert.equal(placedKeys.size, Math.ceil(boardOperations / 2), '同一（面・節・欄・札）を再配置していない');
+console.log(`手毬唄ボード: 実操作 ${boardOperations}回（うち置換 ${replacementOperations}回）`);
 
 // actRebuttal と同じく、disabled の札を候補から除き、先頭の押せる反応を選ぶ。
 let rebuttal = { conviction:rebuttalCh2.initialConviction, overknow:0, broken:[] };

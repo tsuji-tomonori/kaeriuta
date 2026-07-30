@@ -92,7 +92,12 @@ function observation() {
         selected: button.classList.contains('selected'),
       })),
       slots: [...modal.querySelectorAll('.board .slot')].map((button) => ({
-        number: Number(button.dataset.number), kind: button.dataset.kind, label: text(button), empty: button.textContent.includes('—'),
+        number: Number(button.dataset.number),
+        kind: button.dataset.kind,
+        label: text(button),
+        empty: button.textContent.includes('—'),
+        correct: button.classList.contains('correct'),
+        cardId: Object.values(boardCards).find((card) => text(button).endsWith(card.name))?.id || null,
       })),
     };
   }
@@ -143,6 +148,7 @@ function decidePart(name, elements) {
       face: element.dataset.face || null,
       number: element.dataset.number ? Number(element.dataset.number) : null,
       kind: element.dataset.kind || null,
+      correct: element.classList.contains('correct'),
       action: element.classList.contains('confirm-hypothesis') ? 'confirm'
         : element.id === 'done' ? 'done' : element.dataset.card ? 'card'
           : element.dataset.face ? 'face' : element.dataset.kind ? 'slot' : 'other',
@@ -192,6 +198,17 @@ function savedState() {
 
 function writeResult(progress) {
   const state = savedState();
+  const temariText = [...transcript].reverse().find((entry) => (
+    entry.part?.name === 'temariBoard'
+    && /見せる盤の説得力：\d+\/\d+/.test(entry.text || '')
+  ))?.text || '';
+  const temariMatch = temariText.match(/見せる盤の説得力：(\d+)\/(\d+).*まことの盤とのズレ：(\d+).*まことの盤の正確さ：(\d+)\/(\d+)/);
+  const temari = temariMatch ? {
+    showCredibility:Number(temariMatch[1]),
+    divergence:Number(temariMatch[3]),
+    truthAccuracy:Number(temariMatch[4]),
+    total:Number(temariMatch[5]),
+  } : null;
   const scored = decisions.filter((decision) => decision.diagnostic);
   const ambiguous = scored.filter((decision) => !decision.diagnostic.grounded);
   const ambiguousLabels = [...new Set(ambiguous.flatMap((decision) => decision.diagnostic.options || []))];
@@ -234,6 +251,7 @@ function writeResult(progress) {
     analysis: { parameterMoves, widest, narrowest, missedInformation, rebuttal: { convictionTrend }, joint },
     reflection,
     errors: progress.errors,
+    warnings: progress.warnings || [],
     final: {
       endingId: progress.ending,
       steps: step,
@@ -244,6 +262,7 @@ function writeResult(progress) {
       items: state?.items || null,
       flagCount: state ? Object.values(state.flags || {}).flat().length : null,
       cardCount: state?.items?.length ?? null,
+      temari,
     },
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(result))));
