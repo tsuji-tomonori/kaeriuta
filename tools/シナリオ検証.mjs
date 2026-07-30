@@ -92,6 +92,16 @@ function walk(nodes, scene, path = [], nested = false) {
 }
 
 Object.values(scenes).forEach((scene) => walk(scene.nodes, scene));
+// パート引数は実装が読むものだけ渡す。id は経路識別用の予約キーであり除外する。
+const partPaths = { jointReasoning:'inference', temariBoard:'temariuta-board', chapterSummary:'summary', freeAction:'freeaction' };
+const partImplementationSource = Object.fromEntries(Object.keys(parts).map((part) => [part, fs.readFileSync(new URL(`../src/systems/${partPaths[part] || part}/index.js`, import.meta.url), 'utf8')]));
+for (const { part, args = {}, where } of calls) {
+  const source = partImplementationSource[part] || '';
+  for (const key of Object.keys(args).filter((key) => key !== 'id')) {
+    const used = new RegExp(`args\\?\\.${key}\\b|args\\.${key}\\b`).test(source);
+    if (!used) error(where, `part ${part} へ渡した args.${key} を実装が参照していない（死にデータ）`);
+  }
+}
 for (const goto of gotos) {
   const label = labels.get(`${goto.scene}:${goto.id}`);
   if (!label) error(goto.where, `goto先のlabelが未定義: ${goto.id}`);

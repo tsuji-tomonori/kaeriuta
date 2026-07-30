@@ -4,7 +4,6 @@ export const PARAMS = {
   conviction: { initial: 50, min: 0, max: 100 },
   awareness: { initial: 0, min: 0, max: 100 },
   conscience: { initial: 0, min: -10, max: 10 },
-  narrator: { initial: 0, min: -10, max: 10 },
   agitation: { initial: 0, min: 0, max: 100 },
   trust: { initial: 0, min: 0, max: 100 },
   overknow: { initial: 0, min: 0, max: 10 },
