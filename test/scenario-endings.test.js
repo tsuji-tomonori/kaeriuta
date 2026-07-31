@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { endings } from '../src/data/scenario/endings.js';
 import { endingsMeta } from '../src/data/endings-meta.js';
+import { scenes } from '../src/data/scenario/index.js';
 
 const manifest = JSON.parse(
   fs.readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8')
@@ -68,5 +69,13 @@ test('全ENDに立ち絵があり、指定された表情ファイルが実在�
       assert.ok(['left', 'center', 'right'].includes(node.pos), `${sceneId}: pos が不正`);
       assert.ok(['fadeIn', 'replace', 'fadeOut'].includes(node.action), `${sceneId}: action が不正`);
     }
+  }
+});
+
+test('一択の選択肢を残さず、操作には演技差分または分岐を持たせる', () => {
+  for (const scene of Object.values(scenes)) {
+    walk(scene.nodes, (node) => {
+      if (node.t === 'choice') assert.ok(node.options.length >= 2, `${scene.id}: ${node.prompt}`);
+    });
   }
 });

@@ -27,6 +27,11 @@ test('未選択行動がなければ選ばなかった頁の節を出さない',
   assert.doesNotMatch(html, /書斎には、まだ読んでいない頁がある/);
 });
 
+test('動かなかった章末帳簿で句点を重複しない', () => {
+  const html = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{} }, { chapter:1, actions:[], watch:[] }));
+  assert.doesNotMatch(html, /。。/);
+});
+
 test('全ENDに理由と次の一手がある', () => {
   assert.equal(endingsMeta.length, 7);
   assert.ok(endingsMeta.every((ending) => ending.reason && ending.nextHint));

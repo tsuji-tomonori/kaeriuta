@@ -1,7 +1,7 @@
 export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B　3日目',nodes:[
  {t:'bg',id:'bg_corridor_night',transition:'fade'},{t:'bgm',id:'bgm_mansion',fade:500},{t:'se',id:'se_clock'},{t:'chapterTitle',text:'第四章B　五番の夜\n3日目・未明'},
 {t:'mono',text:'告白した瞬間から、館は別の本になった。昨日まで恐れた探偵の眼は隣にあり、今は壁の内側の読者が、私の失敗だけを待っている。'},
-{t:'stage',text:'【未明。廊下のランプは半分だけ落とされ、壁紙の花が暗がりで濡れたインクのように沈んでいる】【。】'},
+{t:'stage',text:'【未明。廊下のランプは半分だけ落とされ、壁紙の花が暗がりで濡れたインクのように沈んでいる。】'},
 {t:'mono',text:'コウ君に話したのは、ほんの一時間前だった。計画書の写しを机へ置き、私は自分がどこまで手を染め、どこから先を知らないのかを、貸出簿の記入欄を埋めるように順番に話した。彼は途中で一度も大きな声を出さなかった。疑うための沈黙と、考えるための沈黙は違う。あの子の沈黙は後者だった。だからこそ、私は余計に怖かった。'},
 {t:'chara',id:'chara_observer',expr:'serious',pos:'right',action:'fadeIn'},
 {t:'say',who:'conan',text:'信じる、とはまだ言えない。でも、鬼灯さんが今夜ここへ来たことは、宗玄さんにとって予定外だったはずだ。予定外の人は、いちばん先に消される。'},
@@ -67,6 +67,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'mono',text:'らせん階段の下へ戻ると、手毬唄の四番が、今度は道順として聞こえた。底へ降りるほど空気は冷え、壁紙の継ぎ目は何度も塗り直されていた。私はかつて館を歩き、廊下の長さと外から見た窓の並びが合わないことに気づいた。あの違和感は、誰かの居場所を隠すために、ずっと黙っていたのだ。'},
 {t:'mono',text:'柱から窓までを歩数で測る。外側から見た館なら、ここには半間ほどの余白があるはずだった。内側にはない。壁が厚いのではない。壁の向こうに、頁を一枚挟んだような空間がある。コウ君が低い位置の飾り金具を押すと、薄い板がわずかに沈んだ。そこには、廊下を覗くための小さな穴があった。'},
 {t:'say',who:'conan',text:'覗き穴だ。廊下だけじゃない。客室の前も、食堂も見えるようになってる。宗玄さんは、みんなの会話を読んでたんじゃない。ずっと、見てた。'},
+{t:'flag',id:'peephole_map'},{t:'item',id:'peephole_map_card'},
 {t:'say',who:'shiori',text:'だから指示書は、いつも先回りしていたのね。私たちが考えたから選んだのではなく、選びそうな方へ、先に道を置かれていた。'},
  {t:'say',who:'conan',text:'でも、全部は読めなかった。鬼灯さんがオレの部屋を叩いたことも、この部屋を見つけたことも。だから今、焦ってるんだ。'},
  {t:'bg',id:'bg_hidden_room',transition:'fade'},{t:'amb',id:'amb_hidden_room',fade:650},{t:'bgm',id:'bgm_reasoning',fade:650},{t:'se',id:'se_paper'},
@@ -77,6 +78,9 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'stage',text:'【コウナンが机の下から小さな木片を拾う。削られた日付が、四十年前から今年まで途切れず続いている。】'},
 {t:'mono',text:'木片の日付は四十年前から今年まで続き、最後の数年には「まだ書く」とだけある。ここは墓ではない。紙を揃え、明日の湯呑みを待つことで生き延びるための、あまりに狭い書庫だった。'},
 {t:'mono',text:'寸法の余白を押すと、壁は本棚のように退いた。そこには原稿、左手で摩耗した万年筆、そして「帰り唄」と書かれた表紙があった。'},
+{t:'mono',text:'トランクの底には、四十年前の捜索記録と受賞式の写真、民俗学者の返信が束ねられていた。出格子の笹を内側から写した写真は、『手毬唄殺し』の同じ描写へ赤糸で結ばれている。'},
+{t:'mono',text:'恩田さんの書き込み本には「初出なし」とあり、『冬の灯』の改稿前後を比べた紙には、別人の筆圧が残る。散らばっていた疑いが、律さんの机で初めて一冊の証拠になった。'},
+{t:'flag',id:'search_record'},{t:'item',id:'search_record_card'},{t:'flag',id:'lattice_shadow'},{t:'item',id:'lattice_shadow_card'},{t:'flag',id:'temariuta_murder_page'},{t:'item',id:'temariuta_murder_page'},{t:'flag',id:'award_photo_right_hand'},{t:'item',id:'award_photo_right_hand'},{t:'flag',id:'folklorist_reply'},{t:'item',id:'folklorist_reply'},{t:'flag',id:'onda_annotated_book'},{t:'item',id:'onda_annotated_book'},{t:'flag',id:'winter_lamp_style'},{t:'item',id:'winter_lamp_style'},
 {t:'flag',id:'manuscript_left_hand'},{t:'item',id:'manuscript_left_hand_card'},{t:'flag',id:'left_handed_pen'},{t:'item',id:'left_handed_pen'},{t:'flag',id:'original_title'},{t:'item',id:'original_title_card'},{t:'flag',id:'acrostic'},{t:'item',id:'acrostic_card'},
 {t:'mono',text:'表紙の『帰り唄』は刊行本にない題だった。五つの節の二行目を追う。きんの盃。りんと座した。はきもの片方。らせんの底。りょうしの鉄砲。頭文字は、四十年間を生き延びた署名だった。私は頁の上に指を置き、声にしないで名前を読んだ。霧原律。'},
 {t:'mono',text:'あの唄は、土地のものではなかった。閉じ込められた人が、館の形と自分の名を、子供の口に残るような短い節へ畳んだものだった。宗玄はそれを盗み、恐怖を飾る小道具にした。けれど盗んだ紙から、作者の指紋までは拭えない。二行目の頭文字は、ひどく小さく、それでいてどんな献辞より確かな帰り道だった。'},
@@ -114,9 +118,9 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
  {t:'label',id:'b3_rebuttal'},
  {t:'call',part:'rebuttal',args:{id:'rebuttal_b3'}},
  {t:'if',cond:{log:{key:'rebuttal_rebuttal_b3',equals:'perfect'}},then:[
-  {t:'choice',prompt:'宇野の手から、鉄棒が落ちた。',options:[{label:'コウ君のもとへ走る',effects:[],goto:'survive'}]}
+  {t:'choice',prompt:'宇野の手から、鉄棒が落ちた。誰を先に支える？',options:[{label:'コウ君のもとへ走る',effects:[{t:'log',key:'b3_survival_style',value:'conan'}],goto:'survive'},{label:'蘭子へ宇野を任せ、出口を開ける',effects:[{t:'log',key:'b3_survival_style',value:'exit'}],goto:'survive'}]}
  ],else:[
-  {t:'choice',prompt:'宇野は目を伏せ、盆の下の鉄棒を握り直した。',options:[{label:'言葉が届かない',effects:[],goto:'b3'}]}
+  {t:'choice',prompt:'宇野は目を伏せ、盆の下の鉄棒を握り直した。最後に何を残す？',options:[{label:'「帰る」とだけ告げる',effects:[{t:'log',key:'b3_last_word',value:'return'}],goto:'b3'},{label:'コウ君へ原稿を投げる',effects:[{t:'log',key:'b3_last_word',value:'manuscript'}],goto:'b3'}]}
  ]},
  {t:'label',id:'b3'},{t:'jump',scene:'end_b3'}
 ]};

@@ -25,6 +25,13 @@ test('応答の適用結果は既存仕様と同じ', () => {
  assert.deepEqual(result, { conviction: 30, overknow: 2, node: { id: 'n1' }, broken: ['n1'], effects: response.result.effects });
 });
 
+test('露見札を使うと表示どおり疑いと露見ログが残る', () => {
+ const response = { card:'alibi_3', result:{ effects:[{t:'param',key:'conviction',delta:-13}], break:true } };
+ const result = applyResponse({ conviction:60, overknow:0, node:{id:'n3'} }, response, []);
+ assert.ok(result.effects.some((effect) => effect.t === 'param' && effect.key === 'suspicion' && effect.delta === 10));
+ assert.ok(result.effects.some((effect) => effect.t === 'log' && effect.key === 'exposure_alibi_3'));
+});
+
 test('全ての札は表示メタデータのキーを持つ', () => {
  for (const item of Object.values(items)) for (const key of ['source', 'power', 'exposure']) assert.ok(Object.hasOwn(item, key), `${item.id}: ${key}`);
 });

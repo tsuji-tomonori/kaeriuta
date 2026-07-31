@@ -31,7 +31,7 @@ test('注目の効果は分岐し、主要報酬はどちらでも既に得て�
 });
 test('全行動は見返り、正本の危険、焦点を持ち、参照先が存在する', () => {
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
-  assert.equal(actions.length, 11);
+  assert.equal(actions.length, 12);
   for (const action of actions) {
     assert.ok(action.gain && action.risk?.length, action.id);
     assert.equal('cost' in action, false, `${action.id}: 手書きの代償文を持たない`);
@@ -76,7 +76,7 @@ test('全行動・全焦点で知りすぎを最大化しても第二章終了�
   const chapter1Overknow = playEveryActionAtMostRiskyFocus(chapter1);
   const chapter2Overknow = playEveryActionAtMostRiskyFocus(chapter2);
   assert.equal(chapter1Overknow, 1);
-  assert.equal(chapter2Overknow, 1);
+  assert.equal(chapter2Overknow, 0);
   assert.ok(chapter1Overknow + chapter2Overknow <= 2);
 });
 test('危険の正本はシナリオ側だけで、詳細側には重複定義を置かない', () => {
@@ -98,4 +98,26 @@ test('以前は同じ効果だった4つの焦点二択は、片方だけ小さ�
     const paramCounts = action.scenes.focus.options.map((option) => option.effects.filter((effect) => effect.t === 'param').length);
     assert.deepEqual(paramCounts, [0, 1], id);
   }
+});
+
+test('偽アリバイ3〜7は焦点選択で取得でき、一周ですべてを取ることはできない', () => {
+  const chapters = [chapter1, chapter2];
+  const actions = enrichFreeActions(chapters.flatMap(actionsOf));
+  const sources = new Map();
+  for (const action of actions) {
+    for (const option of action.scenes.focus.options) {
+      for (const effect of option.effects.filter((entry) => entry.t === 'item' && /^alibi_[3-7]$/.test(entry.id))) {
+        sources.set(effect.id, { action:action.id, focus:option.id });
+      }
+    }
+  }
+  assert.deepEqual([...sources.keys()].sort(), ['alibi_3', 'alibi_4', 'alibi_5', 'alibi_6', 'alibi_7']);
+  assert.ok(new Set([...sources.values()].map(({ action }) => action)).size > 4, '4ブロックより多い行動へ分散する');
+});
+
+test('知らないふりの演じ直しは行動ブロックと良心を使い、知りすぎを下げる', () => {
+  const action = enrichFreeActions(actionsOf(chapter2)).find((entry) => entry.id === 'cover_tracks');
+  assert.ok(action);
+  assert.deepEqual(action.risk, [{t:'param',key:'conscience',delta:-1}]);
+  assert.ok(action.scenes.focus.options.every((option) => option.effects.some((effect) => effect.t === 'param' && effect.key === 'overknow' && effect.delta === -1)));
 });

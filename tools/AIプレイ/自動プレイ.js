@@ -166,7 +166,7 @@ function decidePart(name, elements) {
 // コールバックに渡すため、後者は AI プレイ側で画面更新を観測して同じ採点器に渡す。
 function chooseJointMethod(modal) {
   const elements = [...modal.querySelectorAll('.parts-actions button:not([disabled])')]
-    .filter((button) => ['own', 'proxy', 'relic'].includes(button.id));
+    .filter((button) => ['own', 'proxy', 'relic', 'unfinished'].includes(button.id));
   const claim = text(modal.querySelector('.claim'));
   if (!elements.length || modal.dataset.aiJointMethodClaim === claim) return;
   modal.dataset.aiJointMethodClaim = claim;
@@ -182,7 +182,7 @@ function chooseJointMethod(modal) {
 
 new MutationObserver(() => {
   const modal = document.querySelector('.parts-modal');
-  if (modal?.querySelector('#own, #proxy, #relic')) chooseJointMethod(modal);
+  if (modal?.querySelector('#own, #proxy, #relic, #unfinished')) chooseJointMethod(modal);
 }).observe(document.documentElement, { childList: true, subtree: true });
 
 function savedState() {
