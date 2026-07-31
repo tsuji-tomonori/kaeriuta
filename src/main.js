@@ -35,6 +35,7 @@ import { createCharacterLayer } from './ui/character-layer.js';
 import { shouldShowAdvance } from './ui/advance-visibility.js';
 import { showTitle } from './ui/title.js';
 import { showGallery } from './ui/gallery.js';
+import { showCredits } from './ui/credits.js';
 import { openSaveMenu } from './ui/save-menu.js';
 import { createHud } from './ui/hud.js';
 import { createBacklog } from './ui/backlog.js';
@@ -50,6 +51,35 @@ let initializedRoot = null;
 let inputDocument = null;
 let keydownHandler = null;
 let wheelHandler = null;
+let titleAudio = null;
+let titleUnlockCleanup = null;
+
+function stopTitleAudio() {
+  titleUnlockCleanup?.();
+  titleUnlockCleanup = null;
+  titleAudio?.stopBGM?.(500);
+  titleAudio?.stopAmbience?.(500);
+  titleAudio = null;
+}
+
+function armTitleMusic(root) {
+  titleAudio = new AudioManager();
+  titleAudio.applySettings(loadSettings());
+  let started = false;
+  const start = () => {
+    if (started || !titleAudio) return;
+    started = true;
+    titleUnlockCleanup?.();
+    titleUnlockCleanup = null;
+    titleAudio.playBGM('bgm_title', 900);
+  };
+  root.addEventListener?.('pointerdown', start, { once: true });
+  root.addEventListener?.('keydown', start, { once: true });
+  titleUnlockCleanup = () => {
+    root.removeEventListener?.('pointerdown', start);
+    root.removeEventListener?.('keydown', start);
+  };
+}
 
 function bootElement(documentRef) {
   return documentRef?.querySelector?.('#boot-loader') ?? null;
@@ -113,6 +143,7 @@ function closeTransientUi(session) {
   session?.message?.hide();
   session?.charas?.clear();
   session?.audio?.stopBGM();
+  session?.audio?.stopAmbience();
   session?.screen?.choice && session.choices?.clear();
   session?.root?.querySelectorAll?.('.parts-modal').forEach((element) => element.remove());
 }
@@ -190,6 +221,7 @@ function bindInput(documentRef) {
 
 function renderTitleScreen(root) {
   disposeSession();
+  stopTitleAudio();
   flushRead();
   root.removeAttribute?.('data-scene-id');
   showTitle(root, {
@@ -209,6 +241,7 @@ function renderTitleScreen(root) {
       if (saved) startGame(root, saved, { fromLoad: true });
     },
     onGallery: () => {
+      stopTitleAudio();
       disposeSession();
       showGallery(root, {
         onBack: () => renderTitleScreen(root),
@@ -219,11 +252,17 @@ function renderTitleScreen(root) {
         },
       });
     },
+    onCredits: () => {
+      showCredits(root, { audio: titleAudio, onExit: () => renderTitleScreen(root) });
+    },
+    onSettingsChange: (settings) => titleAudio?.applySettings?.(settings),
   });
+  armTitleMusic(root);
 }
 
 function startGame(root, initialState, { fromLoad = false, replay = false } = {}) {
   disposeSession();
+  stopTitleAudio();
   const session = {
     root,
     state: initialState,
@@ -547,9 +586,12 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
           false,
           shouldShowAdvance({ nodeType: node.t, ending: true }),
         );
-        session.choices.show('', [{ label: 'タイトルへ戻る' }, { label: '回想モードへ' }], (option) => {
+        const endingChoices = [{ label: 'タイトルへ戻る' }, { label: '回想モードへ' }];
+        if (node.endingId === 'b1_true') endingChoices.unshift({ label: 'EDを見る' });
+        session.choices.show('', endingChoices, (option) => {
           if (activeSession !== session) return;
-          if (option.label === '回想モードへ') showGallery(root, { onBack: () => renderTitleScreen(root), onReplay: (sceneId) => { const replay = createGameState(); replay.sceneId = sceneId; startGame(root, resetExecution(replay), { replay: true }); } });
+          if (option.label === 'EDを見る') showCredits(root, { audio: session.audio, onExit: () => renderTitleScreen(root) });
+          else if (option.label === '回想モードへ') showGallery(root, { onBack: () => renderTitleScreen(root), onReplay: (sceneId) => { const replay = createGameState(); replay.sceneId = sceneId; startGame(root, resetExecution(replay), { replay: true }); } });
           else renderTitleScreen(root);
         });
         return;
@@ -573,7 +615,7 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
         session.partName = node.part;
         session.partActive = true;
         renderHud();
-        part.start({ state: session.state, mount: root.querySelector('#game-screen') }, node.args || {})
+        part.start({ state: session.state, mount: root.querySelector('#game-screen'), audio: session.audio }, node.args || {})
           .then((result = {}) => {
             if (session.disposed || activeSession !== session) return;
             session.partActive = false;
@@ -640,6 +682,7 @@ export async function initializeApp({
       showTitle: () => renderTitleScreen(root),
       dispose: () => {
         disposeSession();
+        stopTitleAudio();
         if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
         if (inputDocument && wheelHandler) inputDocument.removeEventListener('wheel', wheelHandler);
         inputDocument = null;

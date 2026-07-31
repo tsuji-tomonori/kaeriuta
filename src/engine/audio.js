@@ -13,13 +13,14 @@ export class AudioManager {
     this.muteAudio = false;
     this._fadeTimer = null;
     this._ambienceFadeTimer = null;
+    this._duckTimer = null;
     this._blockedBGM = false;
   }
 
   _canCreateAudio() { return typeof Audio !== 'undefined'; }
-  _bgmGain() { return this.muteAudio ? 0 : this.bgmVolume; }
-  _ambienceGain() { return this.muteAudio ? 0 : this.ambienceVolume; }
-  _seGain() { return this.muteAudio ? 0 : this.seVolume; }
+  _bgmGain() { return this.muteAudio ? 0 : this.bgmVolume * 0.9; }
+  _ambienceGain() { return this.muteAudio ? 0 : this.ambienceVolume * 0.72; }
+  _seGain() { return this.muteAudio ? 0 : this.seVolume * 0.78; }
   _safePlay(audio, isBGM = false) {
     try {
       const result = audio?.play?.();
@@ -45,18 +46,31 @@ export class AudioManager {
     try {
       const audio = new Audio(resolveAsset(id).src);
       audio.volume = this._seGain();
+      audio.playbackRate = 0.98 + Math.random() * 0.04;
       audio.addEventListener?.('ended', () => { try { audio.src = ''; audio.load?.(); } catch {} }, { once: true });
       this._safePlay(audio);
+      this._duckForEffect();
     } catch {}
   }
 
-  playBGM(id, fade = 0) {
-    if (this.bgmId === id && this.bgm) return;
+  _duckForEffect() {
+    if (this._duckTimer) clearTimeout(this._duckTimer);
+    try { if (this.bgm) this.bgm.volume = this._bgmGain() * .82; } catch {}
+    try { if (this.ambience) this.ambience.volume = this._ambienceGain() * .72; } catch {}
+    this._duckTimer = setTimeout(() => {
+      this._duckTimer = null;
+      try { if (this.bgm) this.bgm.volume = this._bgmGain(); } catch {}
+      try { if (this.ambience) this.ambience.volume = this._ambienceGain(); } catch {}
+    }, 360);
+  }
+
+  playBGM(id, fade = 0, loop = true) {
+    if (this.bgmId === id && this.bgm && this.bgm.loop === loop) return this.bgm;
     if (!this._canCreateAudio()) return;
     let next;
     try {
       next = new Audio(resolveAsset(id).src);
-      next.loop = true;
+      next.loop = loop;
       next.volume = 0;
     } catch { return; }
     const previous = this.bgm;
@@ -68,7 +82,7 @@ export class AudioManager {
     const duration = Number.isFinite(fade) && fade > 0 ? fade : 0;
     if (!previous || !duration) {
       try { next.volume = this._bgmGain(); previous?.pause?.(); } catch {}
-      return;
+      return next;
     }
     const started = Date.now();
     const oldVolume = Number.isFinite(previous.volume) ? previous.volume : this._bgmGain();
@@ -80,13 +94,26 @@ export class AudioManager {
         if (progress >= 1) { this._clearFade(); previous.pause?.(); previous.src = ''; }
       } catch { this._clearFade(); }
     }, 30);
+    return next;
   }
 
-  stopBGM() {
+  stopBGM(fade = 0) {
     this._clearFade();
-    try { this.bgm?.pause?.(); this.bgm && (this.bgm.src = ''); } catch {}
+    const previous = this.bgm;
     this.bgm = null;
     this.bgmId = null;
+    if (!previous) return;
+    const duration = Number.isFinite(fade) && fade > 0 ? fade : 0;
+    if (!duration) { try { previous.pause?.(); previous.src = ''; } catch {} return; }
+    const started = Date.now();
+    const oldVolume = Number.isFinite(previous.volume) ? previous.volume : this._bgmGain();
+    this._fadeTimer = setInterval(() => {
+      try {
+        const progress = Math.min(1, (Date.now() - started) / duration);
+        previous.volume = oldVolume * (1 - progress);
+        if (progress >= 1) { this._clearFade(); previous.pause?.(); previous.src = ''; }
+      } catch { this._clearFade(); }
+    }, 30);
   }
 
   playAmbience(id, fade = 0) {

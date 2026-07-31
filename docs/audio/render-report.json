@@ -1,0 +1,142 @@
+[
+  {
+    "id": "bgm_title",
+    "issue": 23,
+    "duration": 80.0,
+    "loop": true,
+    "lufs": -23.99,
+    "true_peak": -12.87,
+    "sha256": "48ed470c67f33f57e42c6ec36422bb8ae14746b26be59b048158b5d670c3c738",
+    "midi_sha256": "c48ced55259e84603c3c3ae605f9f3d6f5764bd0c747198ddd5262c8c4d11795"
+  },
+  {
+    "id": "bgm_arrival",
+    "issue": 24,
+    "duration": 74.118,
+    "loop": true,
+    "lufs": -24.01,
+    "true_peak": -13.75,
+    "sha256": "700a3d5aece3ab4b413857c56b138c4371754d096e6c8141f074c0d881119b90",
+    "midi_sha256": "5805d23aadbbc59222a2b27d52f253843fa811c9d92a50032e2a4791e4a50515"
+  },
+  {
+    "id": "bgm_mansion",
+    "issue": 26,
+    "duration": 80.0,
+    "loop": true,
+    "lufs": -23.99,
+    "true_peak": -13.42,
+    "sha256": "71aa48a217802b08a433cb7438fe99f3fb17eff8c6c2a1a14122a133cc739b85",
+    "midi_sha256": "312ab3f120dfad667a0e5a944dfb8b6423e376ab618948e73fef834bfdeb2bb5"
+  },
+  {
+    "id": "bgm_storm",
+    "issue": 28,
+    "duration": 68.571,
+    "loop": true,
+    "lufs": -23.99,
+    "true_peak": -13.96,
+    "sha256": "ea1eb52261f9812de5f53ac7d1b375446e3f35f5865ddaa4b7bb332ff6e85b22",
+    "midi_sha256": "f7e0b6f19b0d56edd618b974b94778328499131f6e4f79f45e0b8276de7514f2"
+  },
+  {
+    "id": "bgm_inquiry",
+    "issue": 29,
+    "duration": 75.789,
+    "loop": true,
+    "lufs": -23.98,
+    "true_peak": -13.82,
+    "sha256": "c26b170c93d9aa0fb7ad8f6521cdbbf0532e40815b36dc54b941d40c2f35c5b5",
+    "midi_sha256": "751ca2aac5610b94eff6488a197f39ce3a3cf1a5dc1b3378719617e24a738de7"
+  },
+  {
+    "id": "bgm_reasoning",
+    "issue": 27,
+    "duration": 70.0,
+    "loop": true,
+    "lufs": -23.99,
+    "true_peak": -13.63,
+    "sha256": "e0e99707b9bdc3645500b1ecf033fa82d6d5d428be8582e3c7043030bae216e3",
+    "midi_sha256": "80b3f1ced35caea7b2361cd44b3af493904945c1031f77cd4b96c2810d7888fd"
+  },
+  {
+    "id": "bgm_end_arrest",
+    "issue": 30,
+    "duration": 64.0,
+    "loop": true,
+    "lufs": -22.98,
+    "true_peak": -11.86,
+    "sha256": "b70a795c34dc67769b84e1dcc6f20de803146191115da0006ea74aa830018019",
+    "midi_sha256": "673ef5a220edb165716dcc6eaf02c2fe1196c2bf76c5104b6f3a7ddc595eea00"
+  },
+  {
+    "id": "bgm_end_escape",
+    "issue": 31,
+    "duration": 70.0,
+    "loop": true,
+    "lufs": -22.99,
+    "true_peak": -12.15,
+    "sha256": "f5430ff033f726c86d823290d6ec14afa08638f59640854fca898004bb6a623b",
+    "midi_sha256": "6f7383baedd5bba9f33a55178fbfb438b366d2c5001182c58839b7116a6180c8"
+  },
+  {
+    "id": "bgm_end_puppet",
+    "issue": 33,
+    "duration": 77.778,
+    "loop": true,
+    "lufs": -22.98,
+    "true_peak": -12.07,
+    "sha256": "381cd5101754351361e730b57f0409f3f2640101f3aa01537b19adce3e4e4a0a",
+    "midi_sha256": "4f79b50f727fae95e4413d3ea0210c2f2384a049f13ebbcb888db97fb579a7eb"
+  },
+  {
+    "id": "bgm_end_reversal",
+    "issue": 32,
+    "duration": 72.0,
+    "loop": true,
+    "lufs": -23.02,
+    "true_peak": -13.79,
+    "sha256": "692303681cc50841dc1a3e1cca03d057d89bb04e10746e1c88bebd4d03ca4115",
+    "midi_sha256": "b330aec13a2d5a2e1bb0afcca9cecc440b2c94db884185dea7b140701a87ef1d"
+  },
+  {
+    "id": "bgm_end_rescue",
+    "issue": 34,
+    "duration": 90.0,
+    "loop": true,
+    "lufs": -23.0,
+    "true_peak": -12.95,
+    "sha256": "12df72b6b8a3b302aefc5b52dbd4136bb37d3ac36f2ad6200e341132b53f811b",
+    "midi_sha256": "d434df0d1e71e749bb72d34d2d8283edba6907926ab60029330e90dbc9e09344"
+  },
+  {
+    "id": "bgm_end_unfinished",
+    "issue": 35,
+    "duration": 80.0,
+    "loop": true,
+    "lufs": -22.98,
+    "true_peak": -12.41,
+    "sha256": "ab4580d5a766491d4f737a3edbfd93e242121d5dfb1028734c3bf29d16fcfa4e",
+    "midi_sha256": "8a568d66019e2ed6246cb2e6a2fb7f7a99d2e01bc235a111d6a96d05630ddc23"
+  },
+  {
+    "id": "bgm_end_silenced",
+    "issue": 36,
+    "duration": 73.846,
+    "loop": true,
+    "lufs": -22.99,
+    "true_peak": -12.01,
+    "sha256": "a776d8460c3caef89816a3c93af67259b8b66b407a2c358b88d058e3a48a70a4",
+    "midi_sha256": "fe96383b366e9168f150f8a5cd1215de9b58a5d4b9951064a47646d44d4b0d6c"
+  },
+  {
+    "id": "bgm_credits",
+    "issue": 37,
+    "duration": 170.0,
+    "loop": false,
+    "lufs": -21.01,
+    "true_peak": -9.68,
+    "sha256": "3acbb298434404ba7998775d8c6567d79d836e62f7cd1071d362a266dd183e1f",
+    "midi_sha256": "80b8faf7a255b2608a10810309687086ca5f13808bf53d17a487e5c26b465b83"
+  }
+]

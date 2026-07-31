@@ -90,6 +90,7 @@ export const jointReasoning = { async start(ctx, args = {}) {
         return;
       }
       const incomplete = '証明は揃った。だが、崩れたのは宗玄ではなく、証明の順番だけだった。栞の言葉は、まだ彼の結末を越えられない。';
+      ctx.audio?.stopBGM?.(800);
       view.main.innerHTML = `<p class="claim">【BGM消音】六番の唄</p><p>宗玄「作者にも、もう変えられん」</p><p class="parts-note">${gateStatus()}</p><div class="parts-actions">${data.final.choices.filter((choice) => !choice.requires || has(ctx, choice.requires)).map((choice) => `<button data-e="${choice.ending}" data-id="${choice.id}">${choice.label}</button>`).join('')}</div>`;
       view.main.querySelectorAll('[data-e]').forEach((button) => {
         button.onclick = () => {

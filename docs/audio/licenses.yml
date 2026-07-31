@@ -1,0 +1,20 @@
+version: 1
+soundtrack:
+  source: tools/audio/render_soundtrack.py
+  external_samples: false
+  method: deterministic software synthesis from original note events
+  editable_exports: Standard MIDI files and cue sheets under assets/audio/source
+foley:
+  source: tools/音源生成.sh
+  external_samples: false
+  method: deterministic FFmpeg lavfi synthesis with fixed seeds and band limiting
+tools:
+  - name: FFmpeg
+    license: LGPL-2.1-or-later (subject to the installed build configuration)
+  - name: NumPy
+    license: BSD-3-Clause
+  - name: SciPy
+    license: BSD-3-Clause
+notes:
+  - Generated Ogg files contain no third-party recordings or downloaded presets.
+  - Tool licenses apply to the renderer software, not as additional sample licenses.

@@ -62,6 +62,8 @@ export function showTitle(root, {
   onLoad,
   onChapter,
   onGallery,
+  onCredits,
+  onSettingsChange,
 } = {}) {
   const storage = globalThis.localStorage;
   const progress = loadProgress(storage);
@@ -88,6 +90,7 @@ export function showTitle(root, {
             <button type="button" id="title-chapters" data-chapter-toggle>章選択</button>
             <div class="kaeriuta-title__chapters" data-chapter-list hidden></div>
             <button type="button" id="title-gallery" data-gallery>回想モード</button>
+            ${effects.b1 ? '<button type="button" data-credits>ED再生</button>' : ''}
             ${isMemoirUnlocked(progress) ? '<button type="button" class="kaeriuta-title__memoir" data-memoir>律の手記</button>' : ''}
           </nav>
           <details class="kaeriuta-title__settings">
@@ -140,11 +143,13 @@ export function showTitle(root, {
   if (!effects.count) disabledReason(galleryButton, 'ENDを1つ以上迎えると開きます');
   else galleryButton.onclick = () => onGallery?.();
   root.querySelector('[data-memoir]')?.addEventListener('click', () => onGallery?.());
+  root.querySelector('[data-credits]')?.addEventListener('click', () => onCredits?.());
 
   bindSettingsControls(root, {
     storage,
     onChange: (next) => {
       storage?.setItem(EXPLORATION_HINTS_KEY, next.explorationHints ? 'on' : 'off');
+      onSettingsChange?.(next);
     },
   });
 }

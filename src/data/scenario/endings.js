@@ -1,4 +1,4 @@
-const endScene=(id,title,{bg,chapter,tail,bgm='bgm_ending'},nodes)=>({id,title,chapter,nodes:[
+const endScene=(id,title,{bg,chapter,tail,bgm},nodes)=>({id,title,chapter,nodes:[
  {t:'bg',id:bg,transition:'fade'},{t:'bgm',id:bgm,fade:900},{t:'chapterTitle',text:title},...nodes,...tail,{t:'end',endingId:id}
 ]});
 
@@ -58,6 +58,7 @@ export const endings={
  ]),
  end_a3:endScene('a3_puppet','END A-3　操り人形',{
   bg:'bg_room_fireplace',
+  bgm:'bgm_end_puppet',
   chapter:'エピローグ　3日目・未明',
   tail:[
    {t:'stage',text:'【火の落ちた暖炉で、指示メモの焦げた端だけが赤く明滅する。】'},
@@ -83,6 +84,7 @@ export const endings={
  ]),
  end_a4:endScene('a4_reversal','END A-4　逆転',{
   bg:'bg_hidden_room',
+  bgm:'bgm_end_reversal',
   chapter:'エピローグ　3日目・未明',
   tail:[
    {t:'stage',text:'【谷を越えた回転翼の音に、地下の原稿が一斉に震える。】'},
@@ -139,6 +141,7 @@ export const endings={
  ]),
  end_b2:endScene('b2_unfinished','END B-2　未完',{
   bg:'bg_library_day',
+  bgm:'bgm_end_unfinished',
   chapter:'エピローグ　3日目・昼',
   tail:[
    {t:'stage',text:'【資料保管庫で、出所不明と記された箱の蓋が閉じる。】'},
@@ -180,6 +183,7 @@ export const endings={
  ]),
  end_b3:endScene('b3_silenced','END B-3　口封じ',{
   bg:'bg_corridor_night',
+  bgm:'bgm_end_silenced',
   chapter:'エピローグ　3日目・未明',
   tail:[
    {t:'stage',text:'【廊下の灯が消え、白い羽と「帰る」の一語だけが暗がりに残る。】'},
