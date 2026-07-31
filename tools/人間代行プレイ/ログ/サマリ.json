@@ -1,0 +1,238 @@
+{
+  "generatedAt": "2026-07-31T00:56:29.315Z",
+  "runs": [
+    {
+      "file": "gpt-5.6-luna-high.json",
+      "model": "gpt-5.6-luna",
+      "effort": "high",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        5,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-luna-low.json",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        5,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-luna-medium.json",
+      "model": "gpt-5.6-luna",
+      "effort": "medium",
+      "solved": true,
+      "confirmationCount": 2,
+      "accuracyTrend": [
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-luna-xhigh.json",
+      "model": "gpt-5.6-luna",
+      "effort": "xhigh",
+      "solved": true,
+      "confirmationCount": 4,
+      "accuracyTrend": [
+        3,
+        5,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-sol-high.json",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        4,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-sol-low.json",
+      "model": "gpt-5.6-sol",
+      "effort": "low",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        4,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-sol-medium.json",
+      "model": "gpt-5.6-sol",
+      "effort": "medium",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        4,
+        4,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-sol-xhigh.json",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        4,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-terra-high.json",
+      "model": "gpt-5.6-terra",
+      "effort": "high",
+      "solved": true,
+      "confirmationCount": 2,
+      "accuracyTrend": [
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-terra-low.json",
+      "model": "gpt-5.6-terra",
+      "effort": "low",
+      "solved": true,
+      "confirmationCount": 3,
+      "accuracyTrend": [
+        4,
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-terra-medium.json",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "solved": true,
+      "confirmationCount": 2,
+      "accuracyTrend": [
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    },
+    {
+      "file": "gpt-5.6-terra-xhigh.json",
+      "model": "gpt-5.6-terra",
+      "effort": "xhigh",
+      "solved": true,
+      "confirmationCount": 2,
+      "accuracyTrend": [
+        5,
+        6
+      ],
+      "cheatSuspicion": false,
+      "placementErrorCount": 0
+    }
+  ],
+  "misplacements": [
+    {
+      "verse": 2,
+      "slot": "actor",
+      "slotLabel": "実行者",
+      "cardId": "shiori",
+      "cardName": "霧原栞",
+      "count": 13,
+      "contradictions": [
+        "第2番の実行者欄。この仮説には矛盾がある。二番の実行者を私にすると、名を落とす仕掛けを私が作った証拠がない。読んだ者と書いた者を混ぜている。"
+      ]
+    },
+    {
+      "verse": 2,
+      "slot": "actor",
+      "slotLabel": "実行者",
+      "cardId": "goko",
+      "cardName": "鬼灯剛蔵",
+      "count": 8,
+      "contradictions": [
+        "第2番の実行者欄。この仮説には矛盾がある。二番の実行者を剛蔵にすると、顔を失わせるための紙と手の痕が結ばれない。兄の役は別にある。"
+      ]
+    },
+    {
+      "verse": 1,
+      "slot": "actor",
+      "slotLabel": "実行者",
+      "cardId": "shiori",
+      "cardName": "霧原栞",
+      "count": 3,
+      "contradictions": [
+        "第1番の実行者欄。この仮説には矛盾がある。一番の実行者を私にすると、毒を渡した手を示す証言が一つも残らない。余白だけでは盃に触れられない。"
+      ]
+    },
+    {
+      "verse": 1,
+      "slot": "actor",
+      "slotLabel": "実行者",
+      "cardId": "sogen",
+      "cardName": "鬼灯宗玄",
+      "count": 3,
+      "contradictions": [
+        "第1番の実行者欄。この仮説には矛盾がある。一番の実行者を宗玄にすると、死者として横たわる二番の姿と手が重なる。宗玄の役はここではない。"
+      ]
+    },
+    {
+      "verse": 1,
+      "slot": "meaning",
+      "slotLabel": "意味",
+      "cardId": "surface",
+      "cardName": "表の読み",
+      "count": 1,
+      "contradictions": [
+        "第1番の意味欄。この仮説には矛盾がある。一番を表の読みのままにすると、金の盃が誰の手で眠りになったかを読まずに残す。ここでは一段深く結ぶ。"
+      ]
+    },
+    {
+      "verse": 2,
+      "slot": "meaning",
+      "slotLabel": "意味",
+      "cardId": "surface",
+      "cardName": "表の読み",
+      "count": 1,
+      "contradictions": [
+        "第2番の意味欄。この仮説には矛盾がある。二番を表の読みのままにすると、失われた顔を誰が何のために替えたかが残る。ここでは偽装を読む。"
+      ]
+    }
+  ]
+}

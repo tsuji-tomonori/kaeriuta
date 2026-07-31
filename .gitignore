@@ -19,6 +19,7 @@ node_modules/
 
 # Regenerable AI-play transcripts; scenario and verification sources remain tracked.
 tools/AIプレイ/ログ/*.md
+tools/人間代行プレイ/ログ/実行/
 
 # Python bytecode cache.
 __pycache__/
