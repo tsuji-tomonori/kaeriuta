@@ -31,7 +31,7 @@ test('注目の効果は分岐し、主要報酬はどちらでも既に得て�
 });
 test('全行動は見返り、正本の危険、焦点を持ち、参照先が存在する', () => {
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
-    assert.equal(actions.length, 12);
+  assert.equal(actions.length, 12);
   for (const action of actions) {
     assert.ok(action.gain && action.risk?.length, action.id);
     assert.equal('cost' in action, false, `${action.id}: 手書きの代償文を持たない`);
