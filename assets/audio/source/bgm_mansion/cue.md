@@ -4,21 +4,24 @@
 - Issue: #26
 - Track ID: bgm_mansion
 - Narrative role: 館と家族史が静かに見ている感覚
-- BPM / meter: 60 / 4/4
-- Tonal world: D minor
-- Leitmotif treatment: hidden
-- Instruments: bass_clarinet, cello, felt_piano, warm_pad
-- Duration: 80.000 s
+- BPM / meter: 58 / 4/4
+- Tonal world: F major / D minor
+- Theme: mansion_walk
+- Theme interval: every 10 bars, with phrase-sized rests
+- Instruments: bass_clarinet, cello, felt_piano, warm_air
+- Duration: 140.690 s
 - Loop: yes
-- Target loudness: -24.0 LUFS-I
-- Rendered loudness: -24.0 LUFS-I
-- Rendered true peak: -13.4 dBTP
+- Target loudness: -27.0 LUFS-I
+- Rendered loudness: -26.9 LUFS-I
+- Rendered true peak: -14.6 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

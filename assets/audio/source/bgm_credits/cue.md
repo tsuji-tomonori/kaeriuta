@@ -4,21 +4,24 @@
 - Issue: #37
 - Track ID: bgm_credits
 - Narrative role: 真相の先で、物語を正しい名へ返すED
-- BPM / meter: 72 / 6/4
-- Tonal world: D minor -> D Dorian
-- Leitmotif treatment: resolved
-- Instruments: cello, clarinet, felt_piano, soft_wood, string_pad
-- Duration: 170.000 s
+- BPM / meter: 70 / 6/4
+- Tonal world: D minor -> D Dorian -> F major
+- Theme: credits_return
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: cello, clarinet, felt_piano, room_strings, soft_wood
+- Duration: 205.714 s
 - Loop: no
-- Target loudness: -21.0 LUFS-I
-- Rendered loudness: -21.0 LUFS-I
-- Rendered true peak: -9.7 dBTP
+- Target loudness: -23.5 LUFS-I
+- Rendered loudness: -23.5 LUFS-I
+- Rendered true peak: -10.3 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

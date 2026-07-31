@@ -4,21 +4,24 @@
 - Issue: #27
 - Track ID: bgm_reasoning
 - Narrative role: 手掛かりが結びつく快感と、知りすぎる危険
-- BPM / meter: 96 / 4/4
-- Tonal world: D minor / D Dorian
-- Leitmotif treatment: chromatic
-- Instruments: cello, clarinet, moving_pad, muted_piano, pizzicato
-- Duration: 70.000 s
+- BPM / meter: 92 / 4/4
+- Tonal world: D Dorian / G major
+- Theme: reasoning_lift
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: alto_flute, cello, pizzicato, room_strings, soft_wood
+- Duration: 125.217 s
 - Loop: yes
-- Target loudness: -24.0 LUFS-I
-- Rendered loudness: -24.0 LUFS-I
-- Rendered true peak: -13.6 dBTP
+- Target loudness: -25.5 LUFS-I
+- Rendered loudness: -25.5 LUFS-I
+- Rendered true peak: -13.3 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

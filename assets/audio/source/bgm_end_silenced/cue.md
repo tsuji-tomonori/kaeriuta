@@ -4,21 +4,24 @@
 - Issue: #36
 - Track ID: bgm_end_silenced
 - Narrative role: 奪われた声と、残った『帰る』の一語
-- BPM / meter: 52 / 4/4
-- Tonal world: D minor
-- Leitmotif treatment: breath
-- Instruments: bass_clarinet, cello, dark_pad, felt_piano
-- Duration: 73.846 s
+- BPM / meter: 56 / 4/4
+- Tonal world: F major / D minor
+- Theme: silenced_breath
+- Theme interval: every 10 bars, with phrase-sized rests
+- Instruments: alto_flute, bass_clarinet, warm_air
+- Duration: 94.286 s
 - Loop: yes
-- Target loudness: -23.0 LUFS-I
-- Rendered loudness: -23.0 LUFS-I
-- Rendered true peak: -12.0 dBTP
+- Target loudness: -25.0 LUFS-I
+- Rendered loudness: -24.9 LUFS-I
+- Rendered true peak: -12.7 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

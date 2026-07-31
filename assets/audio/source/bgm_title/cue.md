@@ -4,21 +4,24 @@
 - Issue: #23
 - Track ID: bgm_title
 - Narrative role: 雨の館と、まだ読まれていない結末
-- BPM / meter: 72 / 6/4
-- Tonal world: D minor / D Dorian
-- Leitmotif treatment: unresolved
-- Instruments: cello, clarinet, felt_piano, soft_wood, warm_pad
-- Duration: 80.000 s
+- BPM / meter: 70 / 6/4
+- Tonal world: D minor / F major
+- Theme: title_question
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: cello, clarinet, felt_piano, room_strings, soft_wood
+- Duration: 144.000 s
 - Loop: yes
-- Target loudness: -24.0 LUFS-I
-- Rendered loudness: -24.0 LUFS-I
-- Rendered true peak: -12.9 dBTP
+- Target loudness: -26.0 LUFS-I
+- Rendered loudness: -26.0 LUFS-I
+- Rendered true peak: -14.7 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

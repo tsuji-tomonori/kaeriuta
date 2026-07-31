@@ -4,21 +4,24 @@
 - Issue: #33
 - Track ID: bgm_end_puppet
 - Narrative role: 操られた虚無と、自分で選んだ罪
-- BPM / meter: 54 / 5/4
-- Tonal world: D minor
-- Leitmotif treatment: inverted
-- Instruments: bass_clarinet, dark_pad, muted_piano, soft_wood, viola
-- Duration: 77.778 s
+- BPM / meter: 62 / 5/4
+- Tonal world: G minor / B-flat major
+- Theme: puppet_choice
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: cello, felt_piano, room_strings, viola
+- Duration: 96.774 s
 - Loop: yes
-- Target loudness: -23.0 LUFS-I
-- Rendered loudness: -23.0 LUFS-I
-- Rendered true peak: -12.1 dBTP
+- Target loudness: -24.5 LUFS-I
+- Rendered loudness: -24.5 LUFS-I
+- Rendered true peak: -13.1 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

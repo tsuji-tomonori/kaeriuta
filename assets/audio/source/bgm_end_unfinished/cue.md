@@ -5,20 +5,23 @@
 - Track ID: bgm_end_unfinished
 - Narrative role: 届かなかった名前と、次の読者への余白
 - BPM / meter: 60 / 4/4
-- Tonal world: D minor / C
-- Leitmotif treatment: without_last
-- Instruments: bass_clarinet, felt_piano, viola, warm_pad
-- Duration: 80.000 s
+- Tonal world: C major / A minor
+- Theme: unfinished_page
+- Theme interval: every 10 bars, with phrase-sized rests
+- Instruments: bass_clarinet, felt_piano, viola, warm_air
+- Duration: 104.000 s
 - Loop: yes
-- Target loudness: -23.0 LUFS-I
-- Rendered loudness: -23.0 LUFS-I
-- Rendered true peak: -12.4 dBTP
+- Target loudness: -25.0 LUFS-I
+- Rendered loudness: -24.9 LUFS-I
+- Rendered true peak: -11.2 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

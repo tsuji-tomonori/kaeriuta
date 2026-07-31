@@ -4,21 +4,24 @@
 - Issue: #24
 - Track ID: bgm_arrival
 - Narrative role: 懐かしさと復讐計画へ入る緊張
-- BPM / meter: 68 / 6/4
-- Tonal world: D minor
-- Leitmotif treatment: fragment
-- Instruments: alto_flute, cello, felt_piano, soft_wood, string_pad
-- Duration: 74.118 s
+- BPM / meter: 66 / 6/4
+- Tonal world: A minor / C major
+- Theme: arrival_memory
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: alto_flute, cello, felt_piano, warm_air
+- Duration: 141.818 s
 - Loop: yes
-- Target loudness: -24.0 LUFS-I
-- Rendered loudness: -24.0 LUFS-I
-- Rendered true peak: -13.8 dBTP
+- Target loudness: -26.0 LUFS-I
+- Rendered loudness: -26.0 LUFS-I
+- Rendered true peak: -13.7 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

@@ -4,21 +4,24 @@
 - Issue: #28
 - Track ID: bgm_storm
 - Narrative role: 孤立と、計画が現実の被害へ変わる圧力
-- BPM / meter: 84 / 6/4
+- BPM / meter: 82 / 4/4
 - Tonal world: D minor
-- Leitmotif treatment: compressed
-- Instruments: bass_clarinet, cello, dark_pad, frame_drum, low_piano
-- Duration: 68.571 s
+- Theme: storm_weight
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: bass_clarinet, cello, frame_drum, low_piano, room_strings
+- Duration: 117.073 s
 - Loop: yes
-- Target loudness: -24.0 LUFS-I
-- Rendered loudness: -24.0 LUFS-I
-- Rendered true peak: -14.0 dBTP
+- Target loudness: -25.0 LUFS-I
+- Rendered loudness: -25.0 LUFS-I
+- Rendered true peak: -13.3 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

@@ -5,20 +5,23 @@
 - Track ID: bgm_end_escape
 - Narrative role: 身体は自由でも物語から逃げ切れない帰路
 - BPM / meter: 72 / 6/4
-- Tonal world: D Dorian
-- Leitmotif treatment: second_half
-- Instruments: alto_flute, cello, pizzicato, soft_wood, warm_pad
-- Duration: 70.000 s
+- Tonal world: D Dorian / G major
+- Theme: escape_horizon
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: alto_flute, cello, pizzicato, soft_wood, warm_air
+- Duration: 100.000 s
 - Loop: yes
-- Target loudness: -23.0 LUFS-I
-- Rendered loudness: -23.0 LUFS-I
-- Rendered true peak: -12.2 dBTP
+- Target loudness: -24.5 LUFS-I
+- Rendered loudness: -24.5 LUFS-I
+- Rendered true peak: -12.6 dBTP
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
