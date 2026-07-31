@@ -2,9 +2,11 @@
 """Render the Kaeriuta soundtrack from deterministic, editable cue data.
 
 The synthesizer intentionally uses no downloaded samples.  Every audible source
-is built from band-limited harmonic models, filtered noise, envelopes and a
-small stereo room.  The same event list is also exported as a Standard MIDI
-File so an arranger can replace any synthesized voice in a free DAW later.
+is built from softly excited resonators, filtered noise, envelopes and a small
+stereo room.  Each dramatic situation owns a distinct theme: the title theme
+returns only where the story earns that recognition.  The same event list is
+also exported as a Standard MIDI File so an arranger can replace any rendered
+voice in a free DAW later.
 """
 
 from __future__ import annotations
@@ -28,9 +30,6 @@ from scipy.signal import butter, sosfilt
 ROOT = Path(__file__).resolve().parents[2]
 SR = 48_000
 TAU = math.tau
-MOTIF = (74, 77, 76, 72, 74, 69, 67, 74)  # D5 F5 E5 C5 | D5 A4 G4 D5
-
-
 @dataclass(frozen=True)
 class Track:
     id: str
@@ -46,7 +45,8 @@ class Track:
     counter: str
     texture: str
     pulse: str
-    motif: str
+    theme: str
+    phrase_bars: int
     density: float = 1.0
     target_lufs: float = -24.0
     loop: bool = True
@@ -61,20 +61,20 @@ class Track:
 
 
 TRACKS = (
-    Track("bgm_title", 23, "まだ閉じない頁", "雨の館と、まだ読まれていない結末", 72, 6, 16, "D minor / D Dorian", ("Dm9", "BbM7", "Cadd9", "Dsus2"), "felt_piano", "clarinet", "warm_pad", "soft_wood", "unresolved", .82),
-    Track("bgm_arrival", 24, "雨の向こうの館", "懐かしさと復讐計画へ入る緊張", 68, 6, 14, "D minor", ("Dm9", "Cadd9", "BbM7", "Asus4"), "felt_piano", "alto_flute", "string_pad", "soft_wood", "fragment", .72),
-    Track("bgm_mansion", 26, "閉じた書架の呼吸", "館と家族史が静かに見ている感覚", 60, 4, 20, "D minor", ("Dm9", "BbM7", "Gm9", "Cadd9"), "felt_piano", "bass_clarinet", "warm_pad", "none", "hidden", .52),
-    Track("bgm_storm", 28, "橋のない夜", "孤立と、計画が現実の被害へ変わる圧力", 84, 6, 16, "D minor", ("Dm", "C", "Bb", "Asus4"), "low_piano", "cello", "dark_pad", "frame_drum", "compressed", .95),
-    Track("bgm_inquiry", 29, "余白を裁く", "返答までの沈黙と観察される緊張", 76, 4, 24, "D minor", ("Dm9", "Gm9", "BbM7", "Asus4"), "muted_piano", "bass_clarinet", "warm_pad", "pizzicato", "question", .68),
-    Track("bgm_reasoning", 27, "読まれる側", "手掛かりが結びつく快感と、知りすぎる危険", 96, 4, 28, "D minor / D Dorian", ("Dm", "G", "Bb", "A"), "muted_piano", "clarinet", "moving_pad", "pizzicato", "chromatic", .98),
-    Track("bgm_end_arrest", 30, "逮捕 ― 調書の余白", "罪と沈黙を記録へ渡す重さ", 60, 4, 16, "D minor", ("Dm9", "BbM7", "Gm9", "Asus4"), "felt_piano", "cello", "dark_pad", "none", "first_half", .55, -23),
-    Track("bgm_end_escape", 31, "脱出 ― 三里先の朝靄", "身体は自由でも物語から逃げ切れない帰路", 72, 6, 14, "D Dorian", ("Dm9", "Cadd9", "G", "BbM7"), "alto_flute", "pizzicato", "warm_pad", "soft_wood", "second_half", .70, -23),
-    Track("bgm_end_puppet", 33, "操り人形 ― 糸の先の筆", "操られた虚無と、自分で選んだ罪", 54, 5, 14, "D minor", ("Dm", "EbM7", "Bb", "Asus4"), "muted_piano", "viola", "dark_pad", "soft_wood", "inverted", .58, -23),
-    Track("bgm_end_reversal", 32, "逆転 ― 二つの手錠", "真実の前進と栞自身の代償", 80, 4, 24, "D minor / D Dorian", ("Dm9", "G", "BbM7", "Asus4"), "felt_piano", "cello", "string_pad", "frame_drum", "almost_full", .90, -23),
-    Track("bgm_end_rescue", 34, "真相 ― 名前を返す朝", "正しい作者名と物語が読者へ帰る夜明け", 72, 6, 18, "D Dorian", ("Dm9", "G", "BbM7", "Dsus2"), "felt_piano", "clarinet", "string_pad", "soft_wood", "resolved", .88, -23),
-    Track("bgm_end_unfinished", 35, "未完 ― 長すぎる栞", "届かなかった名前と、次の読者への余白", 60, 4, 20, "D minor / C", ("Dm9", "Cadd9", "BbM7", "Gm9"), "felt_piano", "viola", "warm_pad", "none", "without_last", .52, -23),
-    Track("bgm_end_silenced", 36, "口封じ ― 白い羽", "奪われた声と、残った『帰る』の一語", 52, 4, 16, "D minor", ("Dm9", "BbM7", "Gm9", "Dsus2"), "felt_piano", "bass_clarinet", "dark_pad", "none", "breath", .42, -23),
-    Track("bgm_credits", 37, "帰り唄", "真相の先で、物語を正しい名へ返すED", 72, 6, 34, "D minor -> D Dorian", ("Dm9", "BbM7", "Cadd9", "G", "Dm9", "G", "BbM7", "Dsus2"), "felt_piano", "clarinet", "string_pad", "soft_wood", "resolved", 1.0, -21, False),
+    Track("bgm_title", 23, "まだ閉じない頁", "雨の館と、まだ読まれていない結末", 70, 6, 28, "D minor / F major", ("Dm9", "F6", "Cadd9", "Bb6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "title_question", 8, .55, -26),
+    Track("bgm_arrival", 24, "雨の向こうの館", "懐かしさと復讐計画へ入る緊張", 66, 6, 26, "A minor / C major", ("Am7", "C6", "F6", "G6"), "alto_flute", "felt_piano", "warm_air", "none", "arrival_memory", 8, .48, -26),
+    Track("bgm_mansion", 26, "閉じた書架の呼吸", "館と家族史が静かに見ている感覚", 58, 4, 34, "F major / D minor", ("F6", "Cadd9", "Dm9", "Bb6"), "felt_piano", "cello", "warm_air", "none", "mansion_walk", 10, .34, -27),
+    Track("bgm_storm", 28, "橋のない夜", "孤立と、計画が現実の被害へ変わる圧力", 82, 4, 40, "D minor", ("Dm", "Bb6", "F6", "Cadd9"), "low_piano", "cello", "room_strings", "frame_drum", "storm_weight", 8, .68, -25),
+    Track("bgm_inquiry", 29, "余白を裁く", "返答までの沈黙と観察される緊張", 74, 4, 42, "A minor / D Dorian", ("Am7", "Dm9", "G6", "C6"), "felt_piano", "clarinet", "warm_air", "pizzicato", "inquiry_pause", 8, .48, -26),
+    Track("bgm_reasoning", 27, "読まれる側", "手掛かりが結びつく快感と、知りすぎる危険", 92, 4, 48, "D Dorian / G major", ("Dm9", "G6", "Em7", "A7sus4"), "pizzicato", "alto_flute", "room_strings", "soft_wood", "reasoning_lift", 8, .67, -25.5),
+    Track("bgm_end_arrest", 30, "逮捕 ― 調書の余白", "罪と沈黙を記録へ渡す重さ", 58, 4, 22, "D minor / F major", ("Dm9", "Bb6", "F6", "Cadd9"), "felt_piano", "cello", "room_strings", "none", "arrest_record", 8, .38, -24.5),
+    Track("bgm_end_escape", 31, "脱出 ― 三里先の朝靄", "身体は自由でも物語から逃げ切れない帰路", 72, 6, 20, "D Dorian / G major", ("Dm9", "G6", "C6", "F6"), "alto_flute", "pizzicato", "warm_air", "soft_wood", "escape_horizon", 8, .56, -24.5),
+    Track("bgm_end_puppet", 33, "操り人形 ― 糸の先の筆", "操られた虚無と、自分で選んだ罪", 62, 5, 20, "G minor / B-flat major", ("Gm9", "Bb6", "F6", "Cadd9"), "viola", "felt_piano", "room_strings", "none", "puppet_choice", 8, .42, -24.5),
+    Track("bgm_end_reversal", 32, "逆転 ― 二つの手錠", "真実の前進と栞自身の代償", 78, 4, 32, "D Dorian", ("Dm9", "G6", "C6", "A7sus4"), "cello", "felt_piano", "room_strings", "frame_drum", "reversal_cost", 8, .66, -24),
+    Track("bgm_end_rescue", 34, "真相 ― 名前を返す朝", "正しい作者名と物語が読者へ帰る夜明け", 70, 6, 22, "D Dorian / F major", ("Dm9", "G6", "Bb6", "F6"), "clarinet", "felt_piano", "room_strings", "soft_wood", "rescue_answer", 8, .62, -24),
+    Track("bgm_end_unfinished", 35, "未完 ― 長すぎる栞", "届かなかった名前と、次の読者への余白", 60, 4, 26, "C major / A minor", ("C6", "Am7", "F6", "Dm9"), "felt_piano", "viola", "warm_air", "none", "unfinished_page", 10, .34, -25),
+    Track("bgm_end_silenced", 36, "口封じ ― 白い羽", "奪われた声と、残った『帰る』の一語", 56, 4, 22, "F major / D minor", ("F6", "Dm9", "Bb6", "Cadd9"), "alto_flute", "cello", "warm_air", "none", "silenced_breath", 10, .28, -25),
+    Track("bgm_credits", 37, "帰り唄", "真相の先で、物語を正しい名へ返すED", 70, 6, 40, "D minor -> D Dorian -> F major", ("Dm9", "Bb6", "F6", "Cadd9", "Dm9", "G6", "Bb6", "F6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "credits_return", 8, .72, -23.5, False),
 )
 
 
@@ -90,7 +90,13 @@ CHORDS: dict[str, tuple[int, ...]] = {
     "G": (43, 50, 55, 59),
     "A": (45, 52, 57, 61),
     "Asus4": (45, 52, 57, 62),
-    "EbM7": (51, 58, 62, 67),
+    "A7sus4": (45, 52, 55, 62),
+    "Am7": (45, 52, 55, 60, 64),
+    "F6": (41, 48, 53, 57, 62),
+    "C6": (48, 55, 60, 64, 69),
+    "G6": (43, 50, 55, 59, 64),
+    "Bb6": (46, 53, 58, 62, 67),
+    "Em7": (40, 47, 52, 55, 59),
 }
 
 
@@ -100,14 +106,12 @@ PROGRAMS = {
     "low_piano": 0,
     "cello": 42,
     "viola": 41,
-    "string_pad": 48,
+    "room_strings": 48,
     "pizzicato": 45,
     "clarinet": 71,
     "bass_clarinet": 71,
     "alto_flute": 73,
-    "warm_pad": 89,
-    "dark_pad": 89,
-    "moving_pad": 89,
+    "warm_air": 89,
     "soft_wood": 115,
     "frame_drum": 116,
     "none": 0,
@@ -124,97 +128,105 @@ class Event:
     pan: float
 
 
-def motif_for(name: str) -> tuple[int | None, ...]:
-    variants: dict[str, tuple[int | None, ...]] = {
-        "unresolved": (*MOTIF[:-1], None),
-        "fragment": (74, None, 77, 76, None, 72),
-        "hidden": (62, None, 69, None, 67),
-        "compressed": (62, 65, 64, 60, None),
-        "question": (74, 77, 76, None, 72),
-        "chromatic": (74, 77, 78, 76, 72, 74, 69, 67, None),
-        "first_half": (74, 77, 76, 72, None),
-        "second_half": (74, 69, 67, None),
-        "inverted": (74, 71, 72, 76, 74, None),
-        "almost_full": (*MOTIF[:-1], 62),
-        "resolved": MOTIF,
-        "without_last": (*MOTIF[:-1], None),
-        "breath": (67, None, 74),
-    }
-    return variants[name]
+THEMES: dict[str, tuple[tuple[float, float, int], ...]] = {
+    # offset, duration, MIDI note.  Rests are represented by gaps, not repeated
+    # sentinel notes, so every cue has its own contour and breathing pattern.
+    "title_question": ((0, 1.8, 69), (2.2, 1.2, 72), (4.0, 2.0, 74), (7.0, 1.4, 72), (9.0, 2.2, 65)),
+    "arrival_memory": ((0, 2.4, 64), (3.0, 1.4, 67), (5.0, 2.2, 69), (8.5, 1.2, 67), (10.5, 2.8, 60)),
+    "mansion_walk": ((0, 2.6, 65), (4.5, 1.8, 60), (8.0, 2.6, 57), (13.0, 2.0, 62)),
+    "storm_weight": ((0, 1.2, 50), (1.8, .8, 57), (3.0, 1.6, 53), (5.5, .8, 60), (7.0, 2.2, 55)),
+    "inquiry_pause": ((0, 1.2, 69), (2.0, 1.0, 72), (5.0, 1.8, 71), (8.0, 1.0, 67), (11.0, 2.4, 64)),
+    "reasoning_lift": ((0, .8, 62), (1.2, .8, 64), (2.4, 1.2, 67), (4.2, .8, 69), (5.4, 1.6, 71), (8.0, 1.0, 69), (10.0, 2.0, 74)),
+    "arrest_record": ((0, 2.0, 60), (3.0, 2.8, 57), (7.0, 1.4, 53), (10.0, 3.2, 50)),
+    "escape_horizon": ((0, 1.4, 62), (2.0, 1.4, 66), (4.0, 2.0, 67), (7.0, 1.2, 69), (9.0, 2.6, 64)),
+    "puppet_choice": ((0, 1.8, 67), (3.0, 1.1, 70), (5.0, 2.4, 74), (9.0, 1.4, 69), (12.0, 2.5, 67)),
+    "reversal_cost": ((0, 1.0, 57), (1.5, 1.0, 62), (3.0, 1.5, 64), (5.2, 1.0, 65), (7.0, 1.8, 69), (10.0, 2.2, 67)),
+    # The title contour is recognized here, but it is answered and resolved
+    # instead of copied note-for-note.
+    "rescue_answer": ((0, 1.4, 69), (2.0, 1.0, 72), (3.5, 1.8, 74), (6.0, 1.2, 76), (8.0, 1.4, 74), (10.0, 3.0, 69)),
+    "unfinished_page": ((0, 2.2, 60), (3.5, 1.4, 67), (6.0, 2.0, 64), (10.0, 1.2, 62), (14.0, 2.8, 57)),
+    "silenced_breath": ((0, 3.2, 65), (6.0, 2.0, 62), (11.0, 3.4, 57)),
+    "credits_return": ((0, 1.5, 69), (2.0, 1.0, 72), (3.5, 1.6, 74), (5.8, 1.0, 76), (7.5, 1.3, 74), (9.5, 1.3, 72), (11.5, 3.0, 69)),
+}
 
 
 def arrangement(track: Track) -> list[Event]:
     events: list[Event] = []
     total_beats = track.bars * track.meter
     rng = np.random.default_rng(track.issue * 7919)
-    phrase_bars = 4 if track.density >= .7 else 8
 
-    # Harmony is deliberately voiced sparsely; a cue must leave room for text.
-    for bar in range(track.bars):
-        chord = CHORDS[track.progression[bar % len(track.progression)]]
+    # Harmony changes every two bars and is not re-attacked on every measure.
+    # That slower breathing is important during a two-hour, text-heavy play.
+    for bar in range(0, track.bars, 2):
+        chord = CHORDS[track.progression[(bar // 2) % len(track.progression)]]
         start = bar * track.meter
-        texture_velocity = .16 + track.density * .10
+        texture_velocity = .10 + track.density * .08
         if track.id == "bgm_credits":
             section = bar / track.bars
             texture_velocity *= .55 + min(section * 1.8, .9)
-        for index, note in enumerate(chord[1:]):
+        for index, note in enumerate(chord[1:4]):
             pan = (-.36, .30, -.16, .18)[index % 4]
-            events.append(Event(track.texture, start, track.meter + .9, note, texture_velocity, pan))
-        # A low bowed/breathed anchor replaces the former fixed sine drones.
-        if bar % 2 == 0:
+            duration = track.meter * 1.75 + float(rng.uniform(-.15, .22))
+            events.append(Event(track.texture, start + float(rng.uniform(-.04, .04)), duration, note, texture_velocity, pan))
+        # A low acoustic anchor appears only once every four bars.  Avoid a
+        # continuous sub drone: this is a mystery, not a horror score.
+        if bar % 4 == 0:
             bass_voice = "cello" if track.counter not in {"cello", "viola"} else "bass_clarinet"
-            events.append(Event(bass_voice, start, track.meter * 1.8, chord[0], .20 + .08 * track.density, -.24))
+            events.append(Event(bass_voice, start + .15, track.meter * 1.35, chord[0] + 12, .13 + .05 * track.density, -.24))
 
-    motif = motif_for(track.motif)
-    phrase_count = math.ceil(track.bars / phrase_bars)
+    theme = THEMES[track.theme]
+    phrase_count = math.ceil(track.bars / track.phrase_bars)
     for phrase in range(phrase_count):
-        if track.motif == "hidden" and phrase % 2:
+        # Whole phrase-sized rests prevent the score from demanding attention.
+        if track.density < .45 and phrase % 3 == 1:
             continue
-        base = phrase * phrase_bars * track.meter + (1.0 if track.meter >= 5 else .5)
-        spacing = 1.25 if track.meter >= 5 else .9
-        if track.motif in {"breath", "hidden"}:
-            spacing *= 2.2
-        for index, note in enumerate(motif):
-            if note is None:
-                continue
-            start = base + index * spacing
+        base = phrase * track.phrase_bars * track.meter + (1.0 if track.meter >= 5 else .5)
+        transpose_cycle = (0, 0, -2, 0, 2, 0)
+        transpose = transpose_cycle[phrase % len(transpose_cycle)] if phrase else 0
+        for index, (offset, note_duration, note) in enumerate(theme):
+            start = base + offset
             if start >= total_beats - .5:
                 break
-            human = float(rng.uniform(-.035, .035))
-            velocity = (.28 + .10 * track.density) * float(rng.uniform(.90, 1.06))
-            duration = 1.15 if track.lead in {"felt_piano", "muted_piano", "low_piano"} else 1.8
-            events.append(Event(track.lead, start + human, duration, note, velocity, -.10 + .08 * (index % 3)))
+            human = float(rng.uniform(-.075, .075))
+            velocity = (.22 + .09 * track.density) * float(rng.uniform(.84, 1.08))
+            duration = note_duration * float(rng.uniform(.92, 1.08))
+            events.append(Event(track.lead, start + human, duration, note + transpose, velocity, -.10 + .08 * (index % 3)))
 
-        # A restrained counterline answers instead of doubling the melody.
-        if phrase % 2 == 0 and track.counter != "none":
-            chord = CHORDS[track.progression[(phrase * phrase_bars + 2) % len(track.progression)]]
-            counter_start = base + track.meter * 1.8
+        # A restrained, situation-specific answer appears in only one phrase
+        # out of three instead of shadowing every melody statement.
+        if phrase % 3 == 2 and track.counter != "none":
+            chord = CHORDS[track.progression[(phrase * track.phrase_bars + 2) % len(track.progression)]]
+            counter_start = base + track.meter * 2.4
             for index, note in enumerate((chord[-1], chord[-2], chord[1])):
-                if counter_start + index * 1.8 < total_beats - .5:
-                    events.append(Event(track.counter, counter_start + index * 1.8, 2.2, note + 12, .20 + .06 * track.density, .28))
+                if counter_start + index * 2.1 < total_beats - .5:
+                    events.append(Event(track.counter, counter_start + index * 2.1, 2.5, note + 12, .15 + .05 * track.density, .28))
 
-    # Organic pulse.  It intentionally avoids a metronomic high tick.
+    # Pulse is limited to short activity windows.  It never becomes a high,
+    # metronomic click that follows the player for the entire scene.
     if track.pulse != "none":
-        step = 3 if track.meter == 6 else 2
+        step = 4 if track.meter >= 5 else 3
         for beat in np.arange(0, total_beats, step):
-            if track.density < .6 and int(beat / step) % 2:
+            bar = int(beat / track.meter)
+            if bar % 12 not in {4, 5, 6, 9}:
                 continue
             note = 38 if track.pulse == "frame_drum" else (50 if track.pulse == "pizzicato" else 62)
-            velocity = (.13 + .11 * track.density) * float(rng.uniform(.86, 1.05))
+            velocity = (.08 + .08 * track.density) * float(rng.uniform(.80, 1.08))
             pan = float(rng.uniform(-.18, .18))
-            events.append(Event(track.pulse, float(beat + rng.uniform(-.025, .025)), .45, note, velocity, pan))
+            events.append(Event(track.pulse, float(beat + rng.uniform(-.07, .07)), .55, note, velocity, pan))
 
-    # ED grows by adding a second theme statement and a final human-scale coda.
+    # The ED recalls the title only after a new middle section, then resolves
+    # into an open major-sixth sonority.  It is a return, not a looped slogan.
     if track.id == "bgm_credits":
-        midpoint = total_beats * .55
-        for index, note in enumerate(MOTIF):
-            events.append(Event("clarinet", midpoint + index * 1.25, 2.3, note, .42, .12))
-            if index in {0, 3, 7}:
-                events.append(Event("cello", midpoint + index * 1.25, 3.6, note - 12, .32, -.24))
+        midpoint = total_beats * .56
+        middle_theme = THEMES["arrival_memory"]
+        for index, (offset, duration, note) in enumerate(middle_theme):
+            events.append(Event("clarinet", midpoint + offset, duration * 1.25, note + 5, .30, .12))
+            if index in {0, 2, 4}:
+                events.append(Event("cello", midpoint + offset, duration * 1.6, note - 7, .22, -.24))
         final = total_beats - track.meter * 2
-        for note, pan in zip((50, 57, 62, 64, 66), (-.30, -.12, .0, .16, .30), strict=True):
-            events.append(Event("string_pad", final, track.meter * 1.8, note, .28, pan))
-        events.append(Event("felt_piano", final, track.meter * 1.5, 74, .36, -.05))
+        for note, pan in zip((53, 60, 65, 69, 74), (-.30, -.12, .0, .16, .30), strict=True):
+            events.append(Event("room_strings", final, track.meter * 1.8, note, .22, pan))
+        events.append(Event("felt_piano", final + .25, track.meter * 1.5, 69, .30, -.05))
 
     return sorted(events, key=lambda event: event.beat)
 
@@ -250,76 +262,82 @@ def soften(signal: np.ndarray, cutoff: float = 8_000) -> np.ndarray:
 def synth_note(instrument: str, note: int, duration: float, velocity: float, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
     release = {
-        "felt_piano": 2.6, "muted_piano": 1.8, "low_piano": 2.8,
-        "cello": 1.1, "viola": .9, "clarinet": .7, "bass_clarinet": .9,
-        "alto_flute": .8, "string_pad": 2.4, "warm_pad": 2.6,
-        "dark_pad": 2.8, "moving_pad": 2.3, "pizzicato": .8,
+        "felt_piano": 2.8, "low_piano": 3.0,
+        "cello": 1.3, "viola": 1.1, "clarinet": .9, "bass_clarinet": 1.0,
+        "alto_flute": 1.0, "room_strings": 3.0, "warm_air": 3.2, "pizzicato": .9,
         "soft_wood": .45, "frame_drum": .7,
     }.get(instrument, .8)
     full_duration = max(.2, duration + release)
     count = max(1, int(full_duration * SR))
     t = np.arange(count, dtype=np.float32) / SR
-    frequency = midi_frequency(note)
+    # No two attacks use an identical oscillator.  Tiny tuning and phase
+    # differences remove the organ-like lock that made the former render feel
+    # mechanical without making the ensemble audibly out of tune.
+    frequency = midi_frequency(note) * 2 ** (float(rng.normal(0, 1.7)) / 1200)
 
-    if instrument in {"felt_piano", "muted_piano", "low_piano"}:
-        brightness = {"felt_piano": .62, "muted_piano": .42, "low_piano": .50}[instrument]
+    if instrument in {"felt_piano", "low_piano"}:
+        brightness = {"felt_piano": .46, "low_piano": .38}[instrument]
         signal = np.zeros(count, dtype=np.float32)
-        for harmonic, gain in enumerate((1.0, .34, .16, .075, .032), start=1):
-            decay = 2.7 / (1 + harmonic * .34)
-            detune = 1 + (harmonic - 1) * .00038
-            signal += gain * np.sin(TAU * frequency * harmonic * detune * t) * np.exp(-t / decay)
-        hammer = filtered_noise(rng, count, 2_800) * np.exp(-t / .024) * .026 * brightness
+        for string_detune, string_gain in ((-.0011, .32), (0, .48), (.0015, .28)):
+            for harmonic, gain in enumerate((1.0, .30, .12, .045, .018), start=1):
+                inharmonicity = math.sqrt(1 + .00032 * harmonic * harmonic)
+                decay = 3.1 / (1 + harmonic * .44)
+                phase = float(rng.uniform(0, TAU))
+                signal += string_gain * gain * np.sin(
+                    TAU * frequency * (1 + string_detune) * harmonic * inharmonicity * t + phase
+                ) * np.exp(-t / decay)
+        hammer = filtered_noise(rng, count, 1_900) * np.exp(-t / .030) * .018 * brightness
         signal = (signal + hammer) * adsr(t, duration + release, .012, release, .74)
-        signal = soften(signal, 6_800 if instrument != "muted_piano" else 5_200)
-    elif instrument in {"cello", "viola", "string_pad"}:
+        signal = soften(signal, 4_900 if instrument == "felt_piano" else 4_100)
+    elif instrument in {"cello", "viola", "room_strings"}:
         signal = np.zeros(count, dtype=np.float32)
-        phase_vibrato = .035 * np.sin(TAU * (4.7 + rng.uniform(-.2, .2)) * t)
-        harmonics = 8 if instrument != "string_pad" else 6
+        vibrato_rate = 4.5 + float(rng.uniform(-.35, .35))
+        vibrato_depth = .018 if instrument == "room_strings" else .026
+        phase_vibrato = vibrato_depth * np.sin(TAU * vibrato_rate * t + float(rng.uniform(0, TAU)))
+        harmonics = 5 if instrument == "room_strings" else 6
         for harmonic in range(1, harmonics + 1):
-            weight = (1 / harmonic ** 1.38) * (1.0 if harmonic < 5 else .55)
-            signal += weight * np.sin(TAU * frequency * harmonic * t + harmonic * phase_vibrato)
-        bow = filtered_noise(rng, count, 4_000) * .022
-        attack = .18 if instrument != "string_pad" else .75
+            weight = 1 / harmonic ** 1.65
+            phase = float(rng.uniform(0, TAU))
+            signal += weight * np.sin(TAU * frequency * harmonic * t + harmonic * phase_vibrato + phase)
+        bow = filtered_noise(rng, count, 2_800) * .012
+        attack = .26 if instrument != "room_strings" else 1.05
         signal = (signal + bow) * adsr(t, duration + release, attack, release, .78)
-        signal = soften(signal, 6_100 if instrument == "cello" else 7_200)
+        signal = soften(signal, 4_500 if instrument == "cello" else 5_000)
     elif instrument in {"clarinet", "bass_clarinet", "alto_flute"}:
         signal = np.zeros(count, dtype=np.float32)
         if instrument == "alto_flute":
-            weights = ((1, 1.0), (2, .14), (3, .19), (4, .04))
-            cutoff = 6_600
+            weights = ((1, 1.0), (2, .10), (3, .12), (4, .025))
+            cutoff = 4_700
         else:
-            weights = ((1, 1.0), (3, .38), (5, .14), (7, .05))
-            cutoff = 5_900 if instrument == "bass_clarinet" else 7_000
-        vibrato = .018 * np.sin(TAU * 5.1 * t)
+            weights = ((1, 1.0), (3, .25), (5, .065))
+            cutoff = 4_200 if instrument == "bass_clarinet" else 5_000
+        vibrato = .012 * np.sin(TAU * (4.8 + rng.uniform(-.2, .2)) * t + rng.uniform(0, TAU))
         for harmonic, gain in weights:
-            signal += gain * np.sin(TAU * frequency * harmonic * t + harmonic * vibrato)
-        breath = filtered_noise(rng, count, 5_200) * (.032 if instrument == "alto_flute" else .018)
-        signal = (signal + breath) * adsr(t, duration + release, .13, release, .82)
+            signal += gain * np.sin(TAU * frequency * harmonic * t + harmonic * vibrato + rng.uniform(0, TAU))
+        breath = filtered_noise(rng, count, 3_800) * (.026 if instrument == "alto_flute" else .014)
+        signal = (signal + breath) * adsr(t, duration + release, .20, release, .80)
         signal = soften(signal, cutoff)
-    elif instrument in {"warm_pad", "dark_pad", "moving_pad"}:
+    elif instrument == "warm_air":
         signal = np.zeros(count, dtype=np.float32)
-        for detune, gain in ((-.006, .42), (0, .72), (.005, .38)):
-            phase = TAU * frequency * (1 + detune) * t
-            triangle = np.zeros(count, dtype=np.float32)
-            for harmonic in (1, 3, 5, 7):
-                triangle += ((-1) ** ((harmonic - 1) // 2)) * np.sin(harmonic * phase) / (harmonic * harmonic)
-            signal += gain * triangle
-        if instrument == "moving_pad":
-            signal *= (.82 + .18 * np.sin(TAU * .09 * t)).astype(np.float32)
-        cutoff = {"warm_pad": 4_800, "dark_pad": 3_400, "moving_pad": 5_200}[instrument]
-        signal *= adsr(t, duration + release, .9, release, .76)
-        signal = soften(signal, cutoff)
+        for detune, gain in ((-.004, .28), (0, .54), (.0035, .26)):
+            phase = float(rng.uniform(0, TAU))
+            drift = .004 * np.sin(TAU * (.035 + rng.uniform(0, .018)) * t + phase)
+            signal += gain * np.sin(TAU * frequency * (1 + detune) * t + drift + phase)
+            signal += gain * .08 * np.sin(TAU * frequency * 2 * (1 + detune) * t + phase * .7)
+        signal += filtered_noise(rng, count, 1_500) * .009
+        signal *= adsr(t, duration + release, 1.25, release, .72)
+        signal = soften(signal, 3_600)
     elif instrument == "pizzicato":
         signal = np.zeros(count, dtype=np.float32)
-        for harmonic in range(1, 9):
-            signal += (1 / harmonic ** 1.2) * np.sin(TAU * frequency * harmonic * t) * np.exp(-t * (1.7 + harmonic * .55))
-        signal += filtered_noise(rng, count, 3_100) * np.exp(-t / .035) * .035
-        signal = soften(signal, 5_800)
+        for harmonic in range(1, 7):
+            signal += (1 / harmonic ** 1.45) * np.sin(TAU * frequency * harmonic * t + rng.uniform(0, TAU)) * np.exp(-t * (1.9 + harmonic * .68))
+        signal += filtered_noise(rng, count, 2_200) * np.exp(-t / .040) * .022
+        signal = soften(signal, 4_600)
     elif instrument == "soft_wood":
         signal = (np.sin(TAU * frequency * t) + .22 * np.sin(TAU * frequency * 2.72 * t))
         signal *= np.exp(-t * 7.2)
-        signal += filtered_noise(rng, count, 2_400) * np.exp(-t / .025) * .028
-        signal = soften(signal, 5_500)
+        signal += filtered_noise(rng, count, 1_800) * np.exp(-t / .032) * .020
+        signal = soften(signal, 4_200)
     elif instrument == "frame_drum":
         sweep = frequency * (.72 + .28 * np.exp(-t * 14))
         phase = np.cumsum(TAU * sweep / SR).astype(np.float32)
@@ -339,11 +357,16 @@ def pan_gains(pan: float) -> tuple[float, float]:
 
 def add_room(mix: np.ndarray, amount: float) -> np.ndarray:
     wet = np.zeros_like(mix)
-    taps = ((.071, .10, .05), (.113, .075, .095), (.181, .065, .052), (.293, .045, .060), (.421, .030, .026))
+    taps = ((.083, .075, .042), (.137, .050, .068), (.211, .042, .034), (.347, .026, .036), (.509, .016, .014))
     for delay, left_gain, right_gain in taps:
         samples = int(delay * SR)
         wet[samples:, 0] += mix[:-samples, 0] * left_gain + mix[:-samples, 1] * .018
         wet[samples:, 1] += mix[:-samples, 1] * right_gain + mix[:-samples, 0] * .018
+    # Darken the reflections so the algorithmic room does not reveal itself as
+    # a metallic delay line on headphones.
+    room_filter = butter(2, 4_200, btype="lowpass", fs=SR, output="sos")
+    wet[:, 0] = sosfilt(room_filter, wet[:, 0])
+    wet[:, 1] = sosfilt(room_filter, wet[:, 1])
     return (mix + wet * amount).astype(np.float32)
 
 
@@ -372,7 +395,7 @@ def render_mix(track: Track, events: list[Event]) -> np.ndarray:
             mix[start:end, 0] += note[: end - start] * left
             mix[start:end, 1] += note[: end - start] * right
 
-    mix = add_room(mix, .72 if track.id != "bgm_storm" else .48)
+    mix = add_room(mix, .55 if track.id != "bgm_storm" else .38)
     if track.loop:
         start = int(duration * SR)
         mix = mix[start : start + int(duration * SR)]
@@ -383,9 +406,12 @@ def render_mix(track: Track, events: list[Event]) -> np.ndarray:
         head = min(len(mix), int(.35 * SR))
         mix[:head] *= np.linspace(0, 1, head, dtype=np.float32)[:, None]
 
-    # The renderer keeps generous crest factor.  Final loudness is a fixed-gain
-    # operation after measurement, never a per-loop compressor.
-    mix = np.tanh(mix * .72).astype(np.float32)
+    # Long-play comfort master: a broad, gentle top roll-off removes narrow
+    # synthetic edges while retaining speech-space and natural transients.
+    comfort_filter = butter(3, 6_800, btype="lowpass", fs=SR, output="sos")
+    mix[:, 0] = sosfilt(comfort_filter, mix[:, 0])
+    mix[:, 1] = sosfilt(comfort_filter, mix[:, 1])
+    mix = np.tanh(mix * .62).astype(np.float32)
     peak = float(np.max(np.abs(mix))) or 1.0
     mix *= .48 / peak
     return mix
@@ -474,7 +500,8 @@ def cue_markdown(track: Track, events: list[Event], metrics: dict[str, float]) -
 - Narrative role: {track.role}
 - BPM / meter: {track.bpm} / {track.meter}/4
 - Tonal world: {track.mode}
-- Leitmotif treatment: {track.motif}
+- Theme: {track.theme}
+- Theme interval: every {track.phrase_bars} bars, with phrase-sized rests
 - Instruments: {instruments}
 - Duration: {track.duration:.3f} s
 - Loop: {loop}
@@ -484,9 +511,11 @@ def cue_markdown(track: Track, events: list[Event], metrics: dict[str, float]) -
 
 ## Intent
 
-The shared motif is D–F–E–C | D–A–G–D.  This cue uses the treatment above and
-keeps the final D unresolved unless the cue belongs to the true ending or ED.
-The arrangement leaves space for Japanese text, ambience and scene effects.
+This cue owns a situation-specific melodic contour.  It does not repeat the
+title melody as a default device.  Title recognition is reserved for the true
+ending and credits, where it is reharmonised and answered rather than copied.
+Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
+Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
@@ -522,6 +551,11 @@ def render(track: Track) -> dict[str, object]:
         "issue": track.issue,
         "duration": round(track.duration, 3),
         "loop": track.loop,
+        "theme": track.theme,
+        "phrase_bars": track.phrase_bars,
+        "melody_onsets_per_minute": round(
+            sum(event.instrument == track.lead for event in events) / (track.duration / 60), 2
+        ),
         "lufs": metrics["lufs"],
         "true_peak": metrics["true_peak"],
         "sha256": sha256(output),

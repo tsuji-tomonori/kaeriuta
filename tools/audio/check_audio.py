@@ -11,6 +11,8 @@ from pathlib import Path
 
 import numpy as np
 
+from render_soundtrack import THEMES, TRACKS, arrangement
+
 ROOT = Path(__file__).resolve().parents[2]
 LOOP_IDS = {
     "bgm_title", "bgm_arrival", "bgm_mansion", "bgm_storm", "bgm_inquiry",
@@ -18,6 +20,7 @@ LOOP_IDS = {
     "bgm_end_reversal", "bgm_end_rescue", "bgm_end_unfinished", "bgm_end_silenced",
 }
 REQUIRED_BGM = LOOP_IDS | {"bgm_credits"}
+TRACK_BY_ID = {track.id: track for track in TRACKS}
 
 
 def run(*command: str) -> str:
@@ -84,6 +87,22 @@ def main() -> int:
     if missing:
         failures.append(f"manifest is missing BGM: {', '.join(sorted(missing))}")
 
+    # Score-level contract: each situation must have an actually distinct
+    # melodic contour, enough loop length and restrained melodic activity.
+    signatures: dict[tuple[tuple[float, float, int], ...], str] = {}
+    for track in TRACKS:
+        signature = THEMES[track.theme]
+        if signature in signatures:
+            failures.append(f"{track.id}: theme duplicates {signatures[signature]}")
+        signatures[signature] = track.id
+        events = arrangement(track)
+        melodic_onsets = sum(event.instrument == track.lead for event in events)
+        melodic_rate = melodic_onsets / (track.duration / 60)
+        if track.loop and track.duration < 85:
+            failures.append(f"{track.id}: {track.duration:.1f}s loop is too short for long-play comfort")
+        if melodic_rate > 22:
+            failures.append(f"{track.id}: {melodic_rate:.1f} melody onsets/min is too dense")
+
     rows = []
     for asset_id in sorted(audio):
         path = ROOT / audio[asset_id]["file"]
@@ -93,9 +112,8 @@ def main() -> int:
         info = probe(path)
         level, peak = loudness(path)
         kind = audio[asset_id]["kind"]
-        target = (-21 if asset_id == "bgm_credits" else
-                  -23 if asset_id.startswith("bgm_end_") else
-                  -24 if kind == "bgm" else -28 if kind == "ambience" else -21)
+        target = (TRACK_BY_ID[asset_id].target_lufs if kind == "bgm" else
+                  -28 if kind == "ambience" else -21)
         tolerance = 1.0 if kind == "bgm" else 2.0
         peak_limit = -2.0 if kind == "bgm" else -8.0 if kind == "ambience" else -5.5
         if info["codec"] != "vorbis" or info["sample_rate"] != 48_000 or info["channels"] != 2:
@@ -108,8 +126,14 @@ def main() -> int:
             failures.append(f"{asset_id}: true peak {peak:.1f} dBTP exceeds {peak_limit}")
         samples = decoded(path) if kind == "bgm" else None
         stereo_delta = float(np.sqrt(np.mean((samples[:, 0] - samples[:, 1]) ** 2))) if samples is not None else None
+        edge_ratio = None
         if kind == "bgm" and stereo_delta < .0001:
             failures.append(f"{asset_id}: channels appear to be dual mono")
+        if kind == "bgm":
+            mono = np.mean(samples, axis=1)
+            edge_ratio = float(np.sqrt(np.mean(np.diff(mono) ** 2)) / (np.sqrt(np.mean(mono ** 2)) + 1e-9))
+            if edge_ratio > .42:
+                failures.append(f"{asset_id}: spectral edge ratio {edge_ratio:.3f} suggests a harsh render")
         seam = None
         if asset_id in LOOP_IDS:
             seam = float(np.max(np.abs(samples[0] - samples[-1])))
@@ -118,11 +142,12 @@ def main() -> int:
         rows.append({"id": asset_id, "seconds": round(info["duration"], 3), "lufs": level,
                      "true_peak": peak,
                      "stereo_delta": round(stereo_delta, 6) if stereo_delta is not None else None,
+                     "edge_ratio": round(edge_ratio, 4) if edge_ratio is not None else None,
                      "seam": seam})
 
     mix_level, mix_peak = stress_mix()
     rows.append({"id": "stress_mix", "seconds": 20, "lufs": mix_level, "true_peak": mix_peak,
-                 "stereo_delta": None, "seam": None})
+                 "stereo_delta": None, "edge_ratio": None, "seam": None})
     if mix_peak > -1.0:
         failures.append(f"stress_mix: true peak {mix_peak:.1f} dBTP leaves insufficient headroom")
 
