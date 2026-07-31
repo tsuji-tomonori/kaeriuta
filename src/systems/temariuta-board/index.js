@@ -26,6 +26,9 @@ export function contradictionFor(number, faceOrKind, kindOrCard, possibleCardId)
 export function placeBoardCard(face, number, slotKind, cardId) {
   return { ...face, [number]: { ...(face[number] || {}), [slotKind]: cardId } };
 }
+export function boardPlacementNotice(cardId, slotKind) {
+  return `${boardCards[cardId].name}を${slots.find(([kind]) => kind === slotKind)[1]}の欄へ置いた。`;
+}
 export function selectBoardVerses(args = {}, state = {}) {
   if (Array.isArray(args.verses)) return args.verses.map((entry) => {
     const verse = boardVerses[entry.number - 1];
@@ -47,8 +50,10 @@ export function confirmBoardHypothesis(board, faceName, verses) {
   const incomplete = verses.some((verse) => slots.some(([kind]) => !board[verse.number][kind]));
   if (incomplete) return { ends:false, canCommit:false, notice:'まだ空白の欄がある。頁を閉じるなら、盤を伏せて席を立てる。' };
   const answer = faceName === 'truth' ? boardSolution : boardCover;
-  const wrong = verses.flatMap((verse) => slots.map(([kind]) => [verse, kind])).find(([verse, kind]) => board[verse.number][kind] !== answer[verse.number - 1][kind]);
-  if (wrong) return { ends:false, canCommit:true, notice:`第${wrong[0].number}番の${slots.find(([kind]) => kind === wrong[1])[1]}欄。この仮説には矛盾がある。${contradictionFor(wrong[0].number, faceName, wrong[1], board[wrong[0].number][wrong[1]])}` };
+  const wrong = verses.flatMap((verse) => slots
+    .filter(([kind]) => board[verse.number][kind] !== answer[verse.number - 1][kind])
+    .map(([kind, label]) => `第${verse.number}番の${label}欄。この仮説には矛盾がある。${contradictionFor(verse.number, faceName, kind, board[verse.number][kind])}`));
+  if (wrong.length) return { ends:false, canCommit:true, notice:wrong.join('\n') };
   return { ends:false, canCommit:true, notice:faceName === 'truth' ? '金の糸が頁を綴じた。私は真相へ一歩近づき、そのぶん読まれてはいけない余白を増やした。' : '悟郎さんは盤を見て、ひとまず頷いた。差し出した頁が真実かどうかは、まだ私だけが知っている。' };
 }
 
@@ -87,8 +92,15 @@ export const temariBoard = { async start(ctx, args = {}) {
       const suspicionRise = Math.min(18, score.showShiori * 6);
       const status = `<p class="board-axis">表の読みへの一致：${score.showCredibility}/${score.total}（確信 ${convictionDrop ? `-${convictionDrop}` : '±0'}）　まことの盤の正確さ：${score.truthAccuracy}/${score.total}　見せる盤の栞の名指し：${score.showShiori}（警戒 +${awarenessRise}／疑い +${suspicionRise}）</p>`;
       view.main.innerHTML = `${tabs}<p class="board-intro">${face === 'truth' ? '栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。' : '悟郎たちへ差し出す盤。表の読みに寄せるほど確信は下がる。栞の名を置けば、その場で疑いを呼ぶ。'}</p><p class="board-leave-note">配置中に正解は示されない。矛盾文を手掛かりに仮説を確定し、盤を置いて席を立つと効果が適用される。</p><div class="board">${board}</div>${notice ? `<p class="board-notice">${displayText(notice)}</p>` : ''}${status}<div class="cards">${availableCards.map((id) => `<button data-card="${id}" class="${selected === id ? 'selected' : ''}"><strong>${displayText(boardCards[id].name)}</strong><small>${displayText(boardCards[id].note)}</small></button>`).join('')}</div><button class="confirm-hypothesis">この仮説で確定</button>${commitReady ? '<button class="board-commit-close">盤を置いて席を立つ</button>' : ''}<button id="done">盤を伏せて席を立つ</button>`;
-      view.main.querySelectorAll('[data-card]').forEach((button) => { button.onclick = () => { selected = button.dataset.card; warnedSlot = null; commitReady = false; notice = `${boardCards[selected].name}を手に取った。`; render(); }; });
-      view.main.querySelectorAll('.slot').forEach((button) => { button.onclick = () => { if (!selected) return; const kind = button.dataset.kind; const number = Number(button.dataset.number); const incompatible = !canPlaceBoardCard(selected, kind); const sameWarning = warnedSlot?.cardId === selected && warnedSlot?.number === number && warnedSlot?.kind === kind && warnedSlot?.face === face; if (incompatible && !sameWarning) { warnedSlot = { cardId:selected, number, kind, face }; notice = `${boardCards[selected].name}は${slots.find(([id]) => id === kind)[1]}の欄には置けない読みだ。もう一度この欄を押せば、仮説として配置する。`; render(); return; } faces[face] = placeBoardCard(current, number, kind, selected); commitReady = false; revealedFace = null; const answer = face === 'truth' ? boardSolution : boardCover; const wrong = selected !== answer[number - 1][kind]; notice = wrong ? `${boardCards[selected].name}を${slots.find(([id]) => id === kind)[1]}の欄へ置いた。この仮説には矛盾がある。${contradictionFor(number, face, kind, selected)}` : ''; selected = null; warnedSlot = null; render(); }; });
+      view.main.querySelectorAll('[data-card]').forEach((button) => { button.onclick = () => {
+        const cardId = button.dataset.card;
+        const deselecting = selected === cardId;
+        selected = deselecting ? null : cardId;
+        warnedSlot = null; commitReady = false; revealedFace = null;
+        notice = deselecting ? `${boardCards[cardId].name}を戻した。` : `${boardCards[cardId].name}を手に取った。`;
+        render();
+      }; });
+      view.main.querySelectorAll('.slot').forEach((button) => { button.onclick = () => { if (!selected) return; const kind = button.dataset.kind; const number = Number(button.dataset.number); const incompatible = !canPlaceBoardCard(selected, kind); const sameWarning = warnedSlot?.cardId === selected && warnedSlot?.number === number && warnedSlot?.kind === kind && warnedSlot?.face === face; if (incompatible && !sameWarning) { warnedSlot = { cardId:selected, number, kind, face }; notice = `${boardCards[selected].name}は${slots.find(([id]) => id === kind)[1]}の欄には置けない読みだ。もう一度この欄を押せば、仮説として配置する。`; render(); return; } faces[face] = placeBoardCard(current, number, kind, selected); commitReady = false; revealedFace = null; notice = boardPlacementNotice(selected, kind); selected = null; warnedSlot = null; render(); }; });
       view.main.querySelectorAll('[data-face]').forEach((tab) => { const switchFace = () => { face = tab.dataset.face; selected = null; warnedSlot = null; commitReady = false; revealedFace = null; notice = ''; render(); }; tab.onclick = switchFace; tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchFace(); } }; });
       view.main.querySelector('.confirm-hypothesis').onclick = () => { const confirmation = confirmBoardHypothesis(current, face, verses); commitReady = confirmation.canCommit; revealedFace = confirmation.canCommit ? face : null; notice = confirmation.notice; render(); };
       const commitClose = view.main.querySelector('.board-commit-close'); if (commitClose) commitClose.onclick = () => done(true);

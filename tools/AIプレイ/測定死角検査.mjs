@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { runBruteForceResistance } from './総当たり耐性.mjs';
 
 const personas = ['suiri', 'bannin', 'kanjou', 'sokkyou', 'ura', 'toubou', 'ayatsuri', 'gyakuten', 'mikiri', 'shoshinsha', 'danzai'];
 const baselineEndings = {
@@ -17,6 +18,7 @@ const summary = JSON.parse(await readFile(new URL('./ログ/サマリ.json', imp
 
 const failures = [];
 const verify = (callback) => { try { callback(); } catch (error) { failures.push(error.message); } };
+verify(() => runBruteForceResistance());
 for (const persona of personas) {
   const result = summary[persona];
   verify(() => assert.equal(result?.status, 'ended', `${persona}: 最後まで完走していない`));

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { boardCards, boardSolution } from '../src/data/temariuta-board.js';
-import { placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
+import { confirmBoardHypothesis, placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
 import { FREE_ACTION_PHASE, closeRoomPanel, continueFreeAction, enrichFreeActions, focusFreeAction, openRoomPanel, selectFreeAction } from '../src/systems/freeaction/index.js';
 import { applyResponse, responseOptions } from '../src/systems/rebuttal/index.js';
 import { chapter1 } from '../src/data/scenario/chapter1.js';
 import { chapter2 } from '../src/data/scenario/chapter2.js';
 import { rebuttalCh2 } from '../src/data/parts/rebuttal-ch2.js';
 import { buildChapterSummary, completeChapterSummary } from '../src/systems/summary/index.js';
+import { temariSelectedCandidates } from './ブラウザ検証/進行基盤.js';
 
 const maxSteps = 200;
 const slots = ['dead', 'actor', 'meaning'];
@@ -32,8 +33,21 @@ let selectedCard = null;
 let warnedSlot = null;
 let boardOperations = 0;
 let replacementOperations = 0;
+let commitReady = false;
+let committed = false;
 const placedKeys = new Set();
 mustTerminate('手毬唄ボード', () => {
+  const solved = verses.every((verse) => slots.every((kind) => board[verse.number][kind] === boardSolution[verse.number - 1][kind]));
+  if (solved && !commitReady) {
+    commitReady = confirmBoardHypothesis(board, 'truth', verses).canCommit;
+    boardOperations++;
+    return;
+  }
+  if (commitReady) {
+    committed = true;
+    boardOperations++;
+    return;
+  }
   if (!selectedCard) {
     const target = verses.flatMap((verse) => slots.map((kind) => ({
       number:verse.number,
@@ -70,11 +84,99 @@ mustTerminate('手毬唄ボード', () => {
   placedKeys.add(`truth:${target.number}:${target.kind}:${selectedCard}`);
   selectedCard = null;
   warnedSlot = null;
-}, () => verses.every((verse) => slots.every((kind) => board[verse.number][kind] === boardSolution[verse.number - 1][kind])));
+}, () => committed);
 assert.ok(boardOperations > 0, '手毬唄ボード検査が0操作で終端していない');
+assert.equal(committed, true, '確定後にcommit-close相当の操作で終端する');
 assert.ok(replacementOperations > 0, '初期配置済みの欄を置換していない');
-assert.equal(placedKeys.size, Math.ceil(boardOperations / 2), '同一（面・節・欄・札）を再配置していない');
+assert.equal(placedKeys.size, Math.ceil((boardOperations - 2) / 2), '確定・コミット以外で同一（面・節・欄・札）を再配置していない');
 console.log(`手毬唄ボード: 実操作 ${boardOperations}回（うち置換 ${replacementOperations}回）`);
+
+// actTemariBoard の候補生成とクリック後の状態更新を模す。採点役を替えても、
+// 選択解除・不適合警告・面切替を含む操作列が有限で終わることを確かめる。
+function runTemariCandidateModel(score, { preventRepeatedDeselect = false } = {}) {
+  const modelSlots = [
+    { number:'1', kind:'dead' },
+    { number:'1', kind:'actor' },
+  ];
+  const state = {
+    face:'show', selected:null, warned:null, lastAction:null, operations:0,
+    placedKeys:new Set(['show:1:dead:onda']), deselectedCards:new Set(), done:false,
+  };
+  const placementKeyFor = (slot) => `${state.face}:${slot.number}:${slot.kind}:onda`;
+  for (; state.operations < maxSteps && !state.done; state.operations++) {
+    if (state.warned) {
+      state.placedKeys.add(placementKeyFor(state.warned));
+      state.warned = null;
+      state.selected = null;
+      state.deselectedCards.clear();
+      state.lastAction = 'slot';
+      continue;
+    }
+    let candidates;
+    if (state.selected) {
+      const untried = modelSlots.filter((slot) => !state.placedKeys.has(placementKeyFor(slot)));
+      const selected = { action:'card', cardId:state.selected, selected:true, dataset:{ card:state.selected } };
+      candidates = preventRepeatedDeselect
+        ? temariSelectedCandidates(selected, untried.map((slot) => ({ action:'slot', ...slot })), [...state.deselectedCards])
+        : [selected, ...untried.map((slot) => ({ action:'slot', ...slot }))];
+    } else {
+      const hasUntried = modelSlots.some((slot) => !state.placedKeys.has(placementKeyFor(slot)));
+      candidates = [
+        ...(hasUntried ? [{ action:'card', cardId:'onda', selected:false }] : []),
+        ...(state.lastAction !== 'face' ? [{ action:'face', face:state.face === 'show' ? 'truth' : 'show' }] : []),
+        { action:'done' },
+      ];
+    }
+    const action = candidates.reduce((best, candidate) => score(candidate) > score(best) ? candidate : best);
+    if (action.action === 'card' && action.selected) {
+      state.deselectedCards.add(action.cardId);
+      state.selected = null;
+      state.lastAction = 'card';
+    } else if (action.action === 'card') {
+      state.selected = action.cardId;
+      state.lastAction = 'card';
+    } else if (action.action === 'slot') {
+      // onda は dead 専用なので actor は警告後の再クリックで初めて配置される。
+      if (action.kind !== 'dead') state.warned = action;
+      else {
+        state.placedKeys.add(placementKeyFor(action));
+        state.selected = null;
+        state.deselectedCards.clear();
+      }
+      state.lastAction = 'slot';
+    } else if (action.action === 'face') {
+      state.face = action.face;
+      state.lastAction = 'face';
+    } else {
+      state.done = true;
+      state.lastAction = 'done';
+    }
+  }
+  return state;
+}
+
+const prefersDeselectToIncompatible = (candidate) => ({
+  card: candidate.selected ? -5 : 3,
+  slot: -9,
+  face: -20,
+  done: -6,
+}[candidate.action]);
+const deselectModel = runTemariCandidateModel(prefersDeselectToIncompatible, { preventRepeatedDeselect:true });
+assert.ok(deselectModel.operations > 0, '選択解除検査が0操作で終端していない');
+assert.equal(deselectModel.done, true,
+  `手毬唄ボード選択解除: ${deselectModel.operations}操作以内に終端しなかった`);
+console.log(`手毬唄ボード選択解除: 実操作 ${deselectModel.operations}回`);
+
+const faceModel = runTemariCandidateModel((candidate) => ({
+  face: 10,
+  done: 5,
+  card: -10,
+  slot: -10,
+}[candidate.action]), { preventRepeatedDeselect:true });
+assert.ok(faceModel.operations > 0, '面切替検査が0操作で終端していない');
+assert.equal(faceModel.done, true, '面切替後のstate更新でface候補を外して終端する');
+assert.equal(faceModel.operations, 2, '面切替の直後はface候補を外して別操作で終端する');
+console.log(`手毬唄ボード面切替: 実操作 ${faceModel.operations}回`);
 
 // actRebuttal と同じく、disabled の札を候補から除き、先頭の押せる反応を選ぶ。
 let rebuttal = { conviction:rebuttalCh2.initialConviction, overknow:0, broken:[] };
