@@ -149,7 +149,9 @@ function decidePart(name, elements) {
       number: element.dataset.number ? Number(element.dataset.number) : null,
       kind: element.dataset.kind || null,
       correct: element.classList.contains('correct'),
+      selected: element.classList.contains('selected'),
       action: element.classList.contains('confirm-hypothesis') ? 'confirm'
+        : element.classList.contains('board-commit-close') ? 'commit'
         : element.id === 'done' ? 'done' : element.dataset.card ? 'card'
           : element.dataset.face ? 'face' : element.dataset.kind ? 'slot' : 'other',
     },

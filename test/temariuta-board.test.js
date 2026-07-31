@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boardCards, boardCover, boardSolution, boardVerses } from '../src/data/temariuta-board.js';
-import { assessBoardHypothesis, boardCompletionEffects, boardEvaluation, boardEffectsFor, canPlaceBoardCard, confirmBoardHypothesis, contradictionFor, placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
+import { assessBoardHypothesis, boardCompletionEffects, boardEvaluation, boardEffectsFor, boardPlacementNotice, canPlaceBoardCard, confirmBoardHypothesis, contradictionFor, placeBoardCard, selectBoardVerses } from '../src/systems/temariuta-board/index.js';
 import { chapter2 } from '../src/data/scenario/chapter2.js';
 
 test('盤の札はすべて日本語の表示名を持つ', () => {
@@ -98,6 +98,29 @@ test('仮説の確定は結果文と終了可能状態だけを返し、即座�
   assert.equal(confirmation.ends, false);
   assert.equal(confirmation.canCommit, true);
   assert.equal(confirmation.notice, '金の糸が頁を綴じた。私は真相へ一歩近づき、そのぶん読まれてはいけない余白を増やした。');
+});
+test('配置通知は正誤を漏らさず同じ欄なら同じ文型になる', () => {
+  assert.equal(boardPlacementNotice('poison', 'meaning'), '珈琲の毒を意味の欄へ置いた。');
+  assert.equal(boardPlacementNotice('surface', 'meaning'), '表の読みを意味の欄へ置いた。');
+  assert.doesNotMatch(boardPlacementNotice('surface', 'meaning'), /矛盾|正解/);
+});
+test('確定は全ての矛盾欄を通知し、矛盾があってもコミットできる', () => {
+  const verses = selectBoardVerses({ verses:[{ number:1 }, { number:2 }] });
+  const board = {
+    1:{ ...boardSolution[0], actor:'sogen', meaning:'surface' },
+    2:{ ...boardSolution[1] },
+  };
+  const confirmation = confirmBoardHypothesis(board, 'truth', verses);
+  assert.equal(confirmation.canCommit, true);
+  assert.match(confirmation.notice, /第1番の実行者欄。/);
+  assert.match(confirmation.notice, /第1番の意味欄。/);
+  assert.ok(confirmation.notice.indexOf('実行者欄') < confirmation.notice.indexOf('意味欄'));
+});
+test('空欄が残る確定はコミットできない', () => {
+  const verses = selectBoardVerses({ verses:[{ number:1 }] });
+  const confirmation = confirmBoardHypothesis({ 1:{ dead:'onda', actor:null, meaning:'poison' } }, 'truth', verses);
+  assert.equal(confirmation.canCommit, false);
+  assert.equal(confirmation.notice, 'まだ空白の欄がある。頁を閉じるなら、盤を伏せて席を立てる。');
 });
 test('盤の効果は確定結果のあとに盤を置いて席を立つ場合だけ得る', () => {
   const score = { truthAccuracy:6, showCredibility:0, divergence:0 };

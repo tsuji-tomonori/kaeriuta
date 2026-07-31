@@ -95,30 +95,41 @@ export function reconcileTemariAttempt(observation, memory) {
   const pending = memory.temariPending;
   const temari = observation.part?.temari;
   if (!temari) return;
+  const verified = new Set(memory.temariVerifiedPlacements || []);
+  const failed = new Set(memory.temariFailedPlacements || []);
   const fail = (face, cardId, number, kind) => {
     const key = placementKey(face, cardId, number, kind);
-    memory.temariFailedPlacements = [...new Set([...(memory.temariFailedPlacements || []), key])];
+    failed.add(key);
+    verified.delete(key);
   };
   if (pending && pending.face === temari.face) {
     const slot = temari.slots?.find((entry) => entry.number === pending.number && entry.kind === pending.kind);
     if (slot?.cardId === pending.cardId) {
-      // 正解色は読まない。画面に出た「矛盾」の文だけを、次の仮説から除外する。
-      if (temari.notice?.includes('矛盾')) fail(pending.face, pending.cardId, pending.number, pending.kind);
-      else memory.temariVerifiedPlacements = [...new Set([...(memory.temariVerifiedPlacements || []), placementKey(pending.face, pending.cardId, pending.number, pending.kind)])];
       memory.temariPending = null;
     }
   }
-  // 確定時の矛盾文には、置かれていた札・番・欄がそのまま表示される。
-  // 初期札を含め、未記録の誤配置も画面文から除外対象にできる。
-  if (!temari.notice?.includes('矛盾')) return;
-  const arabicNumber = temari.notice.match(/第?(\d+)番/)?.[1];
-  const number = temari.notice.match(/([一二三四五六])番/)?.[1];
-  const numberMap = { 一:1, 二:2, 三:3, 四:4, 五:5, 六:6 };
-  const kind = [['死者', 'dead'], ['実行者', 'actor'], ['意味', 'meaning']].find(([label]) => temari.notice.includes(label))?.[1];
-  const card = temari.cards?.find((entry) => entry.name && temari.notice.includes(entry.name));
-  const slot = kind && (arabicNumber || number) && temari.slots?.find((entry) => entry.number === Number(arabicNumber || numberMap[number]) && entry.kind === kind);
-  if (slot?.cardId) fail(temari.face, slot.cardId, slot.number, kind);
-  else if (number && kind && card) fail(temari.face, card.id, numberMap[number], kind);
+  const notice = temari.notice || '';
+  const confirmed = notice.includes('この仮説には矛盾がある。')
+    || notice.includes('金の糸が頁を綴じた。')
+    || notice.includes('悟郎さんは盤を見て、ひとまず頷いた。');
+  if (confirmed) {
+    const wrongSlots = new Set();
+    for (const match of notice.matchAll(/第(\d+)番の(死者|実行者|意味)欄。この仮説には矛盾がある。/g)) {
+      const number = Number(match[1]);
+      const kind = { 死者:'dead', 実行者:'actor', 意味:'meaning' }[match[2]];
+      wrongSlots.add(`${number}:${kind}`);
+      const slot = temari.slots?.find((entry) => entry.number === number && entry.kind === kind);
+      if (slot?.cardId) fail(temari.face, slot.cardId, number, kind);
+    }
+    for (const slot of temari.slots || []) {
+      if (!slot.cardId || slot.empty || wrongSlots.has(`${slot.number}:${slot.kind}`)) continue;
+      const key = placementKey(temari.face, slot.cardId, slot.number, slot.kind);
+      verified.add(key);
+      failed.delete(key);
+    }
+  }
+  memory.temariFailedPlacements = [...failed];
+  memory.temariVerifiedPlacements = [...verified];
 }
 
 export function temariPolicy(option, observation, memory, strategy = 'safe') {
@@ -128,6 +139,9 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   const card = temari.cards?.find((entry) => entry.id === meta.cardId);
   const slots = temari.slots || [];
   const failed = new Set(memory.temariFailedPlacements || []);
+  const verified = new Set(memory.temariVerifiedPlacements || []);
+  const unresolved = slots.some((slot) => slot.cardId
+    && failed.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind)));
   const add = (score, reason) => ({ score, grounds:score ? [reason] : [] });
   const compatible = selected?.kinds?.includes(meta.kind);
   const clue = `${card?.name || ''} ${card?.note || ''}`;
@@ -144,9 +158,20 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   }
   if (meta.action === 'card') {
     if (strategy === 'deduce') {
+      if (meta.selected) {
+        const placeable = slots.some((slot) => {
+          const currentFailed = slot.cardId && failed.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind));
+          const currentVerified = slot.cardId && verified.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind));
+          return !currentVerified && (slot.empty || currentFailed)
+            && card?.kinds?.includes(slot.kind)
+            && !failed.has(placementKey(temari.face, meta.cardId, slot.number, slot.kind));
+        });
+        return add(placeable ? -100 : 90, placeable ? '置ける未検証の欄があるため札を戻さない' : '置ける未検証の欄がないため札を戻す');
+      }
       const untestedSlots = slots.filter((slot) => {
         const currentFailed = slot.cardId && failed.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind));
-        return (slot.empty || currentFailed)
+        const currentVerified = slot.cardId && verified.has(placementKey(temari.face, slot.cardId, slot.number, slot.kind));
+        return !currentVerified && (slot.empty || currentFailed)
           && card?.kinds?.includes(slot.kind)
           && !failed.has(placementKey(temari.face, meta.cardId, slot.number, slot.kind));
       });
@@ -154,6 +179,22 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
         untestedSlots.length ? '空欄と札の注記を照合し、未試行の組合せを試す' : 'この札で試せる未検証の欄は残っていない');
     }
     const used = memory.temariCards || [];
+    const tried = new Set(memory.temariTriedPlacements || []);
+    const wantsSlot = (slot) => {
+      const matchesKind = card?.kinds?.includes(slot.kind);
+      return !tried.has(placementKey(temari.face, meta.cardId, slot.number, slot.kind))
+        && (strategy === 'disrupt' ? !matchesKind : matchesKind);
+    };
+    const hasWantedSlot = slots.some(wantsSlot);
+    if (meta.selected) {
+      return add(hasWantedSlot ? -100 : 20,
+        hasWantedSlot ? 'この方針で置きたい欄が残るため札を戻さない' : 'この方針で置きたい欄が残らないため札を戻す');
+    }
+    if (!hasWantedSlot) {
+      return add(-60, strategy === 'disrupt'
+        ? '種別を外して置ける未試行欄がないため、この札は選ばない'
+        : '種別に合う未試行欄がないため、この札は選ばない');
+    }
     let score = used.includes(meta.cardId) ? -5 : 3;
     if (strategy === 'deduce') score += /栞|宗玄|顔|真実|地下/.test(clue) ? 7 : 1;
     if (strategy === 'hide') score += /表|珈琲|恩田|偽り/.test(clue) ? 7 : 0;
@@ -168,7 +209,9 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
       const slot = slots.find((entry) => entry.number === meta.number && entry.kind === meta.kind);
       const key = placementKey(temari.face, selected?.id, meta.number, meta.kind);
       const currentFailed = slot?.cardId && failed.has(placementKey(temari.face, slot.cardId, meta.number, meta.kind));
-      if (!slot?.empty && !currentFailed) return add(-100, '矛盾が出ていない札は上書きせず、別の欄を読む');
+      const currentVerified = slot?.cardId && verified.has(placementKey(temari.face, slot.cardId, meta.number, meta.kind));
+      if (currentVerified) return add(-120, '確定で正しいと分かった欄は上書きしない');
+      if (!slot?.empty && !currentFailed) return add(-100, '未判定の配置は確定まで上書きしない');
       if (failed.has(key)) return add(-90, '同じ札と欄の不正解配置は繰り返さない');
       if (compatible) return add(55 - (meta.number || 0) / 10, '札の種別に合う空欄へ置き、矛盾文を手掛かりに読む');
       return add(-100, '札の種別と欄が合わないため試さない');
@@ -180,9 +223,14 @@ export function temariPolicy(option, observation, memory, strategy = 'safe') {
   if (meta.action === 'confirm') {
     if (strategy === 'deduce') {
       const allFilled = slots.length > 0 && slots.every((slot) => !slot.empty);
-      return add(allFilled ? 100 : -80, allFilled ? 'すべての欄を仮説で埋め、矛盾文を受けて確定する' : '空欄が残るため確定を待つ');
+      if (unresolved) return add(-120, '確定で判明した矛盾を差し替えるまで再確定しない');
+      return add(allFilled ? 100 : -80, allFilled ? '全欄を埋めて矛盾を解消したため確定する' : '空欄が残るため確定を待つ');
     }
     return add(strategy === 'quick' ? -4 : strategy === 'disrupt' ? -2 : strategy === 'hide' ? 12 : 7, '盤を差し出して結果と効果を引き受ける');
+  }
+  if (meta.action === 'commit') {
+    if (strategy === 'deduce' && unresolved) return add(-160, '確定で残った矛盾を差し替えるまでコミットしない');
+    return add(160, strategy === 'deduce' ? '矛盾のない確定結果を盤へ反映して退席する' : '確定した盤の効果を受け取り、従来どおり退席する');
   }
   if (meta.action === 'done') {
     if (strategy === 'quick' || strategy === 'ordered') {
@@ -289,6 +337,13 @@ export function decideByScore(observation, memory, profile) {
   if (selected.option.meta?.action === 'slot' && observation.part?.name === 'temariBoard') {
     const selectedCard = observation.part.temari?.cards?.find((card) => card.selected);
     if (selectedCard) {
+      const triedKey = placementKey(
+        observation.part.temari.face,
+        selectedCard.id,
+        selected.option.meta.number,
+        selected.option.meta.kind,
+      );
+      memory.temariTriedPlacements = [...new Set([...(memory.temariTriedPlacements || []), triedKey])];
       memory.temariPending = {
         face: observation.part.temari.face,
         cardId: selectedCard.id,

@@ -5,6 +5,13 @@ export function hasUntriedBoardPlacement(face, cardId, slots, placedKeys = []) {
   return slots.some((slot) => !placedKeys.includes(`${face}:${slot.number}:${slot.kind}:${cardId}`));
 }
 
+export function temariSelectedCandidates(selected, candidateSlots, deselectedCards = []) {
+  return [
+    ...(!deselectedCards.includes(selected.dataset.card) ? [selected] : []),
+    ...candidateSlots,
+  ];
+}
+
 export function startProgression(options = {}) {
 const params = new URLSearchParams(location.search);
 const route = options.route || params.get('route') || 'execution';
@@ -242,16 +249,14 @@ function actTemariBoard(modal) {
   // 札と欄の読み、および二面のどちらを仕上げるかはペルソナへ委ねる。
   // boardSolution は参照しない。これは正解を作る処理ではなく、画面で見える
   // 札・欄・矛盾文を材料にプレイヤーの仮説を操作する処理である。
-  const commitClose = modal.querySelector('.board-commit-close');
-  if (commitClose) return click(commitClose, 'temari:commit-close');
   // 確定結果の実装がまだ close ボタンを出さない版でも、盤面が消えたら
-  // #done へ落として終端させる。commit-close があれば必ずそちらを優先する。
+  // #done へ落として終端させる。
   if (!modal.querySelector('.board') && !modal.querySelector('.confirm-hypothesis')) {
     return click(modal.querySelector('#done'), 'temari:result-done-fallback');
   }
   const state = activePart
-    ? (activePart.temari ||= { lastAction:null, warned:null, operations:0, placedKeys:[], operationLimitReached:false })
-    : { lastAction:null, warned:null, operations:0, placedKeys:[], operationLimitReached:false };
+    ? (activePart.temari ||= { lastAction:null, warned:null, operations:0, placedKeys:[], deselectedCards:[], operationLimitReached:false })
+    : { lastAction:null, warned:null, operations:0, placedKeys:[], deselectedCards:[], operationLimitReached:false };
   const operationLimit = 200;
   const boardClick = (element, note) => {
     if (!element || element.disabled) return false;
@@ -287,6 +292,7 @@ function actTemariBoard(modal) {
       state.warned = null;
       state.lastAction = 'slot';
       state.placedKeys.push(placementKey(selected.dataset.card, retry));
+      state.deselectedCards = [];
       return boardClick(retry, `temari:place-hypothesis:${retry.dataset.number}:${retry.dataset.kind}`);
     }
     state.warned = null;
@@ -294,13 +300,22 @@ function actTemariBoard(modal) {
 
   if (selected) {
     const candidateSlots = availableSlots(selected.dataset.card);
-    const slot = choose(candidateSlots);
+    // 配置を挟まず同じ札を二度解除する候補は出さない。採点方針が解除を
+    // 配置より高くしても、解除→再選択→解除の往復を構造的に有限化する。
+    const action = choose(temariSelectedCandidates(selected, candidateSlots, state.deselectedCards));
+    if (action === selected) {
+      state.deselectedCards.push(selected.dataset.card);
+      state.lastAction = 'card';
+      return boardClick(selected, `temari:deselect-card:${selected.dataset.card}`);
+    }
+    const slot = action;
     if (!slot) return boardClick(modal.querySelector('#done'), 'temari:done-no-placement');
     const card = boardCards[selected.dataset.card];
     if (!card?.kinds?.includes(slot.dataset.kind)) {
       state.warned = { number:slot.dataset.number, kind:slot.dataset.kind };
     } else {
       state.placedKeys.push(placementKey(selected.dataset.card, slot));
+      state.deselectedCards = [];
     }
     state.lastAction = 'slot';
     return boardClick(slot, `temari:place:${selected.dataset.card}:${slot.dataset.number}:${slot.dataset.kind}`);
@@ -326,6 +341,7 @@ function actTemariBoard(modal) {
     ...(state.lastAction !== 'face' && otherFaceAvailable ? [otherFace] : []),
     ...(currentFilled ? [modal.querySelector('#done')] : []),
     ...(allCurrentFilled ? [confirm] : []),
+    modal.querySelector('.board-commit-close'),
   ].filter(Boolean);
   const action = choose(candidates);
   if (!action) return click(modal.querySelector('#done'), 'temari:done');
@@ -340,6 +356,10 @@ function actTemariBoard(modal) {
   if (action.classList.contains('confirm-hypothesis')) {
     state.lastAction = 'confirm';
     return boardClick(action, 'temari:confirm-hypothesis');
+  }
+  if (action.classList.contains('board-commit-close')) {
+    state.lastAction = 'commit';
+    return boardClick(action, 'temari:commit-close');
   }
   state.lastAction = 'done';
   return boardClick(action, 'temari:done');
