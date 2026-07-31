@@ -50,7 +50,7 @@ export function renderChapterSummary(data) {
   const overknow = data.watch.find(({ key }) => key === 'overknow');
   const overknowNote = overknow ? ' 知りすぎた行は、第四章の尋問でコウナンの注視を強める。' : '';
   const unchosen = data.unchosen.length ? `<h2>選ばなかった頁</h2><p>${data.unchosen.join('、')}は、まだ開かなかった頁として残った。</p>` : '';
-  return `<section class="chapter-summary"><h2>この章で綴じた札</h2><ul>${cards}</ul><h2>この章で動いた綴じ目</h2><p>${watch || '自由行動では、数えられる綴じ目は動かなかった。'}。${overknowNote}</p>${unchosen}<p class="chapter-summary__mono">${data.monologue}</p><button id="done">次の章へ</button></section>`;
+  return `<section class="chapter-summary"><h2>この章で綴じた札</h2><ul>${cards}</ul><h2>この章で動いた綴じ目</h2><p>${watch || '自由行動では、数えられる綴じ目は動かなかった'}。${overknowNote}</p>${unchosen}<p class="chapter-summary__mono">${data.monologue}</p><button id="done">次の章へ</button></section>`;
 }
 
 export function buildChapterSummary(rawState = {}, args = {}) {

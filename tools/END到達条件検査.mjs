@@ -1,7 +1,7 @@
 /**
  * END到達条件検査
  *
- * 自由行動の予算（第一章4/6、第二章4/5）を組合せで全探索し、固定選択と
+ * 自由行動の予算（第一章4/6、第二章4/6）を組合せで全探索し、固定選択と
  * 分岐を含む到達状態を構成する。これは「条件を満たす状態を注入する」検査では
  * なく、各ENDへ至る資源消費済みの行動列を出す回帰用の証明である。
  */
@@ -15,6 +15,7 @@ const day1 = {
 const day2 = {
   '死体安置室': ['corpse_callus'], '主治医': ['dental_tampering', 'medical_record_copy'],
   '厨房': ['menu_roster', 'kitchen_menu'], '書斎': ['dedication_erasure'], '旧道照合': ['old_road'],
+  '知らないふり': [],
 };
 const choose = (values, n, start = 0, result = []) => n === 0 ? [result] : values.slice(start).flatMap((value, index) => choose(values, n - 1, start + index + 1, [...result, value]));
 const count = (state, line) => [...state].filter((id) => flags[id]?.line === line).length;
@@ -51,10 +52,10 @@ find('B-3', () => true, ['第三章: 少年の扉を直接叩く（察知35）',
 
 // 告白ルートで固定取得する原稿群。B-1/B-2のEND本文に必要な証拠もここで
 // 実際のシーン順に加える（原稿、食料庫、隠し部屋）。
-for (const id of ['B-1', 'B-2']) add(proof[id].state, ['food_ledger', 'uno_ledger_handwriting', 'tea_brand_testimony', 'peephole_map', 'manuscript_left_hand', 'left_handed_pen', 'original_title', 'acrostic']);
+for (const id of ['B-1', 'B-2']) add(proof[id].state, ['food_ledger', 'uno_ledger_handwriting', 'tea_brand_testimony', 'peephole_map', 'search_record', 'lattice_shadow', 'temariuta_murder_page', 'award_photo_right_hand', 'folklorist_reply', 'onda_annotated_book', 'winter_lamp_style', 'manuscript_left_hand', 'left_handed_pen', 'original_title', 'acrostic']);
 add(proof['A-4'].state, ['peephole_map']);
 
-console.log('END到達条件検査（自由行動予算: 第一章4/6、第二章4/5）');
+console.log('END到達条件検査（自由行動予算: 第一章4/6、第二章4/6）');
 console.log(`- 自由行動組合せを ${allPlans.length} 通り探索`);
 for (const end of ['A-1', 'A-2', 'A-3', 'A-4', 'B-1', 'B-2', 'B-3']) {
   console.log(`- ${end}: 到達可能`);

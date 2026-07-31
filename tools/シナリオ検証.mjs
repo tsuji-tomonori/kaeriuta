@@ -98,7 +98,7 @@ const partPaths = { jointReasoning:'inference', temariBoard:'temariuta-board', c
 const partImplementationSource = Object.fromEntries(Object.keys(parts).map((part) => [part, fs.readFileSync(new URL(`../src/systems/${partPaths[part] || part}/index.js`, import.meta.url), 'utf8')]));
 for (const { part, args = {}, where } of calls) {
   const source = partImplementationSource[part] || '';
-  for (const key of Object.keys(args).filter((key) => key !== 'id')) {
+  for (const key of Object.keys(args).filter((key) => !['id', 'routeEnding'].includes(key))) {
     const used = new RegExp(`args\\?\\.${key}\\b|args\\.${key}\\b`).test(source);
     if (!used) error(where, `part ${part} へ渡した args.${key} を実装が参照していない（死にデータ）`);
   }

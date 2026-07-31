@@ -51,6 +51,33 @@ let inputDocument = null;
 let keydownHandler = null;
 let wheelHandler = null;
 
+function bootElement(documentRef) {
+  return documentRef?.querySelector?.('#boot-loader') ?? null;
+}
+
+export function setBootStatus(documentRef, message) {
+  const loader = bootElement(documentRef);
+  const status = loader?.querySelector?.('span');
+  if (status) status.textContent = message;
+  return Boolean(loader);
+}
+
+export function showBootFailure(documentRef, error) {
+  const loader = bootElement(documentRef);
+  if (!loader) return false;
+  const message = error instanceof Error ? error.message : String(error || '不明なエラー');
+  const title = documentRef.createElement('strong');
+  const status = documentRef.createElement('span');
+  const retry = documentRef.createElement('button');
+  title.textContent = '読み込みに失敗しました';
+  status.textContent = message;
+  retry.type = 'button';
+  retry.textContent = '再試行';
+  retry.addEventListener('click', () => globalThis.location?.reload?.());
+  loader.replaceChildren(title, status, retry);
+  return true;
+}
+
 export function nodeKeyFromState(state) {
   const frame = state?.executionStack?.at(-1);
   if (!frame || !Array.isArray(frame.path) || !Number.isInteger(frame.index)) return null;
@@ -508,6 +535,7 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
         session.charas.setSpeaker(null);
         session.endingActive = true;
         session.state.endingId = node.endingId;
+        const firstEnding = Object.keys(loadProgress().endings ?? {}).length === 0;
         recordEnding(node.endingId, session.state);
         flushRead();
         saveGame(AUTO_SLOT, session.state);
@@ -515,7 +543,7 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
         const ending = buildEndingExplanation(node.endingId, session.state);
         session.message.show(
           null,
-          `END\n${ending.title}\n${ending.metrics}\n${ending.reason}\n${ending.detail}\n${ending.nextHint}\nオートセーブしました。`,
+          `END\n${ending.title}\n${ending.metrics}\n${ending.reason}\n${ending.detail}\n${ending.nextHint}${firstEnding ? '\n初めての結末を読み終えました。タイトルの章選択・回想モードと、章末の帳簿に残った「選ばなかった頁」から次の読み方を選べます。' : ''}\nオートセーブしました。`,
           false,
           shouldShowAdvance({ nodeType: node.t, ending: true }),
         );
@@ -594,14 +622,20 @@ export async function initializeApp({
   loadAssets = true,
   showInitialTitle = true,
 } = {}) {
+  let initialized = false;
   try {
     if (!root) throw new Error('#app が見つかりません。');
     if (!documentRef?.addEventListener) throw new Error('document が利用できません。');
     disposeSession();
     initializedRoot = root;
     bindInput(documentRef);
-    if (loadAssets) await loadManifest();
+    if (loadAssets) {
+      setBootStatus(documentRef, '素材を確認しています…');
+      await loadManifest();
+    }
+    setBootStatus(documentRef, '本を開いています…');
     if (showInitialTitle) renderTitleScreen(root);
+    initialized = true;
     return {
       showTitle: () => renderTitleScreen(root),
       dispose: () => {
@@ -614,8 +648,11 @@ export async function initializeApp({
         initializedRoot = null;
       },
     };
+  } catch (error) {
+    showBootFailure(documentRef, error);
+    throw error;
   } finally {
-    documentRef?.querySelector?.('#boot-loader')?.remove();
+    if (initialized) bootElement(documentRef)?.remove();
   }
 }
 

@@ -36,7 +36,10 @@ export const chapter3 = { id:'chapter3', title:'岐路', chapter:'第三章　2�
  {t:'stage',text:'【蘭子が去る。廊下の角、子供用のスリッパがひとつ、灯りの境目にある。】'},
  {t:'chara',id:'chara_companion',expr:'normal',pos:'right',action:'fadeOut'},
  {t:'chara',id:'chara_observer',expr:'normal',pos:'left',action:'fadeIn'},
- {t:'if',cond:{param:'overknow',gte:2},then:[
+ {t:'if',cond:{or:[{param:'overknow',gte:2},{log:{key:'conan_mark',equals:true}}]},then:[
+  {t:'log',key:'conan_high_gaze',value:true},
+  {t:'param',key:'suspicion',delta:10},
+  {t:'param',key:'awareness',delta:10},
   {t:'say',who:'conan',text:'お姉さん、少しだけいい？'},
   {t:'say',who:'conan',text:'オレ、ずっと考えてたんだ。恩田さんの事件のとき、お姉さんが言わなかったこと。言えなかったんじゃない。言わないって決めてたこと。'},
   {t:'say',who:'conan',text:'毒のことも、あの夜のことも。知らない人なら、もっと違う驚き方をするよ。……言わない、って、知ってるってことだよね。'},

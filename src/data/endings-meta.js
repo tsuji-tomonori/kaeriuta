@@ -94,9 +94,16 @@ export function endingMeta(id) {
 export function buildEndingExplanation(id, state = {}) {
   const meta = endingMeta(id) ?? {};
   const params = state.params ?? {}; const logs = state.logs ?? {};
+  const held = [...(state.items ?? []), ...Object.values(state.flags ?? {}).flat()];
   const conviction = Number(params.conviction ?? 0); const gaze = gazeValue(params);
   const marked = logs.conan_mark || logs.rebuttal_rebuttal_ch4a === 'conan_marked';
   const reasoningDetail = { b1_true:'共同推理を最後まで綴じ、律の原題を返した。', b2_unfinished:'共同推理は真相へ届かず、結末を閉じきれなかった。', b2_locked:'折句を欠き、共同推理の頁を閉じた。' };
   const detail = marked ? '推理には抗えた。しかし、あなた自身を読まれた。' : (reasoningDetail[logs.joint_reasoning] ?? '選んだ頁が、この結末の綴じ目になった。');
-  return { title: `${meta.code ?? 'END'}　${meta.name ?? ''}`, metrics: `悟郎の確信：${conviction}%\nコウナンの注視：${gaze}%`, reason: meta.reason ?? '', detail, nextHint: meta.nextHint ?? '' };
+  let nextHint = meta.nextHint ?? '';
+  if (id === 'b2_unfinished' && !held.includes('three_plans') && !held.includes('three_plans_card')) {
+    nextHint = '第一〜二章で共犯者の部屋と暖炉の指示メモを確かめ、三通の計画書を比べれば、最後の主張を崩せるかもしれない。';
+  } else if (id === 'b2_unfinished' && !held.includes('acrostic') && !held.includes('acrostic_card')) {
+    nextHint = '地下の生原稿を行頭まで読み、隠された作者の署名を持ち帰れば、真相を閉じられるかもしれない。';
+  }
+  return { title: `${meta.code ?? 'END'}　${meta.name ?? ''}`, metrics: `悟郎の確信：${conviction}%\nコウナンの注視：${gaze}%`, reason: meta.reason ?? '', detail, nextHint };
 }

@@ -373,6 +373,7 @@ function actInference(modal) {
   if (own) return click(own, 'inference:own');
   if (modal.querySelector('#proxy')) return click(modal.querySelector('#proxy'), 'inference:proxy');
   if (modal.querySelector('#relic')) return click(modal.querySelector('#relic'), 'inference:relic');
+  if (modal.querySelector('#unfinished')) return click(modal.querySelector('#unfinished'), 'inference:unfinished');
   const ending = [...modal.querySelectorAll('[data-e]')].find((button) => button.textContent.includes('帰り唄')) || modal.querySelector('[data-e]');
   if (ending) return click(ending, `inference:ending:${ending.textContent.trim()}`);
   if (modal.querySelector('#back')) {
