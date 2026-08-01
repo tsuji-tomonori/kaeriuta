@@ -3,3 +3,15 @@
 .freeaction-gain{color:#ffd78a}.freeaction-cost{color:#ffb3bb}
 .freeaction-focuses{display:grid;gap:.55rem}.freeaction-focuses button{text-align:left;white-space:normal}
 .freeaction-narrative-body{max-width:100%;overflow-x:hidden}.freeaction-acquired{border-left:3px solid #87683a;padding-left:.75rem;margin-top:1rem}
+.freeaction-guide{margin:0 0 1rem;padding:.8rem 1rem;background:#172027;border:1px solid #87683a;box-shadow:inset 3px 0 #c9b77c}
+.freeaction-guide h2{margin:0 0 .35rem;color:#ffe1a2;font-size:1.05rem}
+.freeaction-guide__purpose{margin:.25rem 0 .65rem;line-height:1.6}
+.freeaction-guide ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem;margin:.5rem 0;padding:0;list-style:none;counter-reset:freeaction-step}
+.freeaction-guide li{display:grid;align-content:start;gap:.2rem;padding:.55rem;background:#0c1116b8;border:1px solid #c9b77c4d;counter-increment:freeaction-step}
+.freeaction-guide li strong::before{content:counter(freeaction-step) ". ";color:#f0ce83}
+.freeaction-guide li span{font-size:.82rem;line-height:1.45;color:#ddd6c2}
+.freeaction-guide__remaining{margin:.7rem 0 0;color:#fff0bd}
+.freeaction-map-heading,.freeaction-list-heading{margin-bottom:.25rem;color:#f0ce83}
+.freeaction-map-help,.freeaction-stop-help{margin:.2rem 0 .65rem;color:#d6cfba;font-size:.88rem;line-height:1.5}
+.freeaction-focus-guide{padding:.65rem .8rem;color:#fff0bd;background:#172027;border-left:3px solid #c9b77c;line-height:1.55}
+@media(max-width:760px){.freeaction-guide ol{grid-template-columns:1fr}.freeaction-guide li{grid-template-columns:minmax(8.5rem,.7fr) 1fr;align-items:start}}

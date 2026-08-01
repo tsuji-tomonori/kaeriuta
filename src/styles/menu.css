@@ -73,6 +73,45 @@
   white-space: nowrap;
 }
 
+.kaeriuta-title__premise {
+  margin: .45rem auto .6rem;
+  max-width: 34rem;
+  color: #eee6ca;
+  font-size: clamp(.78rem, 1.5vw, .92rem);
+  line-height: 1.65;
+}
+
+.kaeriuta-title__guide {
+  width: min(34rem, 100%);
+  margin: 0 auto .55rem;
+  text-align: left;
+  background: #18232cc7;
+  border: 1px solid #c9b77c66;
+}
+
+.kaeriuta-title__guide summary {
+  padding: .5rem .7rem;
+  color: var(--menu-bright);
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+.kaeriuta-title__guide > div {
+  padding: .1rem .8rem .55rem;
+  border-top: 1px solid #c9b77c42;
+}
+
+.kaeriuta-title__guide p {
+  margin: .45rem 0;
+  color: #e2dcc8;
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+.kaeriuta-title__guide strong {
+  color: #f0ce83;
+}
+
 .kaeriuta-menu__eyebrow,
 .kaeriuta-title__eyebrow {
   margin: 0;
@@ -528,6 +567,16 @@
     margin:0 0 .15em;
     font-size:clamp(1.9rem,8vh,3.25rem);
   }
+
+  .kaeriuta-title__premise {
+    margin:.2rem auto .35rem;
+    font-size:.72rem;
+    line-height:1.4;
+  }
+
+  .kaeriuta-title__guide { margin-bottom:.35rem; }
+  .kaeriuta-title__guide summary { padding:.35rem .55rem; font-size:.74rem; }
+  .kaeriuta-title__guide p { font-size:.7rem; line-height:1.4; }
 
   .kaeriuta-menu__eyebrow,.kaeriuta-title__eyebrow { font-size:.68rem; }
   .kaeriuta-title__actions {
