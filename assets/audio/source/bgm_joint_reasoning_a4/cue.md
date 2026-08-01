@@ -1,20 +1,20 @@
-# 未完 ― 長すぎる栞
+# 卓上を奪う
 
 - Parent: #21
-- Issue: #35
-- Track ID: bgm_end_unfinished
-- Narrative role: 届かなかった名前と、次の読者への余白
-- BPM / meter: 60 / 4/4
-- Tonal world: C major / A minor
-- Dramatic profile: unfinished
-- Theme: unfinished_page
-- Theme interval: every 10 bars, with phrase-sized rests
-- Instruments: bass_clarinet, felt_piano, viola, warm_air
-- Duration: 104.000 s
+- Issue: #27
+- Track ID: bgm_joint_reasoning_a4
+- Narrative role: 公開推理を二人の掛け合いで反転する前進
+- BPM / meter: 88 / 4/4
+- Tonal world: G major / D Dorian
+- Dramatic profile: joint_public
+- Theme: joint_reversal
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: brush, clarinet, marimba, pizzicato, room_strings
+- Duration: 98.182 s
 - Loop: yes
 - Target loudness: -25.0 LUFS-I
 - Rendered loudness: -24.9 LUFS-I
-- Rendered true peak: -11.1 dBTP
+- Rendered true peak: -12.7 dBTP
 
 ## Intent
 
@@ -27,6 +27,6 @@ for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
-Run tools/audio/render.sh bgm_end_unfinished.  No downloaded samples are required.  The
+Run tools/audio/render.sh bgm_joint_reasoning_a4.  No downloaded samples are required.  The
 MIDI file contains the editable note and tempo data; synthesis patches are the
 named instrument functions in tools/audio/render_soundtrack.py.

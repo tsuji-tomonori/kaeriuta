@@ -6,22 +6,24 @@
 - Narrative role: 懐かしさと復讐計画へ入る緊張
 - BPM / meter: 66 / 6/4
 - Tonal world: A minor / C major
+- Dramatic profile: arrival
 - Theme: arrival_memory
 - Theme interval: every 8 bars, with phrase-sized rests
-- Instruments: alto_flute, cello, felt_piano, warm_air
+- Instruments: alto_flute, nylon_guitar
 - Duration: 141.818 s
 - Loop: yes
 - Target loudness: -26.0 LUFS-I
-- Rendered loudness: -26.0 LUFS-I
-- Rendered true peak: -13.7 dBTP
+- Rendered loudness: -25.9 LUFS-I
+- Rendered true peak: -13.9 dBTP
 
 ## Intent
 
-This cue owns a situation-specific melodic contour.  It does not repeat the
-title melody as a default device.  Title recognition is reserved for the true
-ending and credits, where it is reharmonised and answered rather than copied.
-Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
-Japanese text, ambience and scene effects during a long play session.
+This cue owns both a situation-specific melodic contour and an arrangement
+grammar selected by its dramatic profile.  Inquiry uses stop-start questions,
+solitary reasoning uses a dry analytical cell, joint reasoning uses growing
+call-and-response, arrest closes the register, and escape opens it into a
+walking 6/4 texture.  Irregular humanisation and deliberate rests leave space
+for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

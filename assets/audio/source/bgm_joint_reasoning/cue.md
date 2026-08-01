@@ -1,20 +1,20 @@
-# 未完 ― 長すぎる栞
+# 二人で頁を返す
 
 - Parent: #21
-- Issue: #35
-- Track ID: bgm_end_unfinished
-- Narrative role: 届かなかった名前と、次の読者への余白
-- BPM / meter: 60 / 4/4
-- Tonal world: C major / A minor
-- Dramatic profile: unfinished
-- Theme: unfinished_page
-- Theme interval: every 10 bars, with phrase-sized rests
-- Instruments: bass_clarinet, felt_piano, viola, warm_air
-- Duration: 104.000 s
+- Issue: #27
+- Track ID: bgm_joint_reasoning
+- Narrative role: 宗玄の主張を役割分担で崩す共同推理の高揚
+- BPM / meter: 96 / 4/4
+- Tonal world: D Dorian -> F major
+- Dramatic profile: joint_final
+- Theme: joint_answer
+- Theme interval: every 8 bars, with phrase-sized rests
+- Instruments: cello, clarinet, frame_drum, nylon_guitar, room_strings
+- Duration: 100.000 s
 - Loop: yes
-- Target loudness: -25.0 LUFS-I
-- Rendered loudness: -24.9 LUFS-I
-- Rendered true peak: -11.1 dBTP
+- Target loudness: -24.8 LUFS-I
+- Rendered loudness: -24.8 LUFS-I
+- Rendered true peak: -13.1 dBTP
 
 ## Intent
 
@@ -27,6 +27,6 @@ for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
-Run tools/audio/render.sh bgm_end_unfinished.  No downloaded samples are required.  The
+Run tools/audio/render.sh bgm_joint_reasoning.  No downloaded samples are required.  The
 MIDI file contains the editable note and tempo data; synthesis patches are the
 named instrument functions in tools/audio/render_soundtrack.py.

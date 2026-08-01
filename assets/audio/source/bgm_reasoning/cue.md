@@ -3,25 +3,27 @@
 - Parent: #21
 - Issue: #27
 - Track ID: bgm_reasoning
-- Narrative role: 手掛かりが結びつく快感と、知りすぎる危険
-- BPM / meter: 92 / 4/4
+- Narrative role: 手掛かりが一人の頭の中で結びつく軽快な思考
+- BPM / meter: 94 / 4/4
 - Tonal world: D Dorian / G major
+- Dramatic profile: reasoning
 - Theme: reasoning_lift
 - Theme interval: every 8 bars, with phrase-sized rests
-- Instruments: alto_flute, cello, pizzicato, room_strings, soft_wood
-- Duration: 125.217 s
+- Instruments: marimba, nylon_guitar, pizzicato
+- Duration: 122.553 s
 - Loop: yes
 - Target loudness: -25.5 LUFS-I
-- Rendered loudness: -25.5 LUFS-I
-- Rendered true peak: -13.3 dBTP
+- Rendered loudness: -25.4 LUFS-I
+- Rendered true peak: -12.4 dBTP
 
 ## Intent
 
-This cue owns a situation-specific melodic contour.  It does not repeat the
-title melody as a default device.  Title recognition is reserved for the true
-ending and credits, where it is reharmonised and answered rather than copied.
-Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
-Japanese text, ambience and scene effects during a long play session.
+This cue owns both a situation-specific melodic contour and an arrangement
+grammar selected by its dramatic profile.  Inquiry uses stop-start questions,
+solitary reasoning uses a dry analytical cell, joint reasoning uses growing
+call-and-response, arrest closes the register, and escape opens it into a
+walking 6/4 texture.  Irregular humanisation and deliberate rests leave space
+for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 

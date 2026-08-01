@@ -6,6 +6,7 @@
 - Narrative role: 雨の館と、まだ読まれていない結末
 - BPM / meter: 70 / 6/4
 - Tonal world: D minor / F major
+- Dramatic profile: title
 - Theme: title_question
 - Theme interval: every 8 bars, with phrase-sized rests
 - Instruments: cello, clarinet, felt_piano, room_strings, soft_wood
@@ -13,15 +14,16 @@
 - Loop: yes
 - Target loudness: -26.0 LUFS-I
 - Rendered loudness: -26.0 LUFS-I
-- Rendered true peak: -14.7 dBTP
+- Rendered true peak: -14.9 dBTP
 
 ## Intent
 
-This cue owns a situation-specific melodic contour.  It does not repeat the
-title melody as a default device.  Title recognition is reserved for the true
-ending and credits, where it is reharmonised and answered rather than copied.
-Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
-Japanese text, ambience and scene effects during a long play session.
+This cue owns both a situation-specific melodic contour and an arrangement
+grammar selected by its dramatic profile.  Inquiry uses stop-start questions,
+solitary reasoning uses a dry analytical cell, joint reasoning uses growing
+call-and-response, arrest closes the register, and escape opens it into a
+walking 6/4 texture.  Irregular humanisation and deliberate rests leave space
+for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
