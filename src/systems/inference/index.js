@@ -52,11 +52,16 @@ export function resultTitle(endingId) {
   return endingId === 'b1_true' ? 'B-1 真相END' : 'B-2 未完END';
 }
 
+export function jointReasoningBGM(args = {}) {
+  return args.variant === 'a4' ? 'bgm_joint_reasoning_a4' : 'bgm_joint_reasoning';
+}
+
 export const jointReasoning = { async start(ctx, args = {}) {
   const data = args.debugData || inferenceFinal;
   const state = stateOf(ctx);
   const cards = [...(state.items || []), ...Object.values(state.flags || {}).flat()];
   const a4 = args.variant === 'a4';
+  ctx.audio?.playBGM?.(jointReasoningBGM(args), 650);
 
   return new Promise((resolve) => {
     const view = modal(ctx, a4 ? '推理ショー乗っ取り' : '壁の内の作者');
@@ -90,6 +95,7 @@ export const jointReasoning = { async start(ctx, args = {}) {
         return;
       }
       const incomplete = '証明は揃った。だが、崩れたのは宗玄ではなく、証明の順番だけだった。栞の言葉は、まだ彼の結末を越えられない。';
+      ctx.audio?.stopBGM?.(800);
       view.main.innerHTML = `<p class="claim">【BGM消音】六番の唄</p><p>宗玄「作者にも、もう変えられん」</p><p class="parts-note">${gateStatus()}</p><div class="parts-actions">${data.final.choices.filter((choice) => !choice.requires || has(ctx, choice.requires)).map((choice) => `<button data-e="${choice.ending}" data-id="${choice.id}">${choice.label}</button>`).join('')}</div>`;
       view.main.querySelectorAll('[data-e]').forEach((button) => {
         button.onclick = () => {

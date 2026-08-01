@@ -12,6 +12,9 @@ const manifest = JSON.parse(
 const backgroundIds = new Set(
   manifest.assets.filter(asset => asset.kind === 'bg').map(asset => asset.id)
 );
+const bgmIds = new Set(
+  manifest.assets.filter(asset => asset.kind === 'bgm').map(asset => asset.id)
+);
 
 function walk(nodes, visit) {
   for (const node of nodes) {
@@ -56,6 +59,17 @@ test('全ENDの背景は manifest に存在する背景IDである', () => {
     assert.ok(backgroundIds.has(backgrounds[0].id), `${backgrounds[0].id} が manifest にない`);
     assert.equal(backgrounds[0].id, meta.bg, `${meta.sceneId} とメタデータの背景が不一致`);
   }
+});
+
+test('7つのENDはそれぞれ固有で実在するBGMを持つ', () => {
+  const assigned = [];
+  for (const [sceneId, scene] of Object.entries(endings)) {
+    const bgms = nodesOfType(scene, 'bgm');
+    assert.equal(bgms.length, 1, `${sceneId} のBGM数`);
+    assert.ok(bgmIds.has(bgms[0].id), `${bgms[0].id} が manifest にない`);
+    assigned.push(bgms[0].id);
+  }
+  assert.equal(new Set(assigned).size, 7);
 });
 
 test('全ENDに立ち絵があり、指定された表情ファイルが実在する', () => {
