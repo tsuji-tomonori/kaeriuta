@@ -124,6 +124,10 @@ export function costDescription(action) {
   return `${fixed.length ? fixed.join('、') : '数えられる代償はない'}${conditional.map(({ label, effects }) => `\n（「${label}」を選ぶと、さらに ${effects.join('、')}）`).join('')}`;
 }
 
+export function freeActionGuideMarkup(remaining) {
+  return `<section class="freeaction-guide" aria-labelledby="freeaction-guide-title"><h2 id="freeaction-guide-title">自由行動の進め方</h2><p class="freeaction-guide__purpose">限られた時間で、どの手掛かりを集めるか選びます。すべての場所を調べることはできません。</p><ol><li><strong>場所または行動を選ぶ</strong><span>地図の部屋を押すか、下の一覧から行動を直接選びます。</span></li><li><strong>見返りと代償を比べる</strong><span>行動を1つ選ぶと、残り回数が1減ります。</span></li><li><strong>注目先を1つ選ぶ</strong><span>行動先で何を詳しく見るか決めると、探索が完了します。</span></li></ol><p class="freeaction-guide__remaining">選べる行動は、あと <b>${displayText(remaining, 0)}</b> 回です。</p></section>`;
+}
+
 const floorLabels = { '1f':'一階', '2f':'二階', under:'地下・屋外' };
 function roomName(roomId) { return mansionRooms.find((room) => room.id === roomId)?.name || '館のどこか'; }
 function actionPreview(action, hintsEnabled) {
@@ -201,7 +205,7 @@ export const freeAction = { async start(ctx, args = {}) {
       if (model.phase === FREE_ACTION_PHASE.FOCUSING) {
         const action = model.currentAction;
         const focus = action.scenes.focus;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.scenes.intro, action.narrative)}</p><h3>${displayText(focus.prompt, 'どこを見る？')}</h3><div class="freeaction-focuses">${focus.options.map((option) => `<button data-focus="${displayText(option.id)}">${displayText(option.label)}</button>`).join('')}</div></div></article>`;
+        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="freeaction-focus-guide">この行動で得られる主な手掛かりは確保しました。最後に、詳しく見るものを1つ選んでください。</p><h3>${displayText(focus.prompt, 'どこを見る？')}</h3><div class="freeaction-focuses">${focus.options.map((option) => `<button data-focus="${displayText(option.id)}">${displayText(option.label)}</button>`).join('')}</div></div></article>`;
         modalView.main.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
         return;
       }
@@ -220,7 +224,7 @@ export const freeAction = { async start(ctx, args = {}) {
       const acquired = model.used.map((id) => actions.find((action) => action.id === id)?.label).filter(Boolean);
       const counts = hintsEnabled ? flagCounts(model.state) : null;
       const countNotice = counts ? `<p class="freeaction-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
-      modalView.main.innerHTML = `<p>残り <b>${displayText(model.remaining, 0)}</b> ブロック。行動を選ぶと時間を1つ使います。選ばなかった場所にも別の情報があります。</p>${countNotice}${acquired.length ? `<p class="freeaction-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}${mapMarkup(model, actions)}<h3 class="freeaction-list-heading">館のどこでも選べる行動</h3><div class="action-list">${choices.map((action) => { const focused = action.room === model.selectedRoom ? ' is-focused' : ''; return `<button class="${focused.trim()}" data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong><span class="freeaction-room">${displayText(roomName(action.room))}</span>${actionPreview(action, hintsEnabled)}</button>`; }).join('')}</div><button id="done">自由行動を切り上げる</button>`;
+      modalView.main.innerHTML = `${freeActionGuideMarkup(model.remaining)}${countNotice}${acquired.length ? `<p class="freeaction-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<h3 class="freeaction-map-heading">1. 地図から場所を選ぶ</h3><p class="freeaction-map-help">部屋を押すと、その場所でできる行動と見返り・代償を確認できます。</p>${mapMarkup(model, actions)}<h3 class="freeaction-list-heading">または、行動の一覧から直接選ぶ</h3><div class="action-list">${choices.map((action) => { const focused = action.room === model.selectedRoom ? ' is-focused' : ''; return `<button class="${focused.trim()}" data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong><span class="freeaction-room">${displayText(roomName(action.room))}</span>${actionPreview(action, hintsEnabled)}</button>`; }).join('')}</div><p class="freeaction-stop-help">残り回数を使い切る必要はありません。ここまでで十分なら終了できます。</p><button id="done">自由行動をここで終える</button>`;
       const chooseAction = (id) => { model = selectFreeAction(model, choices.find((action) => action.id === id)); render(); };
       modalView.main.querySelectorAll('[data-id]').forEach((button) => {
         button.onclick = () => chooseAction(button.dataset.id);
