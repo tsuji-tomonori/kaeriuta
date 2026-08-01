@@ -16,7 +16,8 @@ from render_soundtrack import THEMES, TRACKS, arrangement
 ROOT = Path(__file__).resolve().parents[2]
 LOOP_IDS = {
     "bgm_title", "bgm_arrival", "bgm_mansion", "bgm_storm", "bgm_inquiry",
-    "bgm_reasoning", "bgm_end_arrest", "bgm_end_escape", "bgm_end_puppet",
+    "bgm_reasoning", "bgm_joint_reasoning_a4", "bgm_joint_reasoning",
+    "bgm_end_arrest", "bgm_end_escape", "bgm_end_puppet",
     "bgm_end_reversal", "bgm_end_rescue", "bgm_end_unfinished", "bgm_end_silenced",
 }
 REQUIRED_BGM = LOOP_IDS | {"bgm_credits"}
@@ -90,18 +91,53 @@ def main() -> int:
     # Score-level contract: each situation must have an actually distinct
     # melodic contour, enough loop length and restrained melodic activity.
     signatures: dict[tuple[tuple[float, float, int], ...], str] = {}
+    profiles: dict[str, str] = {}
+    fingerprints: dict[tuple[object, ...], str] = {}
     for track in TRACKS:
         signature = THEMES[track.theme]
         if signature in signatures:
             failures.append(f"{track.id}: theme duplicates {signatures[signature]}")
         signatures[signature] = track.id
         events = arrangement(track)
+        if track.profile in profiles:
+            failures.append(f"{track.id}: dramatic profile duplicates {profiles[track.profile]}")
+        profiles[track.profile] = track.id
+        fingerprint = (
+            track.meter,
+            tuple(sorted({event.instrument for event in events})),
+            round(track.room_amount, 2),
+            track.master_cutoff,
+        )
+        if fingerprint in fingerprints:
+            failures.append(f"{track.id}: arrangement fingerprint duplicates {fingerprints[fingerprint]}")
+        fingerprints[fingerprint] = track.id
         melodic_onsets = sum(event.instrument == track.lead for event in events)
         melodic_rate = melodic_onsets / (track.duration / 60)
         if track.loop and track.duration < 85:
             failures.append(f"{track.id}: {track.duration:.1f}s loop is too short for long-play comfort")
         if melodic_rate > 22:
             failures.append(f"{track.id}: {melodic_rate:.1f} melody onsets/min is too dense")
+
+    # The user's four contrast cases are an explicit acceptance contract, not
+    # a prose aspiration.  They must differ in grammar, instrumentation and
+    # spatial treatment before rendered audio is accepted.
+    contrast_ids = ("bgm_reasoning", "bgm_joint_reasoning", "bgm_end_arrest", "bgm_end_escape")
+    contrast_tracks = [TRACK_BY_ID[track_id] for track_id in contrast_ids]
+    if len({track.profile for track in contrast_tracks}) != len(contrast_tracks):
+        failures.append("reasoning/joint/arrest/escape must use four dramatic profiles")
+    contrast_events = {track.id: arrangement(track) for track in contrast_tracks}
+    instrument_sets = {track_id: {event.instrument for event in events}
+                       for track_id, events in contrast_events.items()}
+    if instrument_sets["bgm_reasoning"] == instrument_sets["bgm_joint_reasoning"]:
+        failures.append("solitary and joint reasoning use the same ensemble")
+    arrest = TRACK_BY_ID["bgm_end_arrest"]
+    escape = TRACK_BY_ID["bgm_end_escape"]
+    if arrest.meter == escape.meter or arrest.room_amount >= escape.room_amount:
+        failures.append("arrest must be drier and metrically distinct from escape")
+    arrest_register = np.mean([event.note for event in contrast_events[arrest.id]])
+    escape_register = np.mean([event.note for event in contrast_events[escape.id]])
+    if escape_register - arrest_register < 4:
+        failures.append("escape register must open at least four semitones above arrest")
 
     rows = []
     for asset_id in sorted(audio):

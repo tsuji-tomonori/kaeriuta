@@ -50,6 +50,9 @@ class Track:
     density: float = 1.0
     target_lufs: float = -24.0
     loop: bool = True
+    profile: str = "literary"
+    room_amount: float = .50
+    master_cutoff: int = 6_800
 
     @property
     def seconds_per_beat(self) -> float:
@@ -61,20 +64,22 @@ class Track:
 
 
 TRACKS = (
-    Track("bgm_title", 23, "まだ閉じない頁", "雨の館と、まだ読まれていない結末", 70, 6, 28, "D minor / F major", ("Dm9", "F6", "Cadd9", "Bb6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "title_question", 8, .55, -26),
-    Track("bgm_arrival", 24, "雨の向こうの館", "懐かしさと復讐計画へ入る緊張", 66, 6, 26, "A minor / C major", ("Am7", "C6", "F6", "G6"), "alto_flute", "felt_piano", "warm_air", "none", "arrival_memory", 8, .48, -26),
-    Track("bgm_mansion", 26, "閉じた書架の呼吸", "館と家族史が静かに見ている感覚", 58, 4, 34, "F major / D minor", ("F6", "Cadd9", "Dm9", "Bb6"), "felt_piano", "cello", "warm_air", "none", "mansion_walk", 10, .34, -27),
-    Track("bgm_storm", 28, "橋のない夜", "孤立と、計画が現実の被害へ変わる圧力", 82, 4, 40, "D minor", ("Dm", "Bb6", "F6", "Cadd9"), "low_piano", "cello", "room_strings", "frame_drum", "storm_weight", 8, .68, -25),
-    Track("bgm_inquiry", 29, "余白を裁く", "返答までの沈黙と観察される緊張", 74, 4, 42, "A minor / D Dorian", ("Am7", "Dm9", "G6", "C6"), "felt_piano", "clarinet", "warm_air", "pizzicato", "inquiry_pause", 8, .48, -26),
-    Track("bgm_reasoning", 27, "読まれる側", "手掛かりが結びつく快感と、知りすぎる危険", 92, 4, 48, "D Dorian / G major", ("Dm9", "G6", "Em7", "A7sus4"), "pizzicato", "alto_flute", "room_strings", "soft_wood", "reasoning_lift", 8, .67, -25.5),
-    Track("bgm_end_arrest", 30, "逮捕 ― 調書の余白", "罪と沈黙を記録へ渡す重さ", 58, 4, 22, "D minor / F major", ("Dm9", "Bb6", "F6", "Cadd9"), "felt_piano", "cello", "room_strings", "none", "arrest_record", 8, .38, -24.5),
-    Track("bgm_end_escape", 31, "脱出 ― 三里先の朝靄", "身体は自由でも物語から逃げ切れない帰路", 72, 6, 20, "D Dorian / G major", ("Dm9", "G6", "C6", "F6"), "alto_flute", "pizzicato", "warm_air", "soft_wood", "escape_horizon", 8, .56, -24.5),
-    Track("bgm_end_puppet", 33, "操り人形 ― 糸の先の筆", "操られた虚無と、自分で選んだ罪", 62, 5, 20, "G minor / B-flat major", ("Gm9", "Bb6", "F6", "Cadd9"), "viola", "felt_piano", "room_strings", "none", "puppet_choice", 8, .42, -24.5),
-    Track("bgm_end_reversal", 32, "逆転 ― 二つの手錠", "真実の前進と栞自身の代償", 78, 4, 32, "D Dorian", ("Dm9", "G6", "C6", "A7sus4"), "cello", "felt_piano", "room_strings", "frame_drum", "reversal_cost", 8, .66, -24),
-    Track("bgm_end_rescue", 34, "真相 ― 名前を返す朝", "正しい作者名と物語が読者へ帰る夜明け", 70, 6, 22, "D Dorian / F major", ("Dm9", "G6", "Bb6", "F6"), "clarinet", "felt_piano", "room_strings", "soft_wood", "rescue_answer", 8, .62, -24),
-    Track("bgm_end_unfinished", 35, "未完 ― 長すぎる栞", "届かなかった名前と、次の読者への余白", 60, 4, 26, "C major / A minor", ("C6", "Am7", "F6", "Dm9"), "felt_piano", "viola", "warm_air", "none", "unfinished_page", 10, .34, -25),
-    Track("bgm_end_silenced", 36, "口封じ ― 白い羽", "奪われた声と、残った『帰る』の一語", 56, 4, 22, "F major / D minor", ("F6", "Dm9", "Bb6", "Cadd9"), "alto_flute", "cello", "warm_air", "none", "silenced_breath", 10, .28, -25),
-    Track("bgm_credits", 37, "帰り唄", "真相の先で、物語を正しい名へ返すED", 70, 6, 40, "D minor -> D Dorian -> F major", ("Dm9", "Bb6", "F6", "Cadd9", "Dm9", "G6", "Bb6", "F6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "credits_return", 8, .72, -23.5, False),
+    Track("bgm_title", 23, "まだ閉じない頁", "雨の館と、まだ読まれていない結末", 70, 6, 28, "D minor / F major", ("Dm9", "F6", "Cadd9", "Bb6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "title_question", 8, .55, -26, profile="title", room_amount=.62, master_cutoff=6_500),
+    Track("bgm_arrival", 24, "雨の向こうの館", "懐かしさと復讐計画へ入る緊張", 66, 6, 26, "A minor / C major", ("Am7", "C6", "F6", "G6"), "alto_flute", "nylon_guitar", "warm_air", "brush", "arrival_memory", 8, .48, -26, profile="arrival", room_amount=.34, master_cutoff=7_200),
+    Track("bgm_mansion", 26, "閉じた書架の呼吸", "館と家族史が静かに見ている感覚", 58, 4, 34, "F major / D minor", ("F6", "Cadd9", "Dm9", "Bb6"), "felt_piano", "cello", "warm_air", "none", "mansion_walk", 10, .34, -27, profile="mansion", room_amount=.58, master_cutoff=6_200),
+    Track("bgm_storm", 28, "橋のない夜", "孤立と、計画が現実の被害へ変わる圧力", 82, 4, 40, "D minor", ("Dm", "Bb6", "F6", "Cadd9"), "low_piano", "cello", "room_strings", "frame_drum", "storm_weight", 8, .68, -25, profile="storm", room_amount=.26, master_cutoff=5_900),
+    Track("bgm_inquiry", 29, "余白を裁く", "返答までの沈黙と観察される緊張", 74, 4, 42, "A minor / D Dorian", ("Am7", "Dm9", "G6", "C6"), "felt_piano", "clarinet", "warm_air", "none", "inquiry_pause", 8, .48, -26, profile="inquiry", room_amount=.22, master_cutoff=6_600),
+    Track("bgm_reasoning", 27, "読まれる側", "手掛かりが一人の頭の中で結びつく軽快な思考", 94, 4, 48, "D Dorian / G major", ("Dm9", "G6", "Em7", "A7sus4"), "marimba", "pizzicato", "nylon_guitar", "soft_wood", "reasoning_lift", 8, .67, -25.5, profile="reasoning", room_amount=.15, master_cutoff=7_600),
+    Track("bgm_joint_reasoning_a4", 27, "卓上を奪う", "公開推理を二人の掛け合いで反転する前進", 88, 4, 36, "G major / D Dorian", ("G6", "Dm9", "C6", "A7sus4"), "marimba", "clarinet", "pizzicato", "brush", "joint_reversal", 8, .74, -25, profile="joint_public", room_amount=.18, master_cutoff=7_800),
+    Track("bgm_joint_reasoning", 27, "二人で頁を返す", "宗玄の主張を役割分担で崩す共同推理の高揚", 96, 4, 40, "D Dorian -> F major", ("Dm9", "G6", "Bb6", "C6", "F6"), "clarinet", "cello", "nylon_guitar", "frame_drum", "joint_answer", 8, .80, -24.8, profile="joint_final", room_amount=.30, master_cutoff=7_400),
+    Track("bgm_end_arrest", 30, "逮捕 ― 調書の余白", "罪と沈黙を記録へ渡す重さ", 54, 4, 22, "D minor / F major", ("Dm9", "Bb6", "F6", "Cadd9"), "felt_piano", "cello", "none", "none", "arrest_record", 8, .30, -25, profile="arrest", room_amount=.10, master_cutoff=5_500),
+    Track("bgm_end_escape", 31, "脱出 ― 三里先の朝靄", "身体は自由でも物語から逃げ切れない帰路", 78, 6, 20, "D Dorian / G major", ("Dm9", "G6", "C6", "F6"), "alto_flute", "nylon_guitar", "warm_air", "brush", "escape_horizon", 8, .60, -24.5, profile="escape", room_amount=.42, master_cutoff=7_800),
+    Track("bgm_end_puppet", 33, "操り人形 ― 糸の先の筆", "操られた虚無と、自分で選んだ罪", 62, 5, 20, "G minor / B-flat major", ("Gm9", "Bb6", "F6", "Cadd9"), "viola", "felt_piano", "room_strings", "none", "puppet_choice", 8, .42, -24.5, profile="puppet", room_amount=.48, master_cutoff=6_100),
+    Track("bgm_end_reversal", 32, "逆転 ― 二つの手錠", "真実の前進と栞自身の代償", 80, 4, 32, "D Dorian", ("Dm9", "G6", "C6", "A7sus4"), "cello", "marimba", "room_strings", "frame_drum", "reversal_cost", 8, .66, -24, profile="reversal", room_amount=.32, master_cutoff=7_000),
+    Track("bgm_end_rescue", 34, "真相 ― 名前を返す朝", "正しい作者名と物語が読者へ帰る夜明け", 70, 6, 22, "D Dorian / F major", ("Dm9", "G6", "Bb6", "F6"), "clarinet", "nylon_guitar", "room_strings", "brush", "rescue_answer", 8, .62, -24, profile="rescue", room_amount=.55, master_cutoff=7_600),
+    Track("bgm_end_unfinished", 35, "未完 ― 長すぎる栞", "届かなかった名前と、次の読者への余白", 60, 4, 26, "C major / A minor", ("C6", "Am7", "F6", "Dm9"), "felt_piano", "viola", "warm_air", "none", "unfinished_page", 10, .34, -25, profile="unfinished", room_amount=.50, master_cutoff=6_000),
+    Track("bgm_end_silenced", 36, "口封じ ― 白い羽", "奪われた声と、残った『帰る』の一語", 56, 4, 22, "F major / D minor", ("F6", "Dm9", "Bb6", "Cadd9"), "alto_flute", "cello", "none", "none", "silenced_breath", 10, .22, -26, profile="silenced", room_amount=.68, master_cutoff=5_800),
+    Track("bgm_credits", 37, "帰り唄", "真相の先で、物語を正しい名へ返すED", 70, 6, 40, "D minor -> D Dorian -> F major", ("Dm9", "Bb6", "F6", "Cadd9", "Dm9", "G6", "Bb6", "F6"), "felt_piano", "clarinet", "room_strings", "soft_wood", "credits_return", 8, .72, -23.5, False, profile="credits", room_amount=.60, master_cutoff=7_200),
 )
 
 
@@ -112,6 +117,9 @@ PROGRAMS = {
     "bass_clarinet": 71,
     "alto_flute": 73,
     "warm_air": 89,
+    "nylon_guitar": 24,
+    "marimba": 12,
+    "brush": 119,
     "soft_wood": 115,
     "frame_drum": 116,
     "none": 0,
@@ -137,6 +145,8 @@ THEMES: dict[str, tuple[tuple[float, float, int], ...]] = {
     "storm_weight": ((0, 1.2, 50), (1.8, .8, 57), (3.0, 1.6, 53), (5.5, .8, 60), (7.0, 2.2, 55)),
     "inquiry_pause": ((0, 1.2, 69), (2.0, 1.0, 72), (5.0, 1.8, 71), (8.0, 1.0, 67), (11.0, 2.4, 64)),
     "reasoning_lift": ((0, .8, 62), (1.2, .8, 64), (2.4, 1.2, 67), (4.2, .8, 69), (5.4, 1.6, 71), (8.0, 1.0, 69), (10.0, 2.0, 74)),
+    "joint_reversal": ((0, .7, 67), (1.0, .7, 71), (2.0, .7, 69), (3.0, 1.2, 74), (5.0, .8, 72), (6.2, 1.6, 76)),
+    "joint_answer": ((0, 1.0, 62), (1.5, .8, 67), (3.0, 1.0, 69), (4.5, .8, 71), (6.0, 1.4, 74), (8.5, .8, 76), (10.0, 2.2, 77)),
     "arrest_record": ((0, 2.0, 60), (3.0, 2.8, 57), (7.0, 1.4, 53), (10.0, 3.2, 50)),
     "escape_horizon": ((0, 1.4, 62), (2.0, 1.4, 66), (4.0, 2.0, 67), (7.0, 1.2, 69), (9.0, 2.6, 64)),
     "puppet_choice": ((0, 1.8, 67), (3.0, 1.1, 70), (5.0, 2.4, 74), (9.0, 1.4, 69), (12.0, 2.5, 67)),
@@ -150,7 +160,7 @@ THEMES: dict[str, tuple[tuple[float, float, int], ...]] = {
 }
 
 
-def arrangement(track: Track) -> list[Event]:
+def _arrange_literary(track: Track) -> list[Event]:
     events: list[Event] = []
     total_beats = track.bars * track.meter
     rng = np.random.default_rng(track.issue * 7919)
@@ -231,6 +241,197 @@ def arrangement(track: Track) -> list[Event]:
     return sorted(events, key=lambda event: event.beat)
 
 
+def _add_theme(
+    events: list[Event], track: Track, *, lead: str | None = None,
+    phrase_stride: int = 1, answer: str | None = None,
+) -> None:
+    """Place a cue's contour without imposing a shared accompaniment pattern."""
+    rng = np.random.default_rng(track.issue * 1543 + len(track.id))
+    total_beats = track.bars * track.meter
+    phrase_count = math.ceil(track.bars / track.phrase_bars)
+    for phrase in range(phrase_count):
+        if phrase % phrase_stride:
+            continue
+        base = phrase * track.phrase_bars * track.meter + .5
+        transpose = (0, 0, 2, -2, 0)[phrase % 5]
+        for index, (offset, duration, note) in enumerate(THEMES[track.theme]):
+            start = base + offset
+            if start >= total_beats - .5:
+                break
+            events.append(Event(
+                lead or track.lead, start + float(rng.uniform(-.06, .06)),
+                duration * float(rng.uniform(.94, 1.08)), note + transpose,
+                (.20 + .10 * track.density) * float(rng.uniform(.90, 1.06)),
+                -.18 + (index % 4) * .08,
+            ))
+        if answer and phrase % 2 == 1:
+            chord = CHORDS[track.progression[phrase % len(track.progression)]]
+            answer_start = base + track.meter * 3.0
+            for index, note in enumerate((chord[-2] + 12, chord[-1] + 12)):
+                if answer_start + index * 1.8 < total_beats - .5:
+                    events.append(Event(answer, answer_start + index * 1.8, 1.35, note, .18, .24))
+
+
+def _arrange_inquiry(track: Track) -> list[Event]:
+    """Stop-start, dry questioning: isolated notes and audible gaps."""
+    events: list[Event] = []
+    rng = np.random.default_rng(track.issue * 2017)
+    for bar in range(0, track.bars, 4):
+        chord = CHORDS[track.progression[(bar // 4) % len(track.progression)]]
+        start = bar * track.meter
+        # A question and delayed reply, never a continuous pad.
+        events.append(Event("felt_piano", start + .25, 2.2, chord[1] + 12, .18, -.22))
+        events.append(Event("felt_piano", start + track.meter * 1.65, 1.6, chord[-2] + 12, .14, .18))
+        if bar % 8 == 4:
+            events.append(Event("clarinet", start + track.meter * 2.65, 2.8, chord[-1] + 12, .16, .28))
+        if bar % 12 == 8:
+            events.append(Event("cello", start + .1, track.meter * .9, chord[0] + 12, .12, -.30))
+    _add_theme(events, track, phrase_stride=2, answer="clarinet")
+    # Small timing offsets matter more here because the texture is exposed.
+    return sorted((Event(e.instrument, e.beat + float(rng.uniform(-.025, .025)), e.duration,
+                         e.note, e.velocity, e.pan) for e in events), key=lambda event: event.beat)
+
+
+def _arrange_mansion(track: Track) -> list[Event]:
+    """Slow domestic breathing, with no walking pulse or investigative drive."""
+    events: list[Event] = []
+    for bar in range(0, track.bars, 4):
+        chord = CHORDS[track.progression[(bar // 4) % len(track.progression)]]
+        start = bar * track.meter
+        for index, note in enumerate((chord[1], chord[-2])):
+            events.append(Event("warm_air", start + index * track.meter * 1.8,
+                                track.meter * 2.8, note + 12, .10, -.24 + index * .48))
+        if bar % 8 == 0:
+            events.append(Event("cello", start + track.meter * 2.6, 3.2, chord[0] + 12, .11, -.20))
+    _add_theme(events, track, phrase_stride=2)
+    return sorted(events, key=lambda event: event.beat)
+
+
+def _arrange_storm(track: Track) -> list[Event]:
+    """Weight and interrupted momentum, without a horror drone or heartbeat."""
+    events: list[Event] = []
+    rng = np.random.default_rng(track.issue * 2579)
+    for bar in range(track.bars):
+        chord = CHORDS[track.progression[(bar // 2) % len(track.progression)]]
+        start = bar * track.meter
+        if bar % 2 == 0:
+            events.append(Event("low_piano", start + .15, 2.1, chord[0] + 12, .20, -.20))
+            events.append(Event("cello", start + 1.4, 2.5, chord[1] + 12, .15, .18))
+        # Uneven accents describe practical danger; a regular heartbeat is
+        # specifically avoided.
+        if bar % 8 in {2, 5, 7}:
+            offset = (1.0, 2.5, .5)[bar % 3]
+            events.append(Event("frame_drum", start + offset + float(rng.uniform(-.05, .05)),
+                                .65, 38, .13, float(rng.uniform(-.12, .12))))
+        if bar % 8 == 6:
+            events.append(Event("room_strings", start, track.meter * 1.5, chord[-2] + 12, .11, .08))
+    _add_theme(events, track, phrase_stride=2, answer="cello")
+    return sorted(events, key=lambda event: event.beat)
+
+
+def _arrange_reasoning(track: Track) -> list[Event]:
+    """A dry, legible acoustic ostinato for solitary analytical thought."""
+    events: list[Event] = []
+    total_beats = track.bars * track.meter
+    rng = np.random.default_rng(track.issue * 3037)
+    for bar in range(track.bars):
+        chord = CHORDS[track.progression[bar % len(track.progression)]]
+        start = bar * track.meter
+        # Three-note cells rotate instead of repeating a four-on-the-floor pulse.
+        pattern = (0.0, 1.25, 2.75) if bar % 2 == 0 else (.5, 1.75, 3.25)
+        for index, offset in enumerate(pattern):
+            events.append(Event("nylon_guitar", start + offset + float(rng.uniform(-.045, .045)),
+                                .75, chord[1 + index % min(3, len(chord) - 1)] + 12,
+                                .12 + .03 * track.density, -.28 + index * .24))
+        if bar % 8 in {3, 7}:
+            events.append(Event("pizzicato", start + 1.0, 1.1, chord[0] + 12, .13, -.24))
+    _add_theme(events, track, lead="marimba", phrase_stride=1)
+    return sorted((e for e in events if e.beat < total_beats - .25), key=lambda event: event.beat)
+
+
+def _arrange_joint(track: Track) -> list[Event]:
+    """Call-and-response whose layers grow as two people solve together."""
+    events: list[Event] = []
+    rng = np.random.default_rng(track.issue * 4099 + (1 if track.profile == "joint_final" else 0))
+    total_beats = track.bars * track.meter
+    for bar in range(track.bars):
+        chord = CHORDS[track.progression[bar % len(track.progression)]]
+        start = bar * track.meter
+        section = bar / track.bars
+        # Guitar provides forward motion, but leaves the first half of every
+        # alternate bar open for dialogue.
+        offsets = (0.0, 2.0) if bar % 2 == 0 else (1.0, 3.0)
+        for index, offset in enumerate(offsets):
+            events.append(Event("nylon_guitar" if track.profile == "joint_final" else "pizzicato",
+                                start + offset + float(rng.uniform(-.04, .04)), .8,
+                                chord[1 + index] + 12, .12 + section * .05,
+                                -.30 + index * .55))
+        if bar % 4 == 1:
+            events.append(Event(track.counter, start + .35, 1.7, chord[-1] + 12, .17 + section * .04, .28))
+        if bar % 4 == 3:
+            reply_voice = "cello" if track.profile == "joint_final" else "clarinet"
+            events.append(Event(reply_voice, start + 1.35, 1.9, chord[-2] + (0 if reply_voice == "cello" else 12),
+                                .17 + section * .05, -.24))
+        if section > .42 and bar % 2 == 0:
+            pulse_note = 38 if track.profile == "joint_final" else 50
+            events.append(Event(track.pulse, start + 3.0, .5, pulse_note, .09 + section * .05, .05))
+        if section > .72 and bar % 4 == 0:
+            events.append(Event("room_strings", start, track.meter * 1.7, chord[-2] + 12, .10, .05))
+    _add_theme(events, track, phrase_stride=1, answer=track.counter)
+    return sorted((e for e in events if e.beat < total_beats - .25), key=lambda event: event.beat)
+
+
+def _arrange_arrest(track: Track) -> list[Event]:
+    """Closed register and long silence: consequence, not horror suspense."""
+    events: list[Event] = []
+    for bar in range(0, track.bars, 4):
+        chord = CHORDS[track.progression[(bar // 4) % len(track.progression)]]
+        start = bar * track.meter
+        events.append(Event("felt_piano", start + .2, 2.8, chord[1] + 12, .17, -.08))
+        events.append(Event("cello", start + track.meter * 2.1, 3.4, chord[0] + 12, .13, -.18))
+    _add_theme(events, track, phrase_stride=2)
+    return sorted(events, key=lambda event: event.beat)
+
+
+def _arrange_escape(track: Track) -> list[Event]:
+    """Open register and a walking 6/4 pattern: physical release and distance."""
+    events: list[Event] = []
+    rng = np.random.default_rng(track.issue * 5051)
+    for bar in range(track.bars):
+        chord = CHORDS[track.progression[bar % len(track.progression)]]
+        start = bar * track.meter
+        offsets = (0.0, 2.0, 4.0) if track.profile == "arrival" else (0.0, 1.5, 3.0, 4.5)
+        for index, offset in enumerate(offsets):
+            note = chord[1 + index % min(3, len(chord) - 1)] + 12
+            events.append(Event("nylon_guitar", max(.08, start + offset + float(rng.uniform(-.055, .055))), 1.0,
+                                note, .11 + .025 * track.density, -.34 + index * .22))
+        if track.profile != "arrival" and bar % 4 == 2:
+            events.append(Event("brush", start + 5.0, .7, 54, .08, .24))
+    _add_theme(events, track, phrase_stride=1, answer="alto_flute")
+    return sorted(events, key=lambda event: event.beat)
+
+
+def arrangement(track: Track) -> list[Event]:
+    """Dispatch to genuinely different dramatic arrangement grammars."""
+    if track.profile == "inquiry":
+        return _arrange_inquiry(track)
+    if track.profile == "mansion":
+        return _arrange_mansion(track)
+    if track.profile == "storm":
+        return _arrange_storm(track)
+    if track.profile == "reasoning":
+        return _arrange_reasoning(track)
+    if track.profile in {"joint_public", "joint_final"}:
+        return _arrange_joint(track)
+    if track.profile == "reversal":
+        return _arrange_joint(track)
+    if track.profile in {"arrest", "silenced"}:
+        return _arrange_arrest(track)
+    if track.profile in {"escape", "arrival"}:
+        return _arrange_escape(track)
+    return _arrange_literary(track)
+
+
 def midi_frequency(note: int) -> float:
     return 440.0 * (2.0 ** ((note - 69) / 12.0))
 
@@ -265,6 +466,7 @@ def synth_note(instrument: str, note: int, duration: float, velocity: float, see
         "felt_piano": 2.8, "low_piano": 3.0,
         "cello": 1.3, "viola": 1.1, "clarinet": .9, "bass_clarinet": 1.0,
         "alto_flute": 1.0, "room_strings": 3.0, "warm_air": 3.2, "pizzicato": .9,
+        "nylon_guitar": 1.4, "marimba": .8, "brush": .45,
         "soft_wood": .45, "frame_drum": .7,
     }.get(instrument, .8)
     full_duration = max(.2, duration + release)
@@ -333,6 +535,28 @@ def synth_note(instrument: str, note: int, duration: float, velocity: float, see
             signal += (1 / harmonic ** 1.45) * np.sin(TAU * frequency * harmonic * t + rng.uniform(0, TAU)) * np.exp(-t * (1.9 + harmonic * .68))
         signal += filtered_noise(rng, count, 2_200) * np.exp(-t / .040) * .022
         signal = soften(signal, 4_600)
+    elif instrument == "nylon_guitar":
+        signal = np.zeros(count, dtype=np.float32)
+        for harmonic in range(1, 8):
+            decay = 1.15 + harmonic * .48
+            signal += (1 / harmonic ** 1.62) * np.sin(
+                TAU * frequency * harmonic * t + rng.uniform(0, TAU)
+            ) * np.exp(-t * decay)
+        finger = filtered_noise(rng, count, 1_650) * np.exp(-t / .026) * .014
+        signal = soften(signal + finger, 4_350)
+    elif instrument == "marimba":
+        # Inharmonic wooden partials read as an acoustic mallet, while the
+        # deliberately soft attack avoids the game-like synthetic "ping".
+        signal = np.zeros(count, dtype=np.float32)
+        for ratio, gain, decay in ((1, 1.0, 3.2), (3.98, .17, 6.2), (9.05, .045, 9.0)):
+            signal += gain * np.sin(TAU * frequency * ratio * t + rng.uniform(0, TAU)) * np.exp(-t * decay)
+        signal += filtered_noise(rng, count, 1_900) * np.exp(-t / .020) * .012
+        signal = soften(signal, 4_800)
+    elif instrument == "brush":
+        body = filtered_noise(rng, count, 2_300)
+        movement = .55 + .45 * np.sin(TAU * (7.0 + rng.uniform(-.8, .8)) * t + rng.uniform(0, TAU))
+        signal = body * movement * np.exp(-t * 6.0) * .42
+        signal = soften(signal, 3_200)
     elif instrument == "soft_wood":
         signal = (np.sin(TAU * frequency * t) + .22 * np.sin(TAU * frequency * 2.72 * t))
         signal *= np.exp(-t * 7.2)
@@ -395,7 +619,7 @@ def render_mix(track: Track, events: list[Event]) -> np.ndarray:
             mix[start:end, 0] += note[: end - start] * left
             mix[start:end, 1] += note[: end - start] * right
 
-    mix = add_room(mix, .55 if track.id != "bgm_storm" else .38)
+    mix = add_room(mix, track.room_amount)
     if track.loop:
         start = int(duration * SR)
         mix = mix[start : start + int(duration * SR)]
@@ -408,7 +632,7 @@ def render_mix(track: Track, events: list[Event]) -> np.ndarray:
 
     # Long-play comfort master: a broad, gentle top roll-off removes narrow
     # synthetic edges while retaining speech-space and natural transients.
-    comfort_filter = butter(3, 6_800, btype="lowpass", fs=SR, output="sos")
+    comfort_filter = butter(3, track.master_cutoff, btype="lowpass", fs=SR, output="sos")
     mix[:, 0] = sosfilt(comfort_filter, mix[:, 0])
     mix[:, 1] = sosfilt(comfort_filter, mix[:, 1])
     mix = np.tanh(mix * .62).astype(np.float32)
@@ -500,6 +724,7 @@ def cue_markdown(track: Track, events: list[Event], metrics: dict[str, float]) -
 - Narrative role: {track.role}
 - BPM / meter: {track.bpm} / {track.meter}/4
 - Tonal world: {track.mode}
+- Dramatic profile: {track.profile}
 - Theme: {track.theme}
 - Theme interval: every {track.phrase_bars} bars, with phrase-sized rests
 - Instruments: {instruments}
@@ -511,11 +736,12 @@ def cue_markdown(track: Track, events: list[Event], metrics: dict[str, float]) -
 
 ## Intent
 
-This cue owns a situation-specific melodic contour.  It does not repeat the
-title melody as a default device.  Title recognition is reserved for the true
-ending and credits, where it is reharmonised and answered rather than copied.
-Two-bar harmony, irregular humanisation and phrase-sized rests leave space for
-Japanese text, ambience and scene effects during a long play session.
+This cue owns both a situation-specific melodic contour and an arrangement
+grammar selected by its dramatic profile.  Inquiry uses stop-start questions,
+solitary reasoning uses a dry analytical cell, joint reasoning uses growing
+call-and-response, arrest closes the register, and escape opens it into a
+walking 6/4 texture.  Irregular humanisation and deliberate rests leave space
+for Japanese text, ambience and scene effects during a long play session.
 
 ## Reproduction
 
@@ -552,6 +778,7 @@ def render(track: Track) -> dict[str, object]:
         "duration": round(track.duration, 3),
         "loop": track.loop,
         "theme": track.theme,
+        "profile": track.profile,
         "phrase_bars": track.phrase_bars,
         "melody_onsets_per_minute": round(
             sum(event.instrument == track.lead for event in events) / (track.duration / 60), 2

@@ -52,11 +52,16 @@ export function resultTitle(endingId) {
   return endingId === 'b1_true' ? 'B-1 真相END' : 'B-2 未完END';
 }
 
+export function jointReasoningBGM(args = {}) {
+  return args.variant === 'a4' ? 'bgm_joint_reasoning_a4' : 'bgm_joint_reasoning';
+}
+
 export const jointReasoning = { async start(ctx, args = {}) {
   const data = args.debugData || inferenceFinal;
   const state = stateOf(ctx);
   const cards = [...(state.items || []), ...Object.values(state.flags || {}).flat()];
   const a4 = args.variant === 'a4';
+  ctx.audio?.playBGM?.(jointReasoningBGM(args), 650);
 
   return new Promise((resolve) => {
     const view = modal(ctx, a4 ? '推理ショー乗っ取り' : '壁の内の作者');
