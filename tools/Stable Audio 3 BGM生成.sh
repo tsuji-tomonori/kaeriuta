@@ -79,7 +79,7 @@ normalize_loop() {
 
   ffmpeg -hide_banner -loglevel error -y -i "$looped" \
     -af "loudnorm=I=${target}:TP=-4.5:LRA=9:measured_I=${input_i}:measured_LRA=${input_lra}:measured_TP=${input_tp}:measured_thresh=${input_thresh}:offset=${target_offset}:linear=true" \
-    -ar 48000 -c:a libvorbis -b:a 80k "assets/audio/$id.ogg"
+    -ar 48000 -c:a libvorbis -q:a 7 "assets/audio/$id.ogg"
 }
 
 for id in "${ids[@]}"; do
