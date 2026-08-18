@@ -15,6 +15,9 @@ import {
   saveProgress,
 } from '../src/engine/progress.js';
 import { listSaves, loadGame, loadSaveRecord, saveGame, saveKey } from '../src/engine/save.js';
+import { readFileSync } from 'node:fs';
+
+const titleSource = readFileSync(new URL('../src/ui/title.js', import.meta.url), 'utf8');
 
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -107,6 +110,13 @@ test('version 2の旧形式セーブを保存レコードへ読み替えられ�
   assert.deepEqual(record.state, state);
   assert.equal(record.savedAt, null);
   assert.equal(record.meta.chapter, '第一章　1日目');
+});
+
+test('タイトルは初見向けに主人公の立場・目的・基本操作を明示する', () => {
+  assert.match(titleSource, /交換殺人を約束した側の司書・鬼灯栞/);
+  assert.match(titleSource, /選択に唯一の正解はありません/);
+  assert.match(titleSource, /クリック／タップ、Space、Enter/);
+  assert.match(titleSource, /firstPlay \? ' open'/);
 });
 
 test('設定を含む進捗を正規化して保存できる', () => {

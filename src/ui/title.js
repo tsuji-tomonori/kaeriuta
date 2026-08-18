@@ -73,6 +73,7 @@ export function showTitle(root, {
   const chapterEntries = availableChapters(storage);
   const availableCount = chapterEntries.filter((chapter) => chapter.available).length;
   const backgroundClass = effects.b1 ? ' kaeriuta-title--hidden-room' : '';
+  const firstPlay = !latest && effects.count === 0 && Object.keys(progress.read ?? {}).length === 0;
 
   root.innerHTML = `
     <div class="letterbox kaeriuta-menu-frame">
@@ -81,6 +82,7 @@ export function showTitle(root, {
         <div class="kaeriuta-title__bookplate">
           <p class="kaeriuta-title__eyebrow">倒叙ミステリーアドベンチャー</p>
           <h1>帰り唄 <small>―手毬唄の館―</small></h1>
+          <p class="kaeriuta-title__premise">あなたは、交換殺人を約束した側の司書・鬼灯栞。<br>計画にいない少年探偵から罪を隠すか、館に仕組まれた真相を暴くかを選びます。</p>
           <nav class="kaeriuta-title__actions" aria-label="主メニュー">
             <button type="button" data-start>はじめから</button>
             <button type="button" id="title-continue" data-continue>つづきから</button>
@@ -90,6 +92,15 @@ export function showTitle(root, {
             <button type="button" id="title-gallery" data-gallery>回想モード</button>
             ${isMemoirUnlocked(progress) ? '<button type="button" class="kaeriuta-title__memoir" data-memoir>律の手記</button>' : ''}
           </nav>
+          <details class="kaeriuta-title__guide"${firstPlay ? ' open' : ''}>
+            <summary>初めての方へ：物語の前提と遊び方</summary>
+            <div>
+              <p><strong>前提</strong>　山荘へ集まった栞たちは、互いの標的を殺す計画を立てています。しかし、還暦祝いの席へ計画外の探偵一行が現れます。</p>
+              <p><strong>目的</strong>　選択に唯一の正解はありません。疑いを避ける、手掛かりを集める、誰かを守る――選んだ行動が7つの結末へつながります。</p>
+              <p><strong>操作</strong>　本文はクリック／タップ、Space、Enterで送れます。文字の表示中に押すと全文を表示し、もう一度押すと次へ進みます。選択肢はボタンを押してください。</p>
+              <p><strong>保存</strong>　ゲーム中のメニューまたはSキーから保存できます。迷った場面では、選ぶ前に保存できます。</p>
+            </div>
+          </details>
           <details class="kaeriuta-title__settings">
             <summary>プレイ設定</summary>
             ${settingsControls(settings)}
