@@ -235,7 +235,7 @@ export const freeAction = { async start(ctx, args = {}) {
       }).join('');
       stage.innerHTML = `${topbar('', `<span class="fa-pips">残り行動${pips()}</span>`)}
         <div class="fa-body">
-          <div class="fa-main ku-scroll">${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
+          <div class="fa-main">${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
           <aside class="fa-aside">${mapMarkup(model, actions)}</aside>
         </div>
         <div class="ku-thumbzone"><button class="ku-secondary" id="done">自由行動を切り上げる</button></div>`;
