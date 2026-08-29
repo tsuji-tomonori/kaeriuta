@@ -80,7 +80,7 @@ export const temariBoard = { async start(ctx, args = {}) {
   const availableCards = cardList(args.cards || [...(state.items || []), ...Object.values(state.flags || {}).flat()]);
   const faces = { truth:initialFace(verses), show:initialFace(verses) }; faceRows(faces.truth, verses); faceRows(faces.show, verses);
   return new Promise((resolve) => {
-    const { root, stage } = screenRoot(ctx); let selected = null; let warnedSlot = null; let face = 'show'; let notice = ''; let commitReady = false; let revealedFace = null; let resolved = false; let wrongCount = null;
+    const { root, stage } = screenRoot(ctx); root.classList.add('ku-board-screen'); let selected = null; let warnedSlot = null; let face = 'show'; let notice = ''; let commitReady = false; let revealedFace = null; let resolved = false; let wrongCount = null;
     const done = (committed = false) => { if (resolved) return; resolved = true; const score = assessBoardHypothesis(faces.truth, faces.show, verses); const effects = boardCompletionEffects(score, args.awarenessThreshold ?? 6, committed); finish(root, resolve, { effects, placed:faceRows(faces.truth, verses).map(rowFromObject), matches:score.truthAccuracy, hypothesis:score }); };
     const render = () => {
       const current = faces[face]; const score = assessBoardHypothesis(faces.truth, faces.show, verses);
