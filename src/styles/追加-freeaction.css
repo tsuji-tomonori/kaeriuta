@@ -1,5 +1,61 @@
-/* 自由行動：見返りは任意のヒント、代償は常に読める。 */
-.freeaction-gain,.freeaction-cost{display:block;margin-top:.3rem;font-size:.88em;line-height:1.45;overflow-wrap:anywhere}
-.freeaction-gain{color:#ffd78a}.freeaction-cost{color:#ffb3bb}
-.freeaction-focuses{display:grid;gap:.55rem}.freeaction-focuses button{text-align:left;white-space:normal}
-.freeaction-narrative-body{max-width:100%;overflow-x:hidden}.freeaction-acquired{border-left:3px solid #87683a;padding-left:.75rem;margin-top:1rem}
+/* 自由行動トラック専用のスタイル。他トラックはこのファイルを編集しない。
+   意匠: 帰り唄 UI再設計 1d「できること表」。図は右の参照物へ降格し、行動は文で一覧する。 */
+
+.fa-pips { display: inline-flex; align-items: center; gap: 5px; font: 13px var(--ku-mono); letter-spacing: .1em; color: var(--ku-cream-dim); }
+.fa-pip { width: 13px; height: 13px; background: rgba(242, 234, 214, .14); border: 1px solid rgba(242, 234, 214, .3); }
+.fa-pip.is-full { background: var(--ku-cream); border-color: var(--ku-cream); }
+
+.fa-body {
+  position: absolute;
+  left: max(24px, env(safe-area-inset-left, 0));
+  right: max(24px, env(safe-area-inset-right, 0));
+  top: 96px;
+  bottom: 100px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.fa-main { flex: 1 1 auto; min-width: 0; height: 100%; padding-right: 8px; }
+.fa-aside { flex: 0 0 min(30%, 340px); max-height: 100%; overflow-y: auto; padding: 14px; background: rgba(242, 234, 214, .05); border: 1px solid rgba(242, 234, 214, .14); }
+
+.fa-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.fa-filter { min-height: 36px; padding: 7px 14px; background: rgba(242, 234, 214, .1); border: 1px solid rgba(242, 234, 214, .25); color: var(--ku-cream); font: 13px var(--ku-mono); letter-spacing: .06em; cursor: pointer; }
+.fa-filter.is-selected { background: var(--ku-vermillion); color: var(--ku-bg); border-color: var(--ku-vermillion); font-weight: 700; }
+.fa-filter:focus-visible { outline: 1px solid var(--ku-cream); outline-offset: 2px; }
+
+.fa-counts, .fa-used { margin: 0 0 10px; font-size: 13px; color: var(--ku-cream-dim); }
+.fa-list { display: flex; flex-direction: column; gap: 10px; }
+.fa-row { width: 100%; display: grid; gap: 4px; }
+.fa-row.is-focused { border-color: var(--ku-vermillion-line); background: var(--ku-vermillion-soft); }
+.fa-row-meta { font: 12px var(--ku-mono); letter-spacing: .08em; color: var(--ku-cream-dim); }
+.fa-row-cost { align-self: flex-start; margin-top: 4px; padding: 4px 10px; background: rgba(242, 234, 214, .14); font: 700 12px var(--ku-mono); color: var(--ku-cream); }
+.fa-row.is-focused .fa-row-cost { background: var(--ku-vermillion); color: var(--ku-bg); }
+
+.fa-narrative { position: absolute; left: max(24px, env(safe-area-inset-left, 0)); right: max(24px, env(safe-area-inset-right, 0)); top: 96px; bottom: 100px; max-width: 68ch; overflow-y: auto; padding: 24px 28px; background: rgba(14, 12, 11, .92); border-top: 1px solid var(--ku-vermillion-line); line-height: 1.9; }
+.fa-narrative-prompt { color: var(--ku-ember); font: 13px var(--ku-mono); letter-spacing: .08em; }
+.fa-acquired { margin-top: 1rem; padding-left: .75rem; border-left: 3px solid var(--ku-vermillion); }
+.fa-acquired p { margin: .3rem 0; }
+
+/* 見取り図の参照パネルは既存の .mansion-* 構造をそのまま使い、配色だけ意匠に合わせる。 */
+.fa-aside .mansion-floor-tab { background: rgba(242, 234, 214, .08); border-color: rgba(242, 234, 214, .25); color: var(--ku-cream); }
+.fa-aside .mansion-floor-tab.is-selected { color: var(--ku-bg); background: var(--ku-vermillion); border-color: var(--ku-vermillion); }
+.fa-aside .mansion-map { background: transparent; border-color: rgba(242, 234, 214, .16); }
+.fa-aside .mansion-room rect { fill: rgba(242, 234, 214, .06); stroke: rgba(242, 234, 214, .3); }
+.fa-aside .mansion-room text { fill: var(--ku-cream); }
+.fa-aside .mansion-room:hover rect, .fa-aside .mansion-room:focus-visible rect, .fa-aside .mansion-room.is-selected rect { fill: var(--ku-vermillion-soft); stroke: var(--ku-vermillion); }
+.fa-aside .mansion-room.has-action rect { fill: rgba(196, 67, 43, .14); stroke: var(--ku-vermillion-line); }
+.fa-aside .mansion-room.is-done rect { fill: rgba(242, 234, 214, .03); stroke: rgba(242, 234, 214, .18); }
+.fa-aside .mansion-room .mansion-room-count { fill: var(--ku-ember); }
+
+.mansion-room-panel { background: linear-gradient(135deg, var(--ku-bg-soft), #16110f); border-color: var(--ku-vermillion-line); color: var(--ku-cream); }
+.mansion-room-panel h2 { color: var(--ku-cream); font-family: var(--ku-mincho); }
+.mansion-room-panel h3 { color: var(--ku-ember); }
+.mansion-room-actions button { background: rgba(242, 234, 214, .08); border-color: rgba(242, 234, 214, .3); color: var(--ku-cream); min-height: 44px; }
+.mansion-room-actions button:hover, .mansion-room-actions button:focus-visible { border-color: var(--ku-vermillion); background: var(--ku-vermillion-soft); }
+.mansion-room-close, .mansion-room-return { min-height: 44px; min-width: 44px; }
+
+@media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
+  .fa-body, .fa-narrative { top: 78px; bottom: 84px; }
+  .fa-body { flex-direction: column; gap: 12px; }
+  .fa-aside { flex: none; width: 100%; max-height: 34%; }
+}

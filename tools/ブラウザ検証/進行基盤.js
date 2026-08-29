@@ -61,10 +61,14 @@ function resultElement() {
 }
 
 function overflowReport() {
-  return [...document.querySelectorAll('.message-window, .message-text, .choices, .parts-panel, .node-grid, .board')]
+  return [...document.querySelectorAll('.message-window, .message-text, .choices, .parts-panel, .node-grid, .ku-screen, .board-verses')]
     .filter((el) => el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2)
     .map((el) => `${el.className || el.id}: ${el.scrollWidth}x${el.scrollHeight}/${el.clientWidth}x${el.clientHeight}`);
 }
+
+// 反論・自由行動・手毬唄ボードは再設計版でフルブリードの .ku-screen を使い、
+// 共同推理・章まとめは従来どおり .parts-modal を使う。特殊パートの共通ルートは両対応する。
+function partRoot() { return document.querySelector('.parts-modal, .ku-screen'); }
 
 function visibleButtons(root = document) {
   return [...root.querySelectorAll('button')]
@@ -73,20 +77,20 @@ function visibleButtons(root = document) {
     .filter(Boolean);
 }
 
-function partName(modal = document.querySelector('.parts-modal')) {
+function partName(modal = partRoot()) {
   if (!modal) return null;
-  if (modal.querySelector('.freeaction-narrative, .action-list')) return 'freeAction';
-  if (modal.querySelector('.rebut-head, .chain')) return 'rebuttal';
+  if (modal.querySelector('.fa-body, .fa-narrative')) return 'freeAction';
+  if (modal.querySelector('.rebut-claim')) return 'rebuttal';
   if (modal.querySelector('.node-grid, .agitation')) return 'jointReasoning';
-  if (modal.querySelector('.board')) return 'temariBoard';
+  if (modal.querySelector('.board-main')) return 'temariBoard';
   if (modal.querySelector('.chapter-summary')) return 'chapterSummary';
-  return modal.querySelector('header span')?.textContent.trim() || 'unknownPart';
+  return modal.querySelector('header span, .ku-chip')?.textContent.trim() || 'unknownPart';
 }
 
 function lastScreen() {
-  const modal = document.querySelector('.parts-modal');
+  const modal = partRoot();
   return {
-    text: (modal?.querySelector('main')?.textContent || document.querySelector('.message-text')?.textContent || '').trim().slice(0, 200),
+    text: (modal?.querySelector('main, .ku-stage')?.textContent || document.querySelector('.message-text')?.textContent || '').trim().slice(0, 200),
     buttons: visibleButtons(),
     part: partName(modal),
   };
@@ -187,7 +191,7 @@ function chooseScenario() {
 function observeProgress() {
   const sceneId = document.querySelector('#app')?.dataset.sceneId;
   if (sceneId && visitedScenes.at(-1) !== sceneId) visitedScenes.push(sceneId);
-  const modal = document.querySelector('.parts-modal');
+  const modal = partRoot();
   if (activeModal && activeModal !== modal && activePart) activePart.closed = true;
   if (modal && modal !== activeModal) {
     activePart = { name: partName(modal), closed: false };
@@ -197,14 +201,14 @@ function observeProgress() {
 }
 
 function signature() {
-  const modal = document.querySelector('.parts-modal');
+  const modal = partRoot();
   return JSON.stringify({
     scene: document.querySelector('#app')?.dataset.sceneId || null,
     message: document.querySelector('.message-text')?.textContent?.trim() || '',
     choices: visibleButtons(document.querySelector('.choices') || document.createElement('div')),
     stage: document.querySelector('#stage-note.show')?.textContent?.trim() || '',
     part: partName(modal),
-    partText: modal?.querySelector('main')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+    partText: modal?.querySelector('main, .ku-stage')?.textContent?.replace(/\s+/g, ' ').trim() || '',
     partButtons: modal ? visibleButtons(modal) : [],
     messageRevealing: Boolean(document.querySelector('.message-window:not([hidden]):not(.reveal-complete)')),
     overlays: screenState().overlays,
@@ -215,19 +219,19 @@ function shouldPause() {
   if (mode === 'title') return Boolean(titleRoot());
   if (mode === 'conversation') return Boolean(document.querySelector('.message-window:not([hidden])'));
   if (mode === 'choice') return Boolean(document.querySelector('.choices'));
-  if (mode === 'rebuttal') return Boolean(document.querySelector('.parts-modal .rebut-head'));
+  if (mode === 'rebuttal') return Boolean(document.querySelector('.ku-screen .rebut-claim'));
   if (mode === 'inference') return Boolean(document.querySelector('.parts-modal .node-grid'));
   return false;
 }
 
 function actFreeAction(modal) {
-  const focuses = [...modal.querySelectorAll('.freeaction-narrative [data-focus]')];
+  const focuses = [...modal.querySelectorAll('[data-focus]')];
   if (focuses.length) {
     const focus = options.choosePart ? focuses[options.choosePart('freeAction', focuses)] || focuses[0] : focuses[0];
     return click(focus, `freeaction:focus:${focus.textContent.trim()}`);
   }
-  if (modal.querySelector('.freeaction-narrative #next')) return click(modal.querySelector('.freeaction-narrative #next'), 'freeaction:read-next');
-  const actions = [...modal.querySelectorAll('.action-list [data-id]')];
+  if (modal.querySelector('#next')) return click(modal.querySelector('#next'), 'freeaction:read-next');
+  const actions = [...modal.querySelectorAll('[data-id]')];
   const action = options.choosePart ? actions[options.choosePart('freeAction', actions)] || actions[0] : actions[0];
   if (action) return click(action, `freeaction:action:${action.textContent.trim()}`);
   return click(modal.querySelector('#done'), 'freeaction:confirm');
@@ -236,12 +240,14 @@ function actFreeAction(modal) {
 function actRebuttal(modal) {
   const testimony = modal.querySelector('[data-v]');
   if (testimony) return click(testimony, `rebuttal:testimony:${testimony.textContent.trim()}`);
-  const responses = [...modal.querySelectorAll('.parts-actions [data-r]:not([disabled])')];
+  // 反論の再設計版は「札を選ぶ→つきつけるで確定する」二段操作。確定ボタンが
+  // 押せる状態（札を選択済み）ならそれを優先し、そうでなければ札を選ぶ。
+  const confirmButton = modal.querySelector('.rebut-confirm .ku-primary:not([disabled])');
+  if (confirmButton) return click(confirmButton, 'rebuttal:confirm');
+  const responses = [...modal.querySelectorAll('[data-r]:not([disabled])')];
   const response = options.choosePart ? responses[options.choosePart('rebuttal', responses)] || responses[0]
     : responses.find((button) => button.textContent.includes('反証')) || responses[0];
   if (response) return click(response, `rebuttal:response:${response.textContent.trim()}`);
-  const card = modal.querySelector('[data-card], [data-evidence], [data-item]');
-  if (card) return click(card, 'rebuttal:card');
   return click(modal.querySelector('#done'), 'rebuttal:done');
 }
 
@@ -251,7 +257,7 @@ function actTemariBoard(modal) {
   // 札・欄・矛盾文を材料にプレイヤーの仮説を操作する処理である。
   // 確定結果の実装がまだ close ボタンを出さない版でも、盤面が消えたら
   // #done へ落として終端させる。
-  if (!modal.querySelector('.board') && !modal.querySelector('.confirm-hypothesis')) {
+  if (!modal.querySelector('.board-verses') && !modal.querySelector('.confirm-hypothesis')) {
     return click(modal.querySelector('#done'), 'temari:result-done-fallback');
   }
   const state = activePart
@@ -278,8 +284,8 @@ function actTemariBoard(modal) {
     return elements[index] || elements[0];
   };
   const currentFace = modal.querySelector('[data-face][aria-pressed="true"]')?.dataset.face || 'show';
-  const selected = modal.querySelector('.cards .selected');
-  const slots = [...modal.querySelectorAll('.board .slot')];
+  const selected = modal.querySelector('[data-card].is-selected');
+  const slots = [...modal.querySelectorAll('.board-slot')];
   const placementKey = (cardId, slot) => `${currentFace}:${slot.dataset.number}:${slot.dataset.kind}:${cardId}`;
   const availableSlots = (cardId) => slots.filter((slot) => !state.placedKeys.includes(placementKey(cardId, slot)));
 
@@ -324,16 +330,16 @@ function actTemariBoard(modal) {
   const otherFace = modal.querySelector(`[data-face="${currentFace === 'truth' ? 'show' : 'truth'}"]`);
   // 非表示側の配置履歴は DOM に無いため、タブを選んだ後に改めて候補を絞る。
   const otherFaceAvailable = Boolean(otherFace);
-  const cards = [...modal.querySelectorAll('.cards [data-card]')]
+  const cards = [...modal.querySelectorAll('[data-card]')]
     .filter((card) => hasUntriedBoardPlacement(
       currentFace,
       card.dataset.card,
       slots.map((slot) => ({ number:slot.dataset.number, kind:slot.dataset.kind })),
       state.placedKeys,
     ));
-  const currentFilled = slots.some((button) => !button.textContent.includes('—'));
+  const currentFilled = slots.some((button) => button.classList.contains('is-filled'));
   const confirm = modal.querySelector('.confirm-hypothesis');
-  const allCurrentFilled = slots.every((button) => !button.textContent.includes('—'));
+  const allCurrentFilled = slots.every((button) => button.classList.contains('is-filled'));
   // A tab is offered as an ordinary action, but never twice in succession:
   // a persona that switches faces must next take a card or leave the board.
   const candidates = [
@@ -490,7 +496,7 @@ function act() {
     return click(document.querySelector('[data-start]'), 'title:start');
   }
   if (verifyLoadedSave()) return;
-  const modal = document.querySelector('.parts-modal');
+  const modal = partRoot();
   if (modal) return actPart(modal);
   if (document.querySelector('.choices')) return chooseScenario();
   if (document.querySelector('#stage-note.show')) return click(document.querySelector('#stage-note.show'), 'stage:advance');

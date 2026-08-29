@@ -1,2 +1,64 @@
-/* board トラック専用のスタイル。他トラックはこのファイルを編集しない。 */
-.board{display:grid;gap:.7rem;max-width:100%;min-width:0}.verse{display:grid;grid-template-columns:3rem minmax(0,1fr);gap:.35rem;align-items:start;padding:.65rem;border:1px solid #596168;background:#131e23}.verse b{color:#f0ce83}.board-verse-text{white-space:pre-line;overflow-wrap:anywhere;line-height:1.55}.verse small{grid-column:2;color:#bac3c5}.verse .slot{min-width:0;overflow-wrap:anywhere;text-align:left}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.4rem;margin:.75rem 0}.cards button{min-width:0;text-align:left}.cards small,.cards strong{display:block}.cards small{margin-top:.15rem;color:#bac3c5;font-size:.78em}.cards .selected{border-color:#f0ce83;background:#443d28}.board-face-tabs{display:flex;gap:.4rem;margin-bottom:.55rem}.board-face-tabs [role="button"]{flex:1;cursor:pointer;padding:.4rem;text-align:center;border:1px solid #71838a;background:#202d33}.board-face-tabs [role="button"].is-selected{border-color:#f0ce83;color:#f0ce83;background:#3b4240}.board-face-tabs [role="button"]:focus-visible{outline:1px solid #f0ce83;outline-offset:2px}.board-intro,.board-axis,.board-notice{line-height:1.55}.board-axis{color:#f0ce83}.board-notice{padding-left:.6rem;border-left:2px solid #c9b77c;white-space:pre-line}.confirm-hypothesis{margin-right:.45rem}@media(max-width:650px){.verse{grid-template-columns:2.4rem minmax(0,1fr)}.cards{grid-template-columns:1fr}.board-face-tabs{font-size:.9em}}
+/* board トラック専用のスタイル。他トラックはこのファイルを編集しない。
+   意匠: 帰り唄 UI再設計 1f「唄と出来事をつなぐ」。手札の札を欄へつなぐ操作を線の比喩で見せる。 */
+
+.board-face-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.board-face-tabs [role="button"] { flex: 1; max-width: 220px; min-height: 40px; cursor: pointer; padding: 8px 14px; text-align: center; color: var(--ku-cream); background: rgba(242, 234, 214, .08); border: 1px solid rgba(242, 234, 214, .25); font: 13px var(--ku-gothic); letter-spacing: .06em; }
+.board-face-tabs [role="button"].is-selected { border-color: var(--ku-vermillion); color: var(--ku-bg); background: var(--ku-vermillion); font-weight: 700; }
+.board-face-tabs [role="button"]:focus-visible { outline: 1px solid var(--ku-cream); outline-offset: 2px; }
+
+.board-main {
+  position: absolute;
+  left: max(24px, env(safe-area-inset-left, 0));
+  right: max(24px, env(safe-area-inset-right, 0));
+  top: 78px;
+  bottom: 236px;
+  overflow-y: auto;
+}
+.board-leave-note, .board-axis { font-size: 13px; line-height: 1.6; color: var(--ku-cream-dim); margin: 8px 0; }
+.board-axis { color: var(--ku-ember); }
+.board-notice { margin: 10px 0; padding-left: .7rem; border-left: 2px solid var(--ku-vermillion); white-space: pre-line; line-height: 1.6; color: var(--ku-cream); }
+
+.board-verses { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+.board-verse { border: 1px solid rgba(242, 234, 214, .16); background: rgba(242, 234, 214, .04); padding: 14px 16px; }
+.board-verse-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.board-verse-head b { font-family: var(--ku-mincho); font-size: 19px; color: var(--ku-cream); }
+.board-verse-text { font-family: var(--ku-mincho); font-size: 17px; letter-spacing: .04em; }
+.board-verse-head small { color: var(--ku-cream-dim); }
+.board-verse-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+
+.board-slot {
+  position: relative;
+  min-height: 44px;
+  padding: 10px 14px 10px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  background: rgba(242, 234, 214, .05);
+  border: 1px dashed rgba(242, 234, 214, .28);
+  color: var(--ku-cream);
+  cursor: pointer;
+  font: inherit;
+}
+.board-slot::before { content: ""; position: absolute; left: 0; top: 50%; width: 14px; height: 2px; background: repeating-linear-gradient(90deg, var(--ku-vermillion) 0 4px, transparent 4px 7px); transform: translateY(-50%); }
+.board-slot .board-slot-kind { font: 11px var(--ku-mono); letter-spacing: .1em; color: var(--ku-cream-dim); }
+.board-slot .board-slot-value { font-family: var(--ku-mincho); font-size: 17px; }
+.board-slot.is-filled { border-style: solid; border-color: rgba(196, 67, 43, .5); background: var(--ku-vermillion-soft); }
+.board-slot.is-filled::before { background: var(--ku-vermillion); }
+.board-slot.is-correct { border-color: var(--ku-vermillion); box-shadow: inset 0 0 0 1px var(--ku-vermillion); }
+.board-slot.is-correct .board-slot-value { color: var(--ku-cream); font-weight: 600; }
+.board-slot.is-warned { border-color: var(--ku-ember); background: rgba(224, 138, 114, .12); animation: boardWarn .35s ease; }
+.board-slot.is-warned::before { background: var(--ku-ember); }
+@keyframes boardWarn { 0%,100% { transform: translateX(0); } 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+.board-slot:focus-visible { outline: 1px solid var(--ku-cream); outline-offset: 2px; }
+
+.board-confirm { flex: none; display: flex; gap: 10px; margin-left: auto; align-items: flex-end; }
+
+@media (max-width: 720px), (orientation: landscape) and (max-height: 480px) {
+  .board-main { top: 66px; bottom: 214px; }
+  .board-verse-slots { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-slot.is-warned { animation: none !important; }
+}
