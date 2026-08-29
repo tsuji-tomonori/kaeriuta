@@ -1,4 +1,4 @@
-import { modal, finish, stateOf, condition, displayText } from '../common.js';
+import { screenRoot, finish, stateOf, condition, displayText } from '../common.js';
 import { flags } from '../../data/flags.js';
 import { items } from '../../data/items.js';
 import { mansionRooms, roomsByFloor, roomActionIndex, roomRect, roomStatus } from '../../data/mansion-map.js';
@@ -186,23 +186,28 @@ function roomPanelMarkup(model, actions) {
 export const freeAction = { async start(ctx, args = {}) {
   const actions = enrichFreeActions(args.actions || defaults);
   const hintsEnabled = explorationHintsEnabled(globalThis.localStorage);
-  let model = { state: stateOf(ctx), remaining: args.blocks ?? 3, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', openRoomId: null, hintsEnabled };
+  const totalBlocks = args.blocks ?? 3;
+  let model = { state: stateOf(ctx), remaining: totalBlocks, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', openRoomId: null, hintsEnabled };
+  let filter = 'all';
   return new Promise((resolve) => {
-    const modalView = modal(ctx, `第${args.day || 1}章・自由行動`);
+    const { root, stage } = screenRoot(ctx);
     let resolved = false;
     const done = () => {
       if (resolved) return;
       resolved = true;
       model = closeFreeAction(model);
-      finish(modalView.root, resolve, { effects: [...model.effects, { t:'log', key:`free_action_day${args.day || 1}`, value:model.used.join(',') }], remaining:model.remaining });
+      finish(root, resolve, { effects: [...model.effects, { t:'log', key:`free_action_day${args.day || 1}`, value:model.used.join(',') }], remaining:model.remaining });
     };
+    const pips = () => Array.from({ length: totalBlocks }, (_, index) => `<span class="fa-pip ${index < model.remaining ? 'is-full' : ''}"></span>`).join('');
+    const topbar = (title, extra = '') => `<div class="ku-topbar"><span class="ku-chip">自由行動</span><span class="ku-meta">第${args.day || 1}章${title ? ` ／ ${displayText(title)}` : ''}</span>${extra}<button class="ku-close" aria-label="閉じる">×</button></div>`;
     const render = () => {
       if (model.phase === FREE_ACTION_PHASE.FINISHED) return done();
       if (model.phase === FREE_ACTION_PHASE.FOCUSING) {
         const action = model.currentAction;
         const focus = action.scenes.focus;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.scenes.intro, action.narrative)}</p><h3>${displayText(focus.prompt, 'どこを見る？')}</h3><div class="freeaction-focuses">${focus.options.map((option) => `<button data-focus="${displayText(option.id)}">${displayText(option.label)}</button>`).join('')}</div></div></article>`;
-        modalView.main.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="fa-narrative-prompt">${displayText(focus.prompt, 'どこを見る？')}</p></div><div class="ku-thumbzone"><div class="ku-hand">${focus.options.map((option) => `<button class="ku-card" data-focus="${displayText(option.id)}"><span class="ku-card-name">${displayText(option.label)}</span></button>`).join('')}</div></div>`;
+        stage.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
+        stage.querySelector('.ku-close').onclick = done;
         return;
       }
       if (model.phase === FREE_ACTION_PHASE.READING) {
@@ -210,43 +215,60 @@ export const freeAction = { async start(ctx, args = {}) {
         const notices = effectNotices([...(action.reward || []), ...(model.focusResult?.effects || [])]);
         const discovery = model.focusResult?.text || action.scenes?.discovery || action.narrative || `${displayText(action.desc, '情報')}を得た。`;
         const reaction = action.scenes?.reaction || '';
-        const acquiredNotice = notices.length ? `<div class="freeaction-acquired">${notices.map((notice) => `<p>${displayText(notice)}</p>`).join('')}</div>` : `<p class="freeaction-acquired">得たこと：${displayText(action.acquired, action.desc || '悟郎の質問の順序が読めるようになった')}</p>`;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}</div><footer><button id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></footer></article>`;
-        modalView.main.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
+        const acquiredNotice = notices.length ? `<div class="fa-acquired">${notices.map((notice) => `<p>${displayText(notice)}</p>`).join('')}</div>` : `<p class="fa-acquired">得たこと：${displayText(action.acquired, action.desc || '悟郎の質問の順序が読めるようになった')}</p>`;
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative ku-scroll"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}</div><div class="ku-thumbzone"><button class="ku-primary" id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></div>`;
+        stage.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
+        stage.querySelector('.ku-close').onclick = done;
         return;
       }
       const choices = actions.filter((action) => !model.used.includes(action.id));
       if (model.remaining <= 0 || choices.length === 0) return done();
       const acquired = model.used.map((id) => actions.find((action) => action.id === id)?.label).filter(Boolean);
       const counts = hintsEnabled ? flagCounts(model.state) : null;
-      const countNotice = counts ? `<p class="freeaction-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
-      modalView.main.innerHTML = `<p>残り <b>${displayText(model.remaining, 0)}</b> ブロック。行動を選ぶと時間を1つ使います。選ばなかった場所にも別の情報があります。</p>${countNotice}${acquired.length ? `<p class="freeaction-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}${mapMarkup(model, actions)}<h3 class="freeaction-list-heading">館のどこでも選べる行動</h3><div class="action-list">${choices.map((action) => { const focused = action.room === model.selectedRoom ? ' is-focused' : ''; return `<button class="${focused.trim()}" data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong><span class="freeaction-room">${displayText(roomName(action.room))}</span>${actionPreview(action, hintsEnabled)}</button>`; }).join('')}</div><button id="done">自由行動を切り上げる</button>`;
+      const countNotice = counts ? `<p class="fa-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
+      const filterTabs = hintsEnabled ? `<div class="fa-filters"><button class="fa-filter ${filter === 'all' ? 'is-selected' : ''}" data-filter="all">すべて ${choices.length}</button>${Object.entries(lineHint).map(([line, label]) => `<button class="fa-filter ${filter === line ? 'is-selected' : ''}" data-filter="${line}">${label} ${choices.filter((action) => actionLines(action).includes(line)).length}</button>`).join('')}</div>` : '';
+      const visible = hintsEnabled && filter !== 'all' ? choices.filter((action) => actionLines(action).includes(filter)) : choices;
+      const rows = visible.map((action) => {
+        const focused = action.room === model.selectedRoom;
+        const lines = hintsEnabled ? acquiredLineLabels(action) : [];
+        return `<button class="ku-card fa-row ${focused ? 'is-focused' : ''}" data-id="${displayText(action.id)}"><span class="ku-card-name">${displayText(action.label)}</span><span class="fa-row-meta">${displayText(roomName(action.room))}${lines.length ? ` ／ ${lines.join('・')}` : ''}</span>${actionPreview(action, hintsEnabled)}<span class="fa-row-cost">札1</span></button>`;
+      }).join('');
+      stage.innerHTML = `${topbar('', `<span class="fa-pips">残り行動${pips()}</span>`)}
+        <div class="fa-body">
+          <div class="fa-main ku-scroll">${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
+          <aside class="fa-aside">${mapMarkup(model, actions)}</aside>
+        </div>
+        <div class="ku-thumbzone"><button class="ku-secondary" id="done">自由行動を切り上げる</button></div>`;
       const chooseAction = (id) => { model = selectFreeAction(model, choices.find((action) => action.id === id)); render(); };
-      modalView.main.querySelectorAll('[data-id]').forEach((button) => {
+      stage.querySelectorAll('[data-id]').forEach((button) => {
         button.onclick = () => chooseAction(button.dataset.id);
       });
-      modalView.main.querySelectorAll('[data-room]').forEach((room) => {
+      stage.querySelectorAll('[data-filter]').forEach((button) => {
+        button.onclick = () => { filter = button.dataset.filter; render(); };
+      });
+      stage.querySelectorAll('[data-room]').forEach((room) => {
         const open = () => { model = openRoomPanel(model, room.dataset.room); render(); };
         room.onclick = open;
         room.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } };
       });
-      modalView.main.querySelectorAll('[data-floor]').forEach((tab) => {
+      stage.querySelectorAll('[data-floor]').forEach((tab) => {
         const select = () => { model = { ...model, selectedRoom: roomsByFloor(tab.dataset.floor)[0].id }; render(); };
         tab.onclick = select;
         tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } };
       });
-      modalView.main.querySelector('#done').onclick = done;
+      stage.querySelector('#done').onclick = done;
+      stage.querySelector('.ku-close').onclick = done;
       if (model.openRoomId) {
         const roomPanel = document.createElement('section');
         roomPanel.className = 'mansion-room-modal';
         roomPanel.innerHTML = roomPanelMarkup(model, actions);
-        modalView.root.append(roomPanel);
+        root.append(roomPanel);
         const closePanel = () => {
           const roomId = model.openRoomId;
           roomPanel.remove();
           model = closeRoomPanel(model);
           render();
-          modalView.main.querySelector(`[data-room="${roomId}"]`)?.focus();
+          stage.querySelector(`[data-room="${roomId}"]`)?.focus();
         };
         roomPanel.querySelectorAll('.mansion-room-close, .mansion-room-return').forEach((button) => { button.onclick = closePanel; });
         roomPanel.querySelectorAll('[data-room-action]').forEach((button) => {
@@ -263,7 +285,6 @@ export const freeAction = { async start(ctx, args = {}) {
         (firstAction || roomPanel.querySelector('.mansion-room-close')).focus();
       }
     };
-    modalView.close.onclick = done;
     render();
   });
 } };

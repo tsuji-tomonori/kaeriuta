@@ -1,4 +1,4 @@
-import { modal, finish, stateOf, displayText } from '../common.js';
+import { screenRoot, finish, stateOf, displayText } from '../common.js';
 import { boardCards, boardCover, boardSolution, boardVerses } from '../../data/temariuta-board.js';
 
 const slots = [['dead', '死者'], ['actor', '実行者'], ['meaning', '意味']];
@@ -80,32 +80,51 @@ export const temariBoard = { async start(ctx, args = {}) {
   const availableCards = cardList(args.cards || [...(state.items || []), ...Object.values(state.flags || {}).flat()]);
   const faces = { truth:initialFace(verses), show:initialFace(verses) }; faceRows(faces.truth, verses); faceRows(faces.show, verses);
   return new Promise((resolve) => {
-    const view = modal(ctx, '手毬唄ボード'); let selected = null; let warnedSlot = null; let face = 'show'; let notice = ''; let commitReady = false; let revealedFace = null; let resolved = false;
-    const done = (committed = false) => { if (resolved) return; resolved = true; const score = assessBoardHypothesis(faces.truth, faces.show, verses); const effects = boardCompletionEffects(score, args.awarenessThreshold ?? 6, committed); finish(view.root, resolve, { effects, placed:faceRows(faces.truth, verses).map(rowFromObject), matches:score.truthAccuracy, hypothesis:score }); };
+    const { root, stage } = screenRoot(ctx); let selected = null; let warnedSlot = null; let face = 'show'; let notice = ''; let commitReady = false; let revealedFace = null; let resolved = false; let wrongCount = null;
+    const done = (committed = false) => { if (resolved) return; resolved = true; const score = assessBoardHypothesis(faces.truth, faces.show, verses); const effects = boardCompletionEffects(score, args.awarenessThreshold ?? 6, committed); finish(root, resolve, { effects, placed:faceRows(faces.truth, verses).map(rowFromObject), matches:score.truthAccuracy, hypothesis:score }); };
     const render = () => {
       const current = faces[face]; const score = assessBoardHypothesis(faces.truth, faces.show, verses);
+      const filledCount = verses.reduce((total, verse) => total + slots.filter(([kind]) => current[verse.number][kind]).length, 0);
+      const totalSlots = verses.length * slots.length;
       const tabs = `<div class="board-face-tabs"><button type="button" role="button" data-face="truth" aria-pressed="${face === 'truth'}" class="${face === 'truth' ? 'is-selected' : ''}">まことの盤</button><button type="button" role="button" data-face="show" aria-pressed="${face === 'show'}" class="${face === 'show' ? 'is-selected' : ''}">見せる盤</button></div>`;
       const answer = face === 'truth' ? boardSolution : boardCover;
-      const board = verses.map((verse) => `<section class="verse"><b>${verse.number}番</b><span class="board-verse-text">${displayText(verse.text)}</span><small>${displayText(verse.summary)}</small>${slots.map(([kind, label]) => { const value = current[verse.number][kind]; const correct = revealedFace === face && value && value === answer[verse.number - 1][kind]; return `<button class="slot ${correct ? 'correct' : ''}" data-number="${verse.number}" data-kind="${kind}">${label}: ${value ? displayText(boardCards[value]?.name, '—') : '—'}</button>`; }).join('')}</section>`).join('');
+      const versesMarkup = verses.map((verse) => `<section class="board-verse"><div class="board-verse-head"><b>${verse.number}番</b><span class="board-verse-text">${displayText(verse.text)}</span><small>${displayText(verse.summary)}</small></div><div class="board-verse-slots">${slots.map(([kind, label]) => {
+        const value = current[verse.number][kind];
+        const correct = revealedFace === face && value && value === answer[verse.number - 1][kind];
+        const warned = warnedSlot && warnedSlot.number === verse.number && warnedSlot.kind === kind && warnedSlot.face === face;
+        return `<button class="board-slot ${correct ? 'is-correct' : ''} ${warned ? 'is-warned' : ''} ${value ? 'is-filled' : ''}" data-number="${verse.number}" data-kind="${kind}"><span class="board-slot-kind">${label}</span><span class="board-slot-value">${value ? displayText(boardCards[value]?.name, '—') : 'つなぐ'}</span></button>`;
+      }).join('')}</div></section>`).join('');
       const convictionDrop = Math.min(20, score.showCredibility * 4);
       const awarenessRise = Math.min(24, score.showShiori * 8);
       const suspicionRise = Math.min(18, score.showShiori * 6);
-      const status = `<p class="board-axis">表の読みへの一致：${score.showCredibility}/${score.total}（確信 ${convictionDrop ? `-${convictionDrop}` : '±0'}）　まことの盤の正確さ：${score.truthAccuracy}/${score.total}　見せる盤の栞の名指し：${score.showShiori}（警戒 +${awarenessRise}／疑い +${suspicionRise}）</p>`;
-      view.main.innerHTML = `${tabs}<p class="board-intro">${face === 'truth' ? '栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。' : '悟郎たちへ差し出す盤。表の読みに寄せるほど確信は下がる。栞の名を置けば、その場で疑いを呼ぶ。'}</p><p class="board-leave-note">配置中に正解は示されない。矛盾文を手掛かりに仮説を確定し、盤を置いて席を立つと効果が適用される。</p><div class="board">${board}</div>${notice ? `<p class="board-notice">${displayText(notice)}</p>` : ''}${status}<div class="cards">${availableCards.map((id) => `<button data-card="${id}" class="${selected === id ? 'selected' : ''}"><strong>${displayText(boardCards[id].name)}</strong><small>${displayText(boardCards[id].note)}</small></button>`).join('')}</div><button class="confirm-hypothesis">この仮説で確定</button>${commitReady ? '<button class="board-commit-close">盤を置いて席を立つ</button>' : ''}<button id="done">盤を伏せて席を立つ</button>`;
-      view.main.querySelectorAll('[data-card]').forEach((button) => { button.onclick = () => {
+      stage.innerHTML = `<div class="ku-topbar"><span class="ku-chip">手毬唄ボード</span><span class="ku-title">${face === 'truth' ? '栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。' : '悟郎たちへ差し出す盤。表の読みに寄せるほど確信は下がる。栞の名を置けば、その場で疑いを呼ぶ。'}</span><span class="ku-spacer ku-meta">結んだ数 ${filledCount}／${totalSlots} ／ 誤り ${wrongCount ?? '—'}</span><button class="ku-close" aria-label="盤を伏せて席を立つ">×</button></div>
+        <div class="board-main ku-scroll">
+          ${tabs}
+          <p class="board-leave-note">配置中に正解は示されない。矛盾文を手掛かりに仮説を確定し、盤を置いて席を立つと効果が適用される。</p>
+          <div class="board-verses">${versesMarkup}</div>
+          ${notice ? `<p class="board-notice">${displayText(notice)}</p>` : ''}
+          <p class="board-axis">表の読みへの一致：${score.showCredibility}/${score.total}（確信 ${convictionDrop ? `-${convictionDrop}` : '±0'}）　まことの盤の正確さ：${score.truthAccuracy}/${score.total}　見せる盤の栞の名指し：${score.showShiori}（警戒 +${awarenessRise}／疑い +${suspicionRise}）</p>
+        </div>
+        <div class="ku-thumbzone">
+          <div class="ku-hand-label"><span>手札（タップで持ち、欄をタップしてつなぐ）</span></div>
+          <div class="ku-hand">${availableCards.map((id) => `<button class="ku-card ${selected === id ? 'is-selected' : ''}" data-card="${id}"><span class="ku-card-name">${displayText(boardCards[id].name)}</span><span class="ku-card-note">${displayText(boardCards[id].note)}</span></button>`).join('')}</div>
+          <div class="board-confirm"><button class="ku-secondary" id="done">盤を伏せて席を立つ</button><button class="ku-secondary confirm-hypothesis">この仮説で確定</button>${commitReady ? '<button class="ku-primary board-commit-close">盤を置いて席を立つ</button>' : ''}</div>
+        </div>`;
+      stage.querySelectorAll('[data-card]').forEach((button) => { button.onclick = () => {
         const cardId = button.dataset.card;
         const deselecting = selected === cardId;
         selected = deselecting ? null : cardId;
-        warnedSlot = null; commitReady = false; revealedFace = null;
+        warnedSlot = null; commitReady = false; revealedFace = null; wrongCount = null;
         notice = deselecting ? `${boardCards[cardId].name}を戻した。` : `${boardCards[cardId].name}を手に取った。`;
         render();
       }; });
-      view.main.querySelectorAll('.slot').forEach((button) => { button.onclick = () => { if (!selected) return; const kind = button.dataset.kind; const number = Number(button.dataset.number); const incompatible = !canPlaceBoardCard(selected, kind); const sameWarning = warnedSlot?.cardId === selected && warnedSlot?.number === number && warnedSlot?.kind === kind && warnedSlot?.face === face; if (incompatible && !sameWarning) { warnedSlot = { cardId:selected, number, kind, face }; notice = `${boardCards[selected].name}は${slots.find(([id]) => id === kind)[1]}の欄には置けない読みだ。もう一度この欄を押せば、仮説として配置する。`; render(); return; } faces[face] = placeBoardCard(current, number, kind, selected); commitReady = false; revealedFace = null; notice = boardPlacementNotice(selected, kind); selected = null; warnedSlot = null; render(); }; });
-      view.main.querySelectorAll('[data-face]').forEach((tab) => { const switchFace = () => { face = tab.dataset.face; selected = null; warnedSlot = null; commitReady = false; revealedFace = null; notice = ''; render(); }; tab.onclick = switchFace; tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchFace(); } }; });
-      view.main.querySelector('.confirm-hypothesis').onclick = () => { const confirmation = confirmBoardHypothesis(current, face, verses); commitReady = confirmation.canCommit; revealedFace = confirmation.canCommit ? face : null; notice = confirmation.notice; render(); };
-      const commitClose = view.main.querySelector('.board-commit-close'); if (commitClose) commitClose.onclick = () => done(true);
-      view.main.querySelector('#done').onclick = () => done(false);
+      stage.querySelectorAll('.board-slot').forEach((button) => { button.onclick = () => { if (!selected) return; const kind = button.dataset.kind; const number = Number(button.dataset.number); const incompatible = !canPlaceBoardCard(selected, kind); const sameWarning = warnedSlot?.cardId === selected && warnedSlot?.number === number && warnedSlot?.kind === kind && warnedSlot?.face === face; if (incompatible && !sameWarning) { warnedSlot = { cardId:selected, number, kind, face }; notice = `${boardCards[selected].name}は${slots.find(([id]) => id === kind)[1]}の欄には置けない読みだ。もう一度この欄を押せば、仮説として配置する。`; render(); return; } faces[face] = placeBoardCard(current, number, kind, selected); commitReady = false; revealedFace = null; wrongCount = null; notice = boardPlacementNotice(selected, kind); selected = null; warnedSlot = null; render(); }; });
+      stage.querySelectorAll('[data-face]').forEach((tab) => { const switchFace = () => { face = tab.dataset.face; selected = null; warnedSlot = null; commitReady = false; revealedFace = null; notice = ''; wrongCount = null; render(); }; tab.onclick = switchFace; tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchFace(); } }; });
+      stage.querySelector('.confirm-hypothesis').onclick = () => { const confirmation = confirmBoardHypothesis(current, face, verses); commitReady = confirmation.canCommit; revealedFace = confirmation.canCommit ? face : null; notice = confirmation.notice; wrongCount = confirmation.canCommit ? (confirmation.notice.match(/^第\d+番の/gm) || []).length : null; render(); };
+      const commitClose = stage.querySelector('.board-commit-close'); if (commitClose) commitClose.onclick = () => done(true);
+      stage.querySelector('.ku-close').onclick = () => done(false);
+      stage.querySelector('#done').onclick = () => done(false);
     };
-    view.close.onclick = () => done(false); render();
+    render();
   });
 } };
