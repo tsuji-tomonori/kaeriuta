@@ -1,6 +1,10 @@
 /* board トラック専用のスタイル。他トラックはこのファイルを編集しない。
    意匠: 帰り唄 UI再設計 1f「唄と出来事をつなぐ」。手札の札を欄へつなぐ操作を線の比喩で見せる。 */
 
+.ku-board-screen .ku-topbar { flex-wrap: nowrap; }
+.ku-board-screen .ku-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ku-board-screen .ku-topbar .ku-meta { flex: none; white-space: nowrap; }
+
 .board-face-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
 .board-face-tabs [role="button"] { flex: 1; max-width: 220px; min-height: 40px; cursor: pointer; padding: 8px 14px; text-align: center; color: var(--ku-cream); background: rgba(242, 234, 214, .08); border: 1px solid rgba(242, 234, 214, .25); font: 13px var(--ku-gothic); letter-spacing: .06em; }
 .board-face-tabs [role="button"].is-selected { border-color: var(--ku-vermillion); color: var(--ku-bg); background: var(--ku-vermillion); font-weight: 700; }
