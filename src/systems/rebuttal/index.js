@@ -23,7 +23,12 @@ export function resultFor(conviction, overknow) { return overknow >= 2 ? 'conan_
 export function applyResponse(model, response, broken = []) { let effects = [...(response.result.effects || [])]; if (response.result.conditional?.ifBroken && broken.includes(response.result.conditional.ifBroken)) effects = response.result.conditional.effects || []; effects = [...effects, ...exposureEffectsFor(response.card)]; const conviction = (model.conviction || 0) + effects.filter(e => e.t === 'param' && e.key === 'conviction').reduce((a, e) => a + e.delta, 0); const overknow = (model.overknow || 0) + effects.filter(e => e.t === 'param' && e.key === 'overknow').reduce((a, e) => a + e.delta, 0); return { ...model, conviction: Math.max(0, Math.min(100, conviction)), overknow, broken: response.result.break ? [...broken, model.node.id] : broken, effects }; }
 
 const effectDelta = (response, key) => (response.result.effects || []).filter(e => e.t === 'param' && e.key === key).reduce((total, e) => total + e.delta, 0);
-export function effectivenessFor(response) { const delta = effectDelta(response, 'conviction'); return delta <= -12 ? '強力' : delta < 0 ? '手応えあり' : '効果は小さい'; }
+export function effectivenessFor(response, broken = []) {
+ const conditional = response.result.conditional;
+ const effects = conditional?.ifBroken && broken.includes(conditional.ifBroken) ? conditional.effects || [] : response.result.effects || [];
+ const delta = effects.filter(effect => effect.t === 'param' && effect.key === 'conviction').reduce((total, effect) => total + effect.delta, 0);
+ return delta <= -12 ? '強力' : delta < 0 ? '手応えあり' : delta > 0 ? '逆効果（悟郎の確信が上がる）' : '悟郎の確信は変わらない';
+}
 export function costLabelsFor(response) { const labels = []; if (response.result.overknow || effectDelta(response, 'overknow') > 0) labels.push('👁 知りすぎを疑われる'); if (effectDelta(response, 'conscience') < 0) labels.push('🕯 良心を削る'); if (effectDelta(response, 'trust') < 0) labels.push('🤝 誰かの信頼を失う'); if (effectDelta(response, 'suspicion') > 0) labels.push('疑いが濃くなる'); return labels; }
 
 // data-r は元の responses 配列の index。disabled な札を混ぜても対応はずれない。
@@ -55,7 +60,7 @@ export const rebuttal = { async start(ctx, args) {
    const options = responseOptions(node.responses, { hasCard: card => has(ctx, card), meetsCondition: cond => condition(ctx, cond) });
    const cards = options.map(({ response, key, disabled }) => {
     const meta = response.card && cardMeta(response.card);
-    const details = [meta?.source ? `${displayText(meta.source)}で得た札` : '', `効き目：${effectivenessFor(response)}`, ...costLabelsFor(response), ...exposureCostLabels(response.card), meta?.exposure ? `使うと${displayText(meta.exposure)}` : '', response.note ? displayText(response.note) : ''].filter(Boolean);
+    const details = [meta?.source ? `${displayText(meta.source)}で得た札` : '', `効き目：${effectivenessFor(response, broken)}`, ...costLabelsFor(response), ...exposureCostLabels(response.card), meta?.exposure ? `使うと${displayText(meta.exposure)}` : '', response.note ? displayText(response.note) : ''].filter(Boolean);
     return `<button class="ku-card ${disabled ? 'is-irrelevant' : ''} ${selected === key ? 'is-selected' : ''}" data-r="${key}"${disabled ? ' disabled aria-disabled="true"' : ''}><span class="ku-card-kind">${responsePrefix(response.kind)}</span><span class="ku-card-name">${meta ? displayText(meta.name) : displayText(response.label)}</span><span class="ku-card-note">${details.length ? details.map(displayText).join(' ／ ') : disabled ? 'この場では使えません' : displayText(response.label)}</span></button>`;
    }).join('');
    stage.innerHTML = `<div class="ku-topbar"><span class="ku-chip">反論</span><span class="ku-meta">${displayText(data.title)}</span>${gaugesMarkup(gaze)}<button class="ku-close" aria-label="尋問を終える">×</button></div>
