@@ -59,3 +59,26 @@
   .fa-body { flex-direction: column; gap: 12px; }
   .fa-aside { flex: none; width: 100%; max-height: 34%; }
 }
+
+
+/* 導入と常設目的。説明本文だけをスクロールし、開始ボタンは常に表示する。 */
+.fa-briefing { position: absolute; inset: 86px max(24px, env(safe-area-inset-right, 0)) 106px max(24px, env(safe-area-inset-left, 0)); overflow-y: auto; overscroll-behavior: contain; max-width: 850px; padding: 10px 20px; line-height: 1.8; }
+.fa-briefing h1 { font-size: clamp(20px, 3vw, 30px); margin: .2em 0; font-family: var(--ku-mincho); }
+.fa-briefing h2 { font-size: 18px; margin-bottom: .3em; }
+.fa-briefing p { margin: .7em 0; }
+.fa-briefing ol { padding-left: 1.5em; }
+.fa-suggestion, .fa-objective { border-left: 3px solid var(--ku-vermillion); background: rgba(242, 234, 214, .06); padding: 12px 16px; }
+.fa-objective { margin-bottom: 14px; line-height: 1.6; }
+.fa-objective p { margin: .3em 0; font-size: 14px; }
+.fa-objective small { color: var(--ku-cream-dim); }
+.fa-help { margin-left: auto; }
+.fa-pips > span { display: inline-flex; gap: 5px; }
+@media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
+  .fa-briefing { inset: 74px 14px 86px; padding: 4px 12px; font-size: 14px; }
+  .fa-body { display: block; overflow-y: auto; overscroll-behavior: contain; }
+  .fa-main { width: 100%; height: auto; overflow: visible; padding-right: 0; }
+  .fa-aside { margin-top: 12px; max-height: none; }
+  .fa-objective { padding: 8px 12px; }
+  .fa-pips > span { display: none; }
+  .fa-help { padding: 8px 12px; }
+}

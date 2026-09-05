@@ -39,6 +39,7 @@ import { openSaveMenu } from './ui/save-menu.js';
 import { createHud } from './ui/hud.js';
 import { createBacklog } from './ui/backlog.js';
 import { isDialogOpen, showConfirm } from './ui/dialog.js';
+import { showPlayGuide } from './ui/play-guide.js';
 import { openSettings } from './ui/settings.js';
 import { createPlayback } from './engine/playback.js';
 import { createNotebook } from './systems/notebook/index.js';
@@ -193,7 +194,10 @@ function renderTitleScreen(root) {
   flushRead();
   root.removeAttribute?.('data-scene-id');
   showTitle(root, {
-    onStart: () => startGame(root, createGameState()),
+    onStart: async () => {
+      await showPlayGuide({ mount: root.querySelector('.kaeriuta-menu-frame'), intro: true });
+      startGame(root, createGameState());
+    },
     onContinue: () => {
       const slot = latestContinueSlot();
       const saved = slot && loadGame(slot);
@@ -357,6 +361,10 @@ function startGame(root, initialState, { fromLoad = false, replay = false } = {}
     onSave: session.openSave,
     onLoad: session.openLoad,
     onTitle: requestTitle,
+    onHelp: () => {
+      session.playback.stop();
+      if (!isDialogOpen()) showPlayGuide({ mount: root.querySelector('#game-screen') });
+    },
     onNotebook: () => {
       session.playback.stop();
       session.notebook.toggle();
