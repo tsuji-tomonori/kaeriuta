@@ -50,7 +50,6 @@ let activeSession = null;
 let initializedRoot = null;
 let inputDocument = null;
 let keydownHandler = null;
-let wheelHandler = null;
 
 function bootElement(documentRef) {
   return documentRef?.querySelector?.('#boot-loader') ?? null;
@@ -133,60 +132,54 @@ function overlaysOpen(session) {
     || session?.notebook?.isOpen();
 }
 
-function bindInput(documentRef) {
-  if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
-  if (inputDocument && wheelHandler) inputDocument.removeEventListener('wheel', wheelHandler);
-  inputDocument = documentRef;
+export function handleGameKeydown(event, session) {
+  if (!session || session.disposed || event.repeat || event.defaultPrevented) return;
+  if (event.key === 'Escape') {
+    if (session.saveMenu) session.saveMenu.close();
+    else if (session.settings?.isOpen?.()) session.settings.close();
+    else if (session.backlog.isOpen()) session.backlog.close();
+    else if (session.notebook.isOpen()) session.notebook.close();
+    return;
+  }
+  const tagName = event.target?.tagName?.toLowerCase();
+  const editing = event.target?.isContentEditable
+    || ['input', 'textarea', 'select', 'button'].includes(tagName);
+  if (editing) return;
+  if (overlaysOpen(session)) return;
 
-  keydownHandler = (event) => {
-    const session = activeSession;
-    if (!session || session.disposed || event.repeat) return;
-    if (event.key === 'Escape') {
-      if (session.saveMenu) session.saveMenu.close();
-      else if (session.settings?.isOpen?.()) session.settings.close();
-      else if (session.backlog.isOpen()) session.backlog.close();
-      else if (session.notebook.isOpen()) session.notebook.close();
-      return;
-    }
-    const tagName = event.target?.tagName?.toLowerCase();
-    const editing = event.target?.isContentEditable
-      || ['input', 'textarea', 'select', 'button'].includes(tagName);
-    if (editing) return;
-    if (overlaysOpen(session)) return;
-
-    const key = event.key.toLowerCase();
-    if (event.key === ' ' || event.key === 'Enter') {
-      event.preventDefault();
-      session.manualAdvance();
-    } else if (event.key === 'Control') {
-      event.preventDefault();
-      session.playback.toggleSkip();
-    } else if (key === 's') {
-      event.preventDefault();
-      session.openSave();
-    } else if (key === 'a') {
-      event.preventDefault();
-      session.playback.toggleAuto();
-    } else if (key === 'l') {
-      event.preventDefault();
-      session.openLoad();
-    } else if (key === 'n') {
-      event.preventDefault();
-      session.playback.stop();
-      session.notebook.toggle();
-    }
-  };
-
-  wheelHandler = (event) => {
-    const session = activeSession;
-    if (!session || session.disposed || event.deltaY >= 0 || overlaysOpen(session)) return;
+  const key = event.key.toLowerCase();
+  const choosing = Boolean(session.screen?.choice?.children?.length);
+  if ((session.partActive || session.endingActive || choosing)
+    && [' ', 'enter', 'control', 'a'].includes(key)) return;
+  if (event.key === ' ' || event.key === 'Enter') {
+    event.preventDefault();
+    session.manualAdvance();
+  } else if (event.key === 'Control') {
+    event.preventDefault();
+    session.playback.toggleSkip();
+  } else if (key === 's') {
+    event.preventDefault();
+    session.openSave();
+  } else if (key === 'a') {
+    event.preventDefault();
+    session.playback.toggleAuto();
+  } else if (key === 'l') {
+    event.preventDefault();
+    session.openLoad();
+  } else if (key === 'n') {
     event.preventDefault();
     session.playback.stop();
-    session.backlog.open();
-  };
+    session.notebook.toggle();
+  }
+}
+
+function bindInput(documentRef) {
+  if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
+  inputDocument = documentRef;
+
+  keydownHandler = (event) => handleGameKeydown(event, activeSession);
 
   documentRef.addEventListener('keydown', keydownHandler);
-  documentRef.addEventListener('wheel', wheelHandler, { passive: false });
 }
 
 function renderTitleScreen(root) {
@@ -649,10 +642,8 @@ export async function initializeApp({
       dispose: () => {
         disposeSession();
         if (inputDocument && keydownHandler) inputDocument.removeEventListener('keydown', keydownHandler);
-        if (inputDocument && wheelHandler) inputDocument.removeEventListener('wheel', wheelHandler);
         inputDocument = null;
         keydownHandler = null;
-        wheelHandler = null;
         initializedRoot = null;
       },
     };
