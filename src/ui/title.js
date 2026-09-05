@@ -3,6 +3,7 @@ import { explorationHintsEnabled, isMemoirUnlocked, loadProgress, loadSettings, 
 import { listSaves } from '../engine/save.js';
 import { openSaveMenu } from './save-menu.js';
 import { bindSettingsControls, settingsControls } from './settings.js';
+import { showPlayGuide } from './play-guide.js';
 
 export const EXPLORATION_HINTS_KEY = 'kaeriuta-exploration-hints';
 export { explorationHintsEnabled } from '../engine/progress.js';
@@ -81,8 +82,10 @@ export function showTitle(root, {
         <div class="kaeriuta-title__bookplate">
           <p class="kaeriuta-title__eyebrow">倒叙ミステリーアドベンチャー</p>
           <h1>帰り唄 <small>―手毬唄の館―</small></h1>
+          <p class="kaeriuta-title__premise">あなたは殺人計画の共犯者。<br>隠し通すか、真実を話すか。</p>
           <nav class="kaeriuta-title__actions" aria-label="主メニュー">
             <button type="button" data-start>はじめから</button>
+            <button type="button" data-play-guide>遊び方・目的</button>
             <button type="button" id="title-continue" data-continue>つづきから</button>
             <button type="button" data-load-menu>ロード</button>
             <button type="button" id="title-chapters" data-chapter-toggle>章選択</button>
@@ -99,6 +102,7 @@ export function showTitle(root, {
     </div>`;
 
   root.querySelector('[data-start]').onclick = () => onStart?.();
+  root.querySelector('[data-play-guide]').onclick = () => showPlayGuide({ mount: root.querySelector('.kaeriuta-menu-frame') });
   const continueButton = root.querySelector('[data-continue]');
   if (!latest) {
     disabledReason(continueButton, 'セーブデータがありません');

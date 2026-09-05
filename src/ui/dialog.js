@@ -14,6 +14,7 @@ function showDialog({ mount, title, body, okLabel, cancelLabel, danger, notice }
     panel.className = 'dialog-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', title || (notice ? 'お知らせ' : '確認'));
 
     const heading = document.createElement('h2');
     heading.className = 'dialog-title';
@@ -21,6 +22,7 @@ function showDialog({ mount, title, body, okLabel, cancelLabel, danger, notice }
     const message = document.createElement('p');
     message.className = 'dialog-body';
     message.textContent = body || '';
+    message.tabIndex = 0;
     const actions = document.createElement('div');
     actions.className = 'dialog-actions';
     const ok = document.createElement('button');
@@ -52,12 +54,17 @@ function showDialog({ mount, title, body, okLabel, cancelLabel, danger, notice }
     };
     const onKeydown = (event) => {
       event.stopImmediatePropagation();
-      if (event.key === 'Escape') {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const targets = [message, cancel, ok].filter(Boolean);
+        const index = targets.indexOf(document.activeElement);
+        targets[(index + (event.shiftKey ? -1 : 1) + targets.length) % targets.length].focus();
+      } else if (event.key === 'Escape') {
         event.preventDefault();
         finish(false);
       } else if (event.key === 'Enter') {
         event.preventDefault();
-        finish(true);
+        finish(document.activeElement !== cancel);
       }
     };
 

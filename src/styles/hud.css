@@ -93,6 +93,9 @@
 }
 
 .dialog-panel {
+  max-height: calc(100% - 2rem);
+  display: flex;
+  flex-direction: column;
   width: min(32rem, calc(100% - 3rem));
   padding: 1.4rem;
   border: 1px solid #c9b77c;
@@ -106,11 +109,15 @@
 }
 
 .dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   line-height: 1.8;
   white-space: pre-wrap;
 }
 
 .dialog-actions {
+  flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
   gap: .6rem;
