@@ -100,10 +100,10 @@ export const temariBoard = { async start(ctx, args = {}) {
       stage.innerHTML = `<div class="ku-topbar"><span class="ku-chip">手毬唄ボード</span><span class="ku-title">${face === 'truth' ? '栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。' : '悟郎たちへ差し出す盤。表の読みに寄せるほど確信は下がる。栞の名を置けば、その場で疑いを呼ぶ。'}</span><span class="ku-spacer ku-meta">結んだ数 ${filledCount}／${totalSlots} ／ 誤り ${wrongCount ?? '—'}</span><button class="ku-close" aria-label="盤を伏せて席を立つ">×</button></div>
         <div class="board-main ku-scroll">
           ${tabs}
-          <p class="board-leave-note">配置中に正解は示されない。矛盾文を手掛かりに仮説を確定し、盤を置いて席を立つと効果が適用される。</p>
+          <p class="board-leave-note">「死者」欄には、事件で死者として扱われた名を置きます。身元の偽装も含めた解釈は「意味」欄で示します。配置中に正解は示されません。「この仮説で確定」で矛盾文を確認し、「盤を置いて席を立つ」で効果が適用されます。</p>
           <div class="board-verses">${versesMarkup}</div>
           ${notice ? `<p class="board-notice">${displayText(notice)}</p>` : ''}
-          <p class="board-axis">表の読みへの一致：${score.showCredibility}/${score.total}（確信 ${convictionDrop ? `-${convictionDrop}` : '±0'}）　まことの盤の正確さ：${score.truthAccuracy}/${score.total}　見せる盤の栞の名指し：${score.showShiori}（警戒 +${awarenessRise}／疑い +${suspicionRise}）</p>
+          <p class="board-axis">${commitReady ? `表の読みへの一致：${score.showCredibility}/${score.total}（確信 ${convictionDrop ? `-${convictionDrop}` : '±0'}）　まことの盤の正確さ：${score.truthAccuracy}/${score.total}` : '正確さと確信への効果は「この仮説で確定」の後に表示します。'}　見せる盤の栞の名指し：${score.showShiori}（警戒 +${awarenessRise}／疑惑 +${suspicionRise}）</p>
         </div>
         <div class="ku-thumbzone">
           <div class="ku-hand-label"><span>手札（タップで持ち、欄をタップしてつなぐ）</span></div>

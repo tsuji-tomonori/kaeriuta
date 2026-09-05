@@ -11,7 +11,7 @@ export const boardCards = {
   old_servant: { id:'old_servant', kinds:['dead'], name:'古参の使用人', note:'館の古い頁を知る者' },
   false_death: { id:'false_death', kinds:['meaning'], name:'偽りの水死', note:'水底へ沈められた不在の筋書き' },
   accomplice: { id:'accomplice', kinds:['dead'], name:'共犯の男', note:'唄の外で役を渡された者' },
-  shiori: { id:'shiori', kinds:['actor','dead'], name:'霧原栞', note:'自分の名も盤上の駒になったと知る司書' },
+  shiori: { id:'shiori', kinds:['actor','dead'], name:'鬼灯栞', note:'自分の名も盤上の駒になったと知る司書' },
   underground: { id:'underground', kinds:['meaning'], name:'地下の通路', note:'館の綴じ目の奥へ続く道' },
   silencing: { id:'silencing', kinds:['meaning'], name:'口封じ', note:'届くはずの歌を閉じるための手' },
   truth_closure: { id:'truth_closure', kinds:['meaning'], name:'真実による幕引き', note:'作り話を本当の筆で閉じる読み' },
