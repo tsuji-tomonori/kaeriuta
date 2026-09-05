@@ -82,7 +82,7 @@ export const prologue = {
       { label: '指先まで注視する', hint: '作家としての違和感を確かめる', effects: [{ t: 'flag', id: 'sogen_no_callus' }, { t: 'log', key: 'toast', value: 'watched' }], goto: 'song' },
     ] },
     { t: 'label', id: 'song' },
-    { t: 'mono', text: 'グラスを持つ兄の右手に、私は目を留めた。万年筆を四十年握った作家の指としては、あまりに滑らかだった。違和感は、小さな栞のように記憶へ挟まった。' },
+    { t: 'mono', text: '兄がグラスを掲げると、客たちもそれに倣った。私は飲むふりだけをして、グラスを卓へ戻す。この席で何に目を向け、何を見なかったことにするか。それを選ぶのは、まだ私だった。' },
     { t: 'chara', id: 'chara_sogen', expr: 'smile', pos: 'center', action: 'replace' },
     { t: 'say', who: 'sogen', text: '余興に、私の最初の小説に出てくる唄を。志津さん、読んでくれるかい。' },
     { t: 'chara', id: 'chara_housekeeper', expr: 'uneasy', pos: 'left', action: 'fadeIn' },
@@ -142,3 +142,4 @@ export const prologue = {
     { t: 'jump', scene:'chapter1' },
   ],
 };
+
