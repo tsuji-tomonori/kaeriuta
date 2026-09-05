@@ -7,6 +7,7 @@ import { isDialogOpen, showConfirm, showNotice } from '../../ui/dialog.js';
 import { showPlayGuide } from '../../ui/play-guide.js';
 import { chapter1 } from '../../data/scenario/chapter1.js';
 import { chapter2 } from '../../data/scenario/chapter2.js';
+import { changeParam, createParams } from '../../engine/params.js';
 
 const lineHint = { past: '🕯 過去', plan: '📜 計画', alive: '👁 生存' };
 function actionLines(action) {
@@ -112,7 +113,19 @@ export function enrichFreeActions(actions) {
   });
 }
 
-const paramNames = { suspicion:'疑い', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
+const paramNames = { suspicion:'疑惑', conviction:'確信', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心', agitation:'動揺' };
+export function freeActionParamPreview(state, effects) {
+  const before = { ...createParams(), ...state.params };
+  const after = effects.filter((effect) => effect.t === 'param')
+    .reduce((params, effect) => changeParam(params, effect.key, effect.delta), before);
+  return Object.keys(before).filter((key) => after[key] !== before[key])
+    .map((key) => `${paramNames[key] || key} ${before[key]} → ${after[key]}`);
+}
+function pendingChangesMarkup(model) {
+  if (!model.used.length) return '';
+  const changes = freeActionParamPreview(model.state, model.effects);
+  return `<section class="fa-acquired" aria-label="数値の反映予定"><strong>ここまでの行動による数値の反映予定</strong><p>${changes.length ? changes.map(displayText).join(' ／ ') : '数値の変化なし'}</p><small>自由行動を終えると、画面上部の数値や手帳にもまとめて反映されます。</small></section>`;
+}
 function paramText(effect) {
   const name = paramNames[effect.key] || effect.key;
   return `${name}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`;
@@ -241,7 +254,7 @@ export const freeAction = { async start(ctx, args = {}) {
             <p>${displayText(goal.detail)}</p>
             <p class="fa-suggestion">${displayText(goal.next)}</p>
             <h2>行動の選び方</h2>
-            <ol><li>一覧で、行動の内容と数値の変化を読みます。</li><li>行動ボタンをクリック／タップすると開始。<strong>1つ選ぶと残り回数が1減ります。</strong></li><li>注目する点を選び、結果を読んで次の行動へ。証拠は後の推理や反論に使えます。</li></ol>
+            <ol><li>一覧で、行動の内容と数値の変化を読みます。</li><li>行動ボタンをクリック／タップすると開始。<strong>1つ選ぶと残り回数が1減ります。</strong></li><li>基本の手掛かりは行動自体で獲得します。そのうえで注目する点を選ぶと、追加の情報や危険が変わります。</li><li>結果を読んで次の行動へ。証拠は後の推理や反論に使えます。</li></ol>
             <p>今回は<strong>${totalBlocks}回</strong>行動できます。読む・考える・見取り図を見るだけでは時間は進みません。すべてを調べる時間はないので、知りたいことを選んでください。</p>
           </section><div class="ku-thumbzone"><button class="ku-primary" id="begin-exploration">行動一覧へ</button><span class="ku-primary-hint">この操作では行動回数を消費しません</span></div>`;
         stage.querySelector('#begin-exploration').onclick = () => { briefing = false; render(); };
@@ -253,7 +266,7 @@ export const freeAction = { async start(ctx, args = {}) {
       if (model.phase === FREE_ACTION_PHASE.FOCUSING) {
         const action = model.currentAction;
         const focus = action.scenes.focus;
-        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="fa-narrative-prompt">${displayText(focus.prompt, 'どこを見る？')}</p></div><div class="ku-thumbzone"><div class="ku-hand">${focus.options.map((option) => `<button class="ku-card" data-focus="${displayText(option.id)}"><span class="ku-card-name">${displayText(option.label)}</span></button>`).join('')}</div></div>`;
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="fa-narrative-prompt">${displayText(focus.prompt, 'どこを見る？')}</p><small>基本の手掛かりはこの行動で獲得済みです。さらに注目する点を1つ選んでください。</small></div><div class="ku-thumbzone"><div class="ku-hand">${focus.options.map((option) => `<button class="ku-card" data-focus="${displayText(option.id)}"><span class="ku-card-name">${displayText(option.label)}</span></button>`).join('')}</div></div>`;
         stage.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
         stage.querySelector('.ku-close').onclick = requestEnd;
         return;
@@ -264,7 +277,7 @@ export const freeAction = { async start(ctx, args = {}) {
         const discovery = model.focusResult?.text || action.scenes?.discovery || action.narrative || `${displayText(action.desc, '情報')}を得た。`;
         const reaction = action.scenes?.reaction || '';
         const acquiredNotice = notices.length ? `<div class="fa-acquired">${notices.map((notice) => `<p>${displayText(notice)}</p>`).join('')}</div>` : `<p class="fa-acquired">得たこと：${displayText(action.acquired, action.desc || '悟郎の質問の順序が読めるようになった')}</p>`;
-        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative ku-scroll"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}</div><div class="ku-thumbzone"><button class="ku-primary" id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></div>`;
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative ku-scroll"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}${pendingChangesMarkup(model)}</div><div class="ku-thumbzone"><button class="ku-primary" id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></div>`;
         stage.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
         stage.querySelector('.ku-close').onclick = requestEnd;
         return;
@@ -283,7 +296,7 @@ export const freeAction = { async start(ctx, args = {}) {
       }).join('');
       stage.innerHTML = `${topbar('', `<span class="fa-pips">残り ${model.remaining} / ${totalBlocks} 回<span aria-hidden="true">${pips()}</span></span>`)}
         <div class="fa-body">
-          <div class="fa-main"><section class="fa-objective" aria-label="いまの目的"><strong>${displayText(goal.title)}</strong><p>${displayText(goal.next)}</p><small>行動ボタンで開始・1回消費。読む間は時間が進みません。</small></section>${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
+          <div class="fa-main"><section class="fa-objective" aria-label="いまの目的"><strong>${displayText(goal.title)}</strong><p>${displayText(goal.next)}</p><small>行動ボタンで開始・1回消費。読む間は時間が進みません。</small></section>${pendingChangesMarkup(model)}${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
           <aside class="fa-aside">${mapMarkup(model, actions)}</aside>
         </div>
         <div class="ku-thumbzone"><button class="ku-secondary" id="done">自由行動を切り上げる</button></div>`;
