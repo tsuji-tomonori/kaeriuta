@@ -238,13 +238,14 @@ test('測定死角検査は全ペルソナのゲーム記録を照合し、欠�
     await mkdir(join(dir, 'ログ'));
     await copyFile(new URL('../tools/AIプレイ/測定死角検査.mjs', import.meta.url), join(dir, '測定死角検査.mjs'));
     await symlink(fileURLToPath(new URL('../tools/AIプレイ/総当たり耐性.mjs', import.meta.url)), join(dir, '総当たり耐性.mjs'));
-    const endings = { suiri:'b3', bannin:'a3', kanjou:'b1', sokkyou:'a1', ura:'a3', toubou:'a2',
+    const endings = { suiri:'b3', bannin:'a3', kanjou:'b1', sokkyou:'a1', ura:'a1', toubou:'a2',
       ayatsuri:'a1', gyakuten:'a4', mikiri:'b3', shoshinsha:'b2', danzai:'b2' };
     const summary = Object.fromEntries(Object.entries(endings).map(([persona, endingId], index) => [persona, {
       status:'ended', errors:[], warnings:[], final:{ endingId,
         flags:{ plan:['other_scriptwriter_noticed'] }, logs:{ temari_board_matches:index ? 2 : 6 },
-        temari:{ truthAccuracy:index ? 2 : 6, showCredibility:index ? 2 : 6, shioriExposure:index ? 0 : 1,
-          exit:index ? 'done' : 'commit' },
+        temari:{ truthAccuracy:index ? 2 : 6, showCredibility:index ? 2 : 6, shioriExposure:index < 2 ? 1 : 0,
+          openedFaces:index < 3 ? ['show', 'truth'] : ['show'],
+          exit:index < 6 ? 'commit' : 'done' },
       },
     }]));
     // 固定リスト外も対象。0点は有効で、退席方法不明でも閉じた盤の記録と照合する。

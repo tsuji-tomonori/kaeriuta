@@ -7,7 +7,9 @@ const baselineEndings = {
   // 02Bの報酬分割: 旧道では壁の手掛かり、繊維では死者の手を同時取得しない。
   // banninは生存1件のまま耐えるためA-3。旧共通報酬2件だけを戻すと
   // 生存3件・確信100でA-1になることをai-play-node.test.jsで検証。
-  suiri:'b3', bannin:'a3', kanjou:'b1', sokkyou:'a1', ura:'a3', toubou:'a2',
+  // uraは見せる盤の栞2欄をcommitして疑惑+12・警戒+16を受けA-1。
+  // 盤の判断だけ旧挙動へ戻すとA-3に戻る（ai-play-node.test.js）。
+  suiri:'b3', bannin:'a3', kanjou:'b1', sokkyou:'a1', ura:'a1', toubou:'a2',
   ayatsuri:'a1', gyakuten:'a4', mikiri:'b3',
   // 8/11 をコウナン任せにすると動揺66で止まる。任せきりでは真相に届かない設計どおりの B-2。
   shoshinsha:'b2', danzai:'b2',
@@ -29,6 +31,10 @@ for (const persona of personas) {
   verify(() => assert.deepEqual(result?.warnings, [], `${persona}: 実ブラウザプレイで操作上限警告が発生した`));
   verify(() => assert.equal(result?.final?.endingId, baselineEndings[persona], `${persona}: 到達ENDが基準線から変化した`));
 }
+verify(() => assert.deepEqual(
+  [...new Set(personas.map(persona => summary[persona]?.final?.endingId))].sort(),
+  ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3'], '11ペルソナで全7ENDを踏破していない',
+));
 
 for (const metric of metrics) {
   const values = personas.map((persona) => {
@@ -70,6 +76,16 @@ for (const persona of personas) {
   }
 }
 console.log(`退席方法: ${Object.entries(exits).map(([exit, values]) => `${exit === 'other' ? 'その他' : exit} ${values.length}件（${values.join(' ')}）`).join(' / ')}`);
+const openedTruth = personas.filter(persona => summary[persona]?.final?.temari?.openedFaces?.includes('truth'));
+const committedShiori = personas.filter(persona => {
+  const temari = summary[persona]?.final?.temari;
+  return temari?.exit === 'commit' && temari.shioriExposure > 0;
+});
+console.log(`まことの盤を開いた人数: ${openedTruth.length}体（${openedTruth.join(' ')}）`);
+console.log(`栞を見せる盤に置いてcommitした人数: ${committedShiori.length}体（${committedShiori.join(' ')}）`);
+verify(() => assert.ok(openedTruth.length >= 3, 'まことの盤を開いたペルソナが3体未満'));
+verify(() => assert.ok(committedShiori.length >= 2, '見せる盤に栞を置いてcommitしたペルソナが2体未満'));
+verify(() => assert.ok(exits.commit.length > personas.length / 2, 'commitで退席したペルソナが過半数に達していない'));
 verify(() => assert.ok(completedTruth.length > 0, 'まことの盤を6/6まで完成したペルソナがいない'));
 for (const persona of completedTruth) {
   verify(() => assert.ok(

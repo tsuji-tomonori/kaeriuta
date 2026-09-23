@@ -105,6 +105,7 @@ export function reconcileTemariAttempt(observation, memory) {
   if (pending && pending.face === temari.face) {
     const slot = temari.slots?.find((entry) => entry.number === pending.number && entry.kind === pending.kind);
     if (slot?.cardId === pending.cardId) {
+      memory.temariPlacedFaces = [...new Set([...(memory.temariPlacedFaces || []), pending.face])];
       memory.temariPending = null;
     }
   }
@@ -132,8 +133,90 @@ export function reconcileTemariAttempt(observation, memory) {
   memory.temariVerifiedPlacements = [...verified];
 }
 
+function temariEffectReading(observation, strategy) {
+  const text = observation.part?.text || '';
+  if (observation.part?.name !== 'temariBoard'
+    || !text.includes('「盤を置いて席を立つ」で効果が適用されます。')) return null;
+  const face = observation.part.temari?.face;
+  if (strategy === 'hide' && face === 'show'
+    && text.includes('表の読みに寄せるほど確信は下がる。')
+    && text.includes('栞の名を置けば、その場で疑いを呼ぶ。')) {
+    return '「表の読みに寄せるほど確信は下がる。」「栞の名を置けば、その場で疑いを呼ぶ。」';
+  }
+  if (strategy === 'disrupt' && face === 'show'
+    && text.includes('栞の名を置けば、その場で疑いを呼ぶ。')) {
+    return '「栞の名を置けば、その場で疑いを呼ぶ。」';
+  }
+  if (['disrupt', 'condemn'].includes(strategy) && face === 'truth'
+    && text.includes('栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。')) {
+    return '「栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。」';
+  }
+  // まこと側の見出しは開くまで読めない。最初は表示中のタブを根拠に探る。
+  if (strategy === 'condemn' && face === 'show' && text.includes('まことの盤')) {
+    return '表示された「まことの盤」タブ';
+  }
+  return null;
+}
+
+function effectAwareTemariPolicy(option, observation, memory, strategy, reading) {
+  const { face, cards = [], slots = [] } = observation.part.temari || {};
+  const meta = option.meta || {};
+  const selected = cards.find(card => card.selected);
+  const tried = new Set(memory.temariTriedPlacements || []);
+  const placedTruth = (memory.temariPlacedFaces || []).includes('truth');
+  const exposed = slots.some(slot => slot.cardId === 'shiori');
+  const allFilled = slots.length > 0 && slots.every(slot => !slot.empty);
+  const needsShiori = strategy === 'disrupt' && face === 'show' && !exposed;
+  const wantsSlot = (card, slot) => {
+    if (!card?.kinds?.includes(slot.kind) || slot.cardId === card.id
+      || tried.has(placementKey(face, card.id, slot.number, slot.kind))) return false;
+    if (card.id === 'shiori' && (strategy === 'hide' || strategy === 'condemn')) return false;
+    // 栞を名指す境界は種別の合う欄で試す。既に置いた栞は退席まで残す。
+    if (strategy === 'disrupt' && face === 'show' && slot.cardId === 'shiori') return false;
+    return slot.empty || (needsShiori && card.id === 'shiori')
+      || (strategy === 'disrupt' && face === 'truth' && !placedTruth);
+  };
+  const placeable = card => slots.some(slot => wantsSlot(card, slot));
+  const canPlace = cards.some(placeable);
+  const add = (score, reason) => ({ score, grounds:[`${reading}を読み、${reason}`] });
+  if (meta.action === 'face') {
+    let target = strategy === 'condemn' ? 'truth' : 'show';
+    if (strategy === 'disrupt' && face === 'show' && exposed && !placedTruth) target = 'truth';
+    if (strategy === 'disrupt' && face === 'truth' && !placedTruth && canPlace) target = 'truth';
+    return add(meta.face !== face && meta.face === target ? 150 : -300,
+      strategy === 'hide' ? '確信を下げる見せる盤に留まる'
+        : strategy === 'condemn' ? '宗玄の責任を綴じる面を開く'
+          : target === 'truth' ? 'まことの盤でも札を置いて境界を試す' : '栞を名指した見せる盤へ戻って効果を受け取る');
+  }
+  if (meta.action === 'card') {
+    const card = cards.find(card => card.id === meta.cardId);
+    if (meta.selected) return add(placeable(card) ? -300 : 100, placeable(card) ? '置ける欄がある札を保持する' : '置ける欄が尽きた札を戻す');
+    if (!placeable(card)) return add(-300, '目的に合う未試行欄のない札は選ばない');
+    const clue = `${card.name} ${card.note}`;
+    const preferred = strategy === 'hide' ? /表|珈琲|恩田|偽り/.test(clue)
+      : strategy === 'condemn' ? /宗玄/.test(clue) : /共犯|偽り|口封じ|すげ替え/.test(clue);
+    return add(needsShiori && card.id === 'shiori' ? 120 : preferred ? 80 : 40,
+      needsShiori && card.id === 'shiori' ? '疑いを呼ぶ栞の札を選ぶ'
+        : `札の名前・注記「${clue}」から${strategy === 'condemn' ? '宗玄の責任' : strategy === 'hide' ? '表の読み' : '失敗の仮説'}を組む`);
+  }
+  if (meta.action === 'slot') {
+    const slot = slots.find(slot => slot.number === meta.number && slot.kind === meta.kind);
+    return add(slot && wantsSlot(selected, slot) ? 100 - meta.number / 10 : -300,
+      '札の種別が合う未試行欄へ置き、目的の配置を残す');
+  }
+  if (meta.action === 'commit') return add(200, '「盤を置いて席を立つ」で効果が適用されます。という注記に従って退席する');
+  if (meta.action === 'confirm') return add(allFilled ? 100 : -300, allFilled ? '全欄を埋めた仮説を確定する' : '空欄を埋めるまで確定を待つ');
+  if (meta.action === 'done') return add(!allFilled && !canPlace ? 110 : -300,
+    !allFilled && !canPlace ? '置ける札と欄が尽きたので盤を伏せる' : '確定して効果を受け取るまで盤を伏せない');
+  return add(0, '盤の操作を確かめる');
+}
+
 export function temariPolicy(option, observation, memory, strategy = 'safe') {
   if (observation.part?.name !== 'temariBoard') return { score:0, grounds:[] };
+  const reading = temariEffectReading(observation, strategy);
+  if (reading) return effectAwareTemariPolicy(option, observation, memory, strategy, reading);
+  // 効果文がない画面では、断罪型も従来の disrupt として判断する。
+  if (strategy === 'condemn') strategy = 'disrupt';
   const meta = option.meta || {}; const temari = observation.part.temari || {};
   const selected = temari.cards?.find((card) => card.selected);
   const card = temari.cards?.find((entry) => entry.id === meta.cardId);
@@ -258,7 +341,12 @@ function temariStrategy(profile) {
 function optionScore(option, observation, memory, profile, index) {
   const label = option.label || '';
   const context = `${observation.text || ''} ${observation.part?.text || ''} ${observation.chapter || ''}`;
-  const labels = Object.fromEntries(Object.entries(WORDS).map(([key, words]) => [key, hits(label, words)]));
+  // 「盤を伏せる」を沈黙・隠蔽として加点しない。全方針への適用はrushの
+  // 退席を変えるため、効果文を読んだhide/disrupt/condemnだけに限定する。
+  const boardControl = observation.part?.name === 'temariBoard'
+    && temariEffectReading(observation, temariStrategy(profile))
+    && ['done', 'confirm', 'commit', 'face'].includes(option.meta?.action);
+  const labels = Object.fromEntries(Object.entries(WORDS).map(([key, words]) => [key, boardControl ? 0 : hits(label, words)]));
   const scene = Object.fromEntries(Object.entries(WORDS).map(([key, words]) => [key, hits(context, words)]));
   const bias = labelBias(label);
   const params = observation.params || {};

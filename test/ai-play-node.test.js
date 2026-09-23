@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { runPersonas } from '../tools/AIプレイ/Node踏破検査.mjs';
+import { playPersona, runPersonas } from '../tools/AIプレイ/Node踏破検査.mjs';
 import { personas } from '../tools/AIプレイ/ペルソナ/index.js';
-import { observedTemari, observedOption, hudNumber } from '../tools/AIプレイ/lib/観測.js';
+import { observedTemari, observedOption, hudNumber, temariMeasurement } from '../tools/AIプレイ/lib/観測.js';
 import { Element } from '../tools/AIプレイ/lib/静的DOM.mjs';
 import { temariBoard } from '../src/systems/temariuta-board/index.js';
 import { staticDocument } from '../tools/AIプレイ/lib/静的DOM.mjs';
@@ -18,7 +18,7 @@ test('実シナリオ・実画面・共通の盤操作・11採点器を通して
   const results=await runPersonas();
   assert.equal(Object.keys(results).length,11);
   assert.equal(new Set(Object.values(results).map(r=>r.ending)).size,7);
-  for(const [id,end] of Object.entries({suiri:'b3_silenced',bannin:'a3_puppet',kanjou:'b1_true',sokkyou:'a1_arrest',ura:'a3_puppet',toubou:'a2_escape',ayatsuri:'a1_arrest',gyakuten:'a4_reversal',mikiri:'b3_silenced',shoshinsha:'b2_unfinished',danzai:'b2_unfinished'}))assert.equal(results[id].ending,end,id);
+  for(const [id,end] of Object.entries({suiri:'b3_silenced',bannin:'a3_puppet',kanjou:'b1_true',sokkyou:'a1_arrest',ura:'a1_arrest',toubou:'a2_escape',ayatsuri:'a1_arrest',gyakuten:'a4_reversal',mikiri:'b3_silenced',shoshinsha:'b2_unfinished',danzai:'b2_unfinished'}))assert.equal(results[id].ending,end,id);
   assert.ok(results.toubou.params.suspicion<=69);
   assert.ok(results.kanjou.params.agitation>=97);
   // ペルソナを替えず、旧版の共通報酬だけを戻した場合の分岐差。
@@ -34,6 +34,81 @@ test('実シナリオ・実画面・共通の盤操作・11採点器を通して
   assert.ok(reverse.flags.alive.includes('corpse_callus')&&reverse.flags.alive.includes('peephole_map'));
   assert.ok(reverse.flags.plan.includes('other_scriptwriter_noticed'),'表示された矛盾を解いて6/6の効果を実取得');
   for(const r of Object.values(results))assert.ok(r.decisions.filter(d=>d.part==='freeAction').length===16,'両章4行動・8注目先を実選択');
+});
+
+test('画面の効果説明を読んだ盤操作と測定を検証し、uraのEND差を盤だけの反実仮想で説明する', async () => {
+  const results = {};
+  for (const persona of Object.values(personas)) {
+    const transcript = [], decisions = [], placements = [];
+    const result = await playPersona({ ...persona, decide(observation, memory) {
+      const decision = persona.decide(observation, memory);
+      if (observation.part?.name === 'temariBoard') {
+        const step = transcript.length;
+        transcript.push({ ...structuredClone(observation), step });
+        const option = observation.part.options[decision.part];
+        decisions.push({step, action:'part:temariBoard', selected:option.label});
+        if (option.meta.action === 'slot') placements.push({
+          face:observation.part.temari.face,
+          card:observation.part.temari.cards.find(card => card.selected),
+          kind:option.meta.kind,
+        });
+      }
+      return decision;
+    } });
+    results[persona.id] = { ...result, temari:temariMeasurement(transcript, decisions), placements, transcript };
+    assert.deepEqual(result.warnings, [], persona.id);
+  }
+  // 変更しない7体の実盤の測定値と判断数。操作列・配置全体も変更前worktreeと比較済み。
+  const unchanged = {
+    suiri:[2,6,0,'commit',22], kanjou:[3,1,0,'commit',17], sokkyou:[2,2,0,'done',3],
+    ayatsuri:[2,2,0,'done',3], gyakuten:[2,6,0,'commit',19], mikiri:[3,1,0,'commit',17],
+    shoshinsha:[3,0,1,'commit',38],
+  };
+  for (const [id, expected] of Object.entries(unchanged)) {
+    const {temari:t, transcript} = results[id];
+    assert.deepEqual([t.showCredibility,t.truthAccuracy,t.shioriExposure,t.exit,transcript.length], expected, id);
+  }
+  for (const id of ['bannin', 'toubou']) {
+    const {temari:t, placements, decisions} = results[id];
+    assert.deepEqual(t.openedFaces, ['show'], id);
+    assert.equal(t.shioriExposure, 0, id);
+    assert.equal(t.exit, 'commit', id);
+    assert.equal(t.confirmed, true, id);
+    assert.ok(t.showCredibility > 2, id);
+    assert.ok(placements.length > 0 && placements.every(p => p.card.id !== 'shiori' && p.card.kinds.includes(p.kind)), id);
+    assert.ok(!decisions.some(d => d.part === 'temariBoard' && d.selected === '盤を伏せて席を立つ'), id);
+  }
+  const ura = results.ura;
+  assert.deepEqual(ura.temari.openedFaces, ['show', 'truth']);
+  assert.equal(ura.temari.shioriExposure, 2);
+  assert.equal(ura.temari.exit, 'commit');
+  assert.ok(ura.placements.some(p => p.face === 'show' && p.card.id === 'shiori' && p.card.kinds.includes(p.kind)));
+  assert.ok(ura.placements.some(p => p.face === 'truth'));
+  const danzai = results.danzai;
+  assert.deepEqual(danzai.temari.openedFaces, ['show', 'truth']);
+  assert.equal(danzai.temari.exit, 'commit');
+  assert.equal(danzai.temari.shioriExposure, 0);
+  assert.ok(danzai.placements.some(p => p.face === 'truth' && /宗玄/.test(p.card.name + p.card.note)));
+  assert.ok(danzai.placements.every(p => p.card.kinds.includes(p.kind)));
+  const values = Object.values(results);
+  assert.equal(values.filter(r => r.temari.openedFaces.includes('truth')).length, 7);
+  assert.equal(values.filter(r => r.temari.shioriExposure > 0 && r.temari.exit === 'commit').length, 2);
+  assert.equal(values.filter(r => r.temari.exit === 'commit').length, 9);
+
+  // 盤の効果説明だけを採点器から外して旧disruptへ戻す。シナリオ・盤本体・他の判断は同じ。
+  const legacy = await playPersona({ ...personas.ura, decide(observation, memory) {
+    return personas.ura.decide(observation.part?.name === 'temariBoard'
+      ? {...observation, part:{...observation.part, text:''}} : observation, memory);
+  } });
+  assert.deepEqual(legacy.decisions.filter(d => d.part === 'temariBoard').map(d => d.selected), [
+    '顔のすげ替え名と顔を切り離すための偽装', '実行者つなぐ', '盤を伏せて席を立つ',
+  ], '変更前の盤操作を再現');
+  assert.equal(legacy.ending, 'a3_puppet');
+  assert.equal(ura.ending, 'a1_arrest');
+  assert.equal(legacy.params.suspicion, 61);
+  assert.equal(ura.params.suspicion, 73);
+  assert.equal(ura.params.awareness - legacy.params.awareness, 16, '栞2欄のcommitによる警戒上昇');
+  assert.deepEqual(legacy.warnings, []);
 });
 
 test('再設計版の実HTMLから札・欄・選択状態を読み、盤面を空と誤認しない',async()=>{

@@ -29,6 +29,7 @@ export function temariMeasurement(transcript, decisions = []) {
     }
     const { showShiori, ...score } = assessBoardHypothesis(faces.truth, faces.show, [...numbers].map(number => ({ number })));
     boards.push({ ...score, shioriExposure:showShiori, ...measurement,
+      openedFaces:[...observedFaces],
       exit:measurement.exit || (ended ? 'unknown' : 'open') });
     current = null;
   };

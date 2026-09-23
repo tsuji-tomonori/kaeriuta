@@ -147,3 +147,122 @@ test('全欄で試し終えた札を再び操作候補へ出さない', () => {
   assert.equal(hasUntriedBoardPlacement('show', 'poison', boardSlots, exhausted), true);
   assert.equal(hasUntriedBoardPlacement('truth', 'onda', boardSlots, exhausted), true);
 });
+
+const effectNote = '「この仮説で確定」で矛盾文を確認し、「盤を置いて席を立つ」で効果が適用されます。';
+const showHeading = '悟郎たちへ差し出す盤。表の読みに寄せるほど確信は下がる。栞の名を置けば、その場で疑いを呼ぶ。';
+const truthHeading = '栞だけが綴じる盤。正しく読むほど、知りすぎの余白が増える。';
+function effectObservation(face = 'show') {
+  return { kind:'part', part:{ name:'temariBoard',
+    text:`${face === 'show' ? showHeading : truthHeading} まことの盤 見せる盤 ${effectNote}`,
+    temari:{ face, cards:['shiori', 'sogen', 'goko', 'poison', 'body_swap'].map(id => ({ ...boardCards[id], selected:false })),
+      slots:[
+        { number:1, kind:'actor', cardId:null, empty:true },
+        { number:1, kind:'meaning', cardId:null, empty:true },
+      ] },
+  } };
+}
+const operation = (action, details = {}) => ({ meta:{ action, ...details } });
+const policyScore = (strategy, obs, action, details = {}, memory = {}) => temariPolicy(operation(action, details), obs, memory, strategy).score;
+
+test('hideは効果説明を根拠に表の読みを優先し、確定前に伏せず、確定後commitする', () => {
+  const obs = effectObservation();
+  const score = (action, details) => policyScore('hide', obs, action, details);
+  assert.ok(score('card', {cardId:'poison'}) > score('card', {cardId:'body_swap'}));
+  assert.ok(score('card', {cardId:'poison'}) > score('done'));
+  assert.ok(score('face', {face:'truth'}) < 0);
+  assert.ok(score('confirm') < 0);
+  obs.part.temari.slots.forEach(slot => { slot.empty = false; slot.cardId = slot.kind === 'actor' ? 'sogen' : 'poison'; });
+  assert.ok(score('confirm') > score('done'));
+  assert.ok(score('confirm') > score('card', {cardId:'body_swap'}));
+  assert.ok(score('commit') > score('confirm'));
+  assert.match(temariPolicy(operation('confirm'), obs, {}, 'hide').grounds.join(' '), /表の読みに寄せるほど確信は下がる。/);
+});
+
+test('hideは栞の札を選ばず、持っていても種別の合う欄へ置かずに戻す', () => {
+  const obs = effectObservation();
+  assert.ok(policyScore('hide', obs, 'card', {cardId:'shiori'}) < 0);
+  obs.part.temari.cards.find(card => card.id === 'shiori').selected = true;
+  assert.ok(policyScore('hide', obs, 'card', {cardId:'shiori', selected:true})
+    > policyScore('hide', obs, 'slot', {number:1, kind:'actor'}));
+});
+
+test('hideは置ける札・欄が尽きた場合にだけ未完成の盤を伏せる', () => {
+  const obs = effectObservation();
+  obs.part.temari.cards = obs.part.temari.cards.filter(card => card.id === 'shiori');
+  assert.ok(policyScore('hide', obs, 'done') > policyScore('hide', obs, 'card', {cardId:'shiori'}));
+  assert.ok(policyScore('hide', obs, 'done') > 0);
+  const tried = effectObservation();
+  const memory = { temariTriedPlacements:tried.part.temari.cards.flatMap(card =>
+    tried.part.temari.slots.map(slot => `show:${card.id}:${slot.number}:${slot.kind}`)) };
+  assert.ok(policyScore('hide', tried, 'done', {}, memory) > 0);
+});
+
+test('disruptは疑いの説明を読んで見せる盤の栞を種別の合う欄へ置く', () => {
+  const obs = effectObservation();
+  assert.ok(policyScore('disrupt', obs, 'card', {cardId:'shiori'}) > policyScore('disrupt', obs, 'card', {cardId:'sogen'}));
+  obs.part.temari.cards.find(card => card.id === 'shiori').selected = true;
+  assert.ok(policyScore('disrupt', obs, 'slot', {number:1, kind:'actor'}) > policyScore('disrupt', obs, 'slot', {number:1, kind:'meaning'}));
+  assert.match(temariPolicy(operation('card', {cardId:'shiori'}), obs, {}, 'disrupt').grounds.join(' '), /栞の名を置けば、その場で疑いを呼ぶ。/);
+  obs.part.temari.slots[0] = {number:1, kind:'actor', cardId:'shiori', empty:false};
+  assert.ok(policyScore('disrupt', obs, 'face', {face:'truth'}) > policyScore('disrupt', obs, 'confirm'));
+  obs.part.temari.cards.forEach(card => { card.selected = card.id === 'sogen'; });
+  assert.ok(policyScore('disrupt', obs, 'slot', {number:1, kind:'actor'}) < 0, '置いた栞は上書きしない');
+});
+
+test('disruptはまことの盤への実配置を観測した後、見せる盤へ戻り確定する', () => {
+  const obs = effectObservation('truth');
+  const memory = {temariPending:{face:'truth', cardId:'sogen', number:1, kind:'actor'}};
+  reconcileTemariAttempt(obs, memory);
+  assert.equal(memory.temariPlacedFaces, undefined, '札を選んだだけでは配置済みにしない');
+  assert.ok(policyScore('disrupt', obs, 'face', {face:'show'}, memory) < 0);
+  obs.part.temari.slots[0] = {number:1, kind:'actor', cardId:'sogen', empty:false};
+  reconcileTemariAttempt(obs, memory);
+  assert.deepEqual(memory.temariPlacedFaces, ['truth']);
+  assert.ok(policyScore('disrupt', obs, 'face', {face:'show'}, memory) > policyScore('disrupt', obs, 'confirm', {}, memory));
+});
+
+test('condemnは表示されたまことの盤を開き、見出しと札の宗玄を根拠に配置する', () => {
+  const show = effectObservation();
+  assert.ok(policyScore('condemn', show, 'face', {face:'truth'}) > policyScore('condemn', show, 'card', {cardId:'sogen'}));
+  assert.ok(policyScore('condemn', show, 'card', {cardId:'shiori'}) < 0);
+  const truth = effectObservation('truth');
+  assert.ok(policyScore('condemn', truth, 'card', {cardId:'sogen'}) > policyScore('condemn', truth, 'card', {cardId:'poison'}));
+  assert.ok(policyScore('condemn', truth, 'card', {cardId:'goko'}) > policyScore('condemn', truth, 'card', {cardId:'poison'}), '注記の宗玄も読む');
+  truth.part.temari.cards.find(card => card.id === 'sogen').selected = true;
+  assert.ok(policyScore('condemn', truth, 'slot', {number:1, kind:'actor'}) > policyScore('condemn', truth, 'slot', {number:1, kind:'meaning'}));
+  assert.match(temariPolicy(operation('card', {cardId:'sogen'}), truth, {}, 'condemn').grounds.join(' '), /栞だけが綴じる盤。.*宗玄/);
+});
+
+test('効果文が画面にない・文言が変わった場合は従来の盤方針へ戻る', () => {
+  const options = [operation('done'), operation('confirm'), operation('commit'), operation('face', {face:'truth'}), operation('card', {cardId:'shiori'})];
+  for (const strategy of ['hide', 'disrupt', 'condemn']) {
+    const absent = effectObservation();
+    absent.part.text = '';
+    const changed = effectObservation();
+    changed.part.text = '説明文は改稿された。';
+    // observation.text に旧説明が残っていても、盤の表示文から読めないなら使わない。
+    changed.text = showHeading + effectNote;
+    for (const option of options) {
+      const old = temariPolicy(option, absent, {}, strategy === 'condemn' ? 'disrupt' : strategy);
+      assert.deepEqual(temariPolicy(option, changed, {}, strategy), old, strategy);
+      assert.deepEqual(temariPolicy(option, absent, {}, strategy), old, strategy);
+    }
+  }
+  for (const strategy of ['hide', 'disrupt']) {
+    const changed = effectObservation();
+    changed.part.text = changed.part.text.replace('栞の名を置けば、その場で疑いを呼ぶ。', '栞の名は注目される。');
+    const absent = effectObservation(); absent.part.text = '';
+    assert.deepEqual(temariPolicy(operation('done'), changed, {}, strategy), temariPolicy(operation('done'), absent, {}, strategy));
+  }
+});
+
+test('盤操作ボタンの汎用語群加点は、効果文を読んだ対象方針だけで抑える', () => {
+  const obs = effectObservation();
+  obs.part.options = [{index:0, label:'盤を伏せて席を立つ', meta:{action:'done'}}];
+  const profile = {reason:'', temariStrategy:'hide', weights:{conceal:5}, contextWeights:{conceal:2}, labels:{conceal:'沈黙・隠蔽'}};
+  obs.part.text += ' 伏せ';
+  assert.doesNotMatch(decideByScore(obs, {}, profile).reason, /沈黙・隠蔽/);
+  assert.match(decideByScore(obs, {}, {...profile, temariStrategy:'rush'}).reason, /沈黙・隠蔽/);
+  obs.part.text = '';
+  assert.match(decideByScore(obs, {}, profile).reason, /沈黙・隠蔽/);
+});
