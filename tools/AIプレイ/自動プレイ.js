@@ -1,6 +1,6 @@
 import { personas } from './ペルソナ/index.js';
 import { startProgression } from '../ブラウザ検証/進行基盤.js';
-import { observedTemari, observedOption, hudNumber } from './lib/観測.js';
+import { observedTemari, observedOption, hudNumber, temariMeasurement } from './lib/観測.js';
 
 const personaId = new URLSearchParams(location.search).get('persona') || 'sokkyou';
 const persona = personas[personaId];
@@ -170,17 +170,7 @@ function savedState() {
 
 function writeResult(progress) {
   const state = savedState();
-  const temariText = [...transcript].reverse().find((entry) => (
-    entry.part?.name === 'temariBoard'
-    && /表の読みへの一致：\d+\/\d+/.test(entry.text || '')
-  ))?.text || '';
-  const temariMatch = temariText.match(/表の読みへの一致：(\d+)\/(\d+).*まことの盤の正確さ：(\d+)\/(\d+).*見せる盤の栞の名指し：(\d+)/);
-  const temari = temariMatch ? {
-    showCredibility:Number(temariMatch[1]),
-    total:Number(temariMatch[2]),
-    truthAccuracy:Number(temariMatch[3]),
-    shioriExposure:Number(temariMatch[5]),
-  } : null;
+  const temari = temariMeasurement(transcript, decisions);
   const scored = decisions.filter((decision) => decision.diagnostic);
   const ambiguous = scored.filter((decision) => !decision.diagnostic.grounded);
   const ambiguousLabels = [...new Set(ambiguous.flatMap((decision) => decision.diagnostic.options || []))];
@@ -232,6 +222,7 @@ function writeResult(progress) {
       params: state?.params || null,
       flags: state?.flags || null,
       items: state?.items || null,
+      logs: state?.logs || null,
       flagCount: state ? Object.values(state.flags || {}).flat().length : null,
       cardCount: state?.items?.length ?? null,
       temari,

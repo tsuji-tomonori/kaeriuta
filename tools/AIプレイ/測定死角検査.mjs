@@ -42,6 +42,34 @@ for (const metric of metrics) {
 }
 
 const completedTruth = personas.filter((persona) => (summary[persona]?.final?.temari?.truthAccuracy ?? 0) >= 6);
+for (const [persona, result] of Object.entries(summary)) {
+  const { temari, logs } = result?.final || {};
+  if (!temari) continue;
+  if (temari.exit === 'open') {
+    console.log(`${persona}: 盤を開いたままでゲームの log が未記録のため、temari_board_matches との照合を省略`);
+    continue;
+  }
+  verify(() => {
+    assert.ok(logs && Object.hasOwn(logs, 'temari_board_matches'), `${persona}: logs.temari_board_matches が未取得`);
+    assert.equal(temari.truthAccuracy, logs.temari_board_matches, `${persona}: まことの盤の計算値とゲームの記録値が不一致`);
+  });
+}
+const exits = { commit:[], done:[], other:[] };
+for (const persona of personas) {
+  const temari = summary[persona]?.final?.temari;
+  const exit = temari?.exit;
+  exits[exit === 'commit' || exit === 'done' ? exit : 'other'].push(`${persona}${exit !== 'commit' && exit !== 'done' ? `=${exit || '未取得'}` : ''}`);
+  // 確定後の配置でスコア文は消える。最後の表示後に配置選択・スロット変化が
+  // なかった場合だけ、保存した表示値を退席時の計算値と比較する。
+  if (temari?.displayed && temari.displayedComparable === true) {
+    for (const metric of metrics) verify(() => assert.equal(
+      temari.displayed[metric.key], temari[metric.key], `${persona}: ${metric.name}の表示値と計算値が不一致`,
+    ));
+  } else if (temari?.displayed) {
+    console.log(`${persona}: 最後の表示後に配置操作あり、または比較可否未取得のため表示値の比較を省略`);
+  }
+}
+console.log(`退席方法: ${Object.entries(exits).map(([exit, values]) => `${exit === 'other' ? 'その他' : exit} ${values.length}件（${values.join(' ')}）`).join(' / ')}`);
 verify(() => assert.ok(completedTruth.length > 0, 'まことの盤を6/6まで完成したペルソナがいない'));
 for (const persona of completedTruth) {
   verify(() => assert.ok(
