@@ -4,7 +4,10 @@ import { runBruteForceResistance } from './総当たり耐性.mjs';
 
 const personas = ['suiri', 'bannin', 'kanjou', 'sokkyou', 'ura', 'toubou', 'ayatsuri', 'gyakuten', 'mikiri', 'shoshinsha', 'danzai'];
 const baselineEndings = {
-  suiri:'b3', bannin:'a1', kanjou:'b1', sokkyou:'a1', ura:'a3', toubou:'a2',
+  // 02Bの報酬分割: 旧道では壁の手掛かり、繊維では死者の手を同時取得しない。
+  // banninは生存1件のまま耐えるためA-3。旧共通報酬2件だけを戻すと
+  // 生存3件・確信100でA-1になることをai-play-node.test.jsで検証。
+  suiri:'b3', bannin:'a3', kanjou:'b1', sokkyou:'a1', ura:'a3', toubou:'a2',
   ayatsuri:'a1', gyakuten:'a4', mikiri:'b3',
   // 8/11 をコウナン任せにすると動揺66で止まる。任せきりでは真相に届かない設計どおりの B-2。
   shoshinsha:'b2', danzai:'b2',

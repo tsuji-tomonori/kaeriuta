@@ -3,7 +3,7 @@ import { flags } from '../../data/flags.js';
 import { items } from '../../data/items.js';
 import { enrichFreeActions } from '../freeaction/index.js';
 
-const powerWord = { strong: '強い反証になる', medium: '反証の支えになる', weak: '読み替えの糸口になる' };
+import { powerWord } from '../rebuttal/power.js';
 
 export function unchosenActions(logValue, actions = []) {
   const chosen = new Set(String(logValue ?? '').split(',').filter(Boolean));

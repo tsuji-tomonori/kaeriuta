@@ -73,6 +73,19 @@
   white-space: nowrap;
 }
 
+.kaeriuta-title__premise {
+  margin: .45rem auto .6rem;
+  max-width: 34rem;
+  color: #eee6ca;
+  font-size: clamp(.78rem, 1.5vw, .92rem);
+  line-height: 1.65;
+}
+
+.kaeriuta-title__premise > span {
+  display: block;
+  white-space: nowrap;
+}
+
 .kaeriuta-menu__eyebrow,
 .kaeriuta-title__eyebrow {
   margin: 0;
@@ -529,6 +542,12 @@
   .kaeriuta-title__bookplate h1 {
     margin:0 0 .15em;
     font-size:clamp(1.9rem,8vh,3.25rem);
+  }
+
+  .kaeriuta-title__premise {
+    margin:.2rem auto .35rem;
+    font-size:.72rem;
+    line-height:1.4;
   }
 
   .kaeriuta-menu__eyebrow,.kaeriuta-title__eyebrow { font-size:.68rem; }
