@@ -1,10 +1,13 @@
-import { modal, finish, stateOf, condition, displayText } from '../common.js';
+import { screenRoot, finish, stateOf, condition, displayText } from '../common.js';
 import { flags } from '../../data/flags.js';
 import { items } from '../../data/items.js';
 import { mansionRooms, roomsByFloor, roomActionIndex, roomRect, roomStatus } from '../../data/mansion-map.js';
 import { explorationHintsEnabled } from '../../engine/progress.js';
+import { isDialogOpen, showConfirm, showNotice } from '../../ui/dialog.js';
+import { showPlayGuide } from '../../ui/play-guide.js';
 import { chapter1 } from '../../data/scenario/chapter1.js';
 import { chapter2 } from '../../data/scenario/chapter2.js';
+import { changeParam, createParams } from '../../engine/params.js';
 
 const lineHint = { past: '🕯 過去', plan: '📜 計画', alive: '👁 生存' };
 function actionLines(action) {
@@ -110,7 +113,19 @@ export function enrichFreeActions(actions) {
   });
 }
 
-const paramNames = { suspicion:'疑い', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
+const paramNames = { suspicion:'疑惑', conviction:'確信', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心', agitation:'動揺' };
+export function freeActionParamPreview(state, effects) {
+  const before = { ...createParams(), ...state.params };
+  const after = effects.filter((effect) => effect.t === 'param')
+    .reduce((params, effect) => changeParam(params, effect.key, effect.delta), before);
+  return Object.keys(before).filter((key) => after[key] !== before[key])
+    .map((key) => `${paramNames[key] || key} ${before[key]} → ${after[key]}`);
+}
+function pendingChangesMarkup(model) {
+  if (!model.used.length) return '';
+  const changes = freeActionParamPreview(model.state, model.effects);
+  return `<section class="fa-acquired" aria-label="数値の反映予定"><strong>ここまでの行動による数値の反映予定</strong><p>${changes.length ? changes.map(displayText).join(' ／ ') : '数値の変化なし'}</p><small>自由行動を終えると、画面上部の数値や手帳にもまとめて反映されます。</small></section>`;
+}
 function paramText(effect) {
   const name = paramNames[effect.key] || effect.key;
   return `${name}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`;
@@ -121,11 +136,22 @@ export function costDescription(action) {
     label: option.label,
     effects: (option.effects || []).filter((effect) => effect.t === 'param').map(paramText),
   })).filter(({ effects }) => effects.length);
-  return `${fixed.length ? fixed.join('、') : '数えられる代償はない'}${conditional.map(({ label, effects }) => `\n（「${label}」を選ぶと、さらに ${effects.join('、')}）`).join('')}`;
+  return `${fixed.length ? fixed.join('、') : '数値の変化なし'}${conditional.map(({ label, effects }) => `\n（「${label}」を選ぶと、さらに ${effects.join('、')}）`).join('')}`;
 }
 
-export function freeActionGuideMarkup(remaining) {
-  return `<section class="freeaction-guide" aria-labelledby="freeaction-guide-title"><h2 id="freeaction-guide-title">自由行動の進め方</h2><p class="freeaction-guide__purpose">限られた時間で、どの手掛かりを集めるか選びます。すべての場所を調べることはできません。</p><ol><li><strong>場所または行動を選ぶ</strong><span>地図の部屋を押すか、下の一覧から行動を直接選びます。</span></li><li><strong>見返りと代償を比べる</strong><span>行動を1つ選ぶと、残り回数が1減ります。</span></li><li><strong>注目先を1つ選ぶ</strong><span>行動先で何を詳しく見るか決めると、探索が完了します。</span></li></ol><p class="freeaction-guide__remaining">選べる行動は、あと <b>${displayText(remaining, 0)}</b> 回です。</p></section>`;
+export function freeActionGoal(day, actions, used = []) {
+  const opening = day === 1;
+  const preferred = opening ? 'accomplice_room' : 'kitchen';
+  const suggested = actions.find((action) => action.id === preferred && !used.includes(action.id));
+  return {
+    title: opening ? '自分の足取りと、共犯計画を確かめる' : '計画と事件を照合し、手毬唄ボードで整理する',
+    detail: opening
+      ? '恩田の死で計画が動き出しました。栞は共犯者です。昨夜の行動を説明できる記録や、仲間の指示を確かめましょう。'
+      : '尋問はひとまず終わりました。計画と実際の事件の食い違いを調べ、次の手毬唄ボードで整理しましょう。証拠は、その後の推理や反論にも使えます。',
+    suggested,
+    next: suggested ? `迷ったら「${suggested.label}」から。${opening ? '仲間の指示書を確認できます。' : '配膳の記録を確認できます。'}ほかの行動から始めても構いません。`
+      : '得た情報を踏まえ、自分を守る記録を集めるか、館の違和感を追うかを選びましょう。',
+  };
 }
 
 const floorLabels = { '1f':'一階', '2f':'二階', under:'地下・屋外' };
@@ -133,7 +159,7 @@ function roomName(roomId) { return mansionRooms.find((room) => room.id === roomI
 function actionPreview(action, hintsEnabled) {
   const preview = previewLineLabels(action, hintsEnabled);
   const cost = displayText(costDescription(action)).replace(/\n/g, '<br>');
-  return `${preview.length ? `<span class="freeaction-lines">見込める手掛かり：${preview.map(displayText).join('・')}</span>` : ''}<span class="freeaction-gain">見返り：${displayText(action.gain, action.desc || '頁を読む')}</span><span class="freeaction-cost">代償：${cost}</span>`;
+  return `${preview.length ? `<span class="freeaction-lines">見込める手掛かり：${preview.map(displayText).join('・')}</span>` : ''}<span class="freeaction-gain">得られる情報：${displayText(action.gain, action.desc || '頁を読む')}</span><span class="freeaction-cost">行動による変化：${cost}</span>`;
 }
 function effectNotices(effects) {
   const notices = [];
@@ -183,30 +209,66 @@ function roomPanelMarkup(model, actions) {
   const available = (roomActionIndex(actions)[room.id] || []).filter((action) => !model.used.includes(action.id));
   const contents = !status.revealed
     ? '<p>この区画のことは、まだ何も分かっていない。</p>'
-    : `<p>${displayText(room.desc)}</p>${available.length ? `<h3>ここでできること</h3><div class="mansion-room-actions">${available.map((action) => `<button data-room-action="${displayText(action.id)}"><strong>${displayText(action.label)}</strong>${actionPreview(action, model.hintsEnabled)}</button>`).join('')}</div>` : '<p>いまここで、できることはない。</p>'}`;
+    : `<p>${displayText(room.desc)}</p>${available.length ? `<h3>ここでできること</h3><div class="mansion-room-actions">${available.map((action) => `<button data-room-action="${displayText(action.id)}"><strong>${displayText(action.label)}</strong>${actionPreview(action, model.hintsEnabled)}<span class="fa-row-cost">行動1回を消費して開始</span></button>`).join('')}</div>` : '<p>いまここで、できることはない。</p>'}`;
   return `<div class="parts-panel mansion-room-panel" role="dialog" aria-modal="true" aria-labelledby="mansion-room-title"><header><h2 id="mansion-room-title">${status.revealed ? displayText(room.name) : '？'}</h2><button class="mansion-room-close" aria-label="閉じる">×</button></header><main>${contents}<footer><button class="mansion-room-return">見取り図に戻る</button></footer></main></div>`;
 }
 
 export const freeAction = { async start(ctx, args = {}) {
   const actions = enrichFreeActions(args.actions || defaults);
   const hintsEnabled = explorationHintsEnabled(globalThis.localStorage);
-  let model = { state: stateOf(ctx), remaining: args.blocks ?? 3, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', openRoomId: null, hintsEnabled };
+  const totalBlocks = args.blocks ?? 3;
+  let model = { state: stateOf(ctx), remaining: totalBlocks, used: [], effects: [], phase: FREE_ACTION_PHASE.SELECTING, currentAction: null, focusResult: null, selectedRoom: 'study', openRoomId: null, hintsEnabled };
+  let filter = 'all';
+  let briefing = totalBlocks > 0 && actions.length > 0;
+  model.selectedRoom = freeActionGoal(args.day || 1, actions).suggested?.room || model.selectedRoom;
   return new Promise((resolve) => {
-    const modalView = modal(ctx, `第${args.day || 1}章・自由行動`);
+    const { root, stage } = screenRoot(ctx);
     let resolved = false;
     const done = () => {
       if (resolved) return;
       resolved = true;
       model = closeFreeAction(model);
-      finish(modalView.root, resolve, { effects: [...model.effects, { t:'log', key:`free_action_day${args.day || 1}`, value:model.used.join(',') }], remaining:model.remaining });
+      finish(root, resolve, { effects: [...model.effects, { t:'log', key:`free_action_day${args.day || 1}`, value:model.used.join(',') }], remaining:model.remaining });
     };
+    const requestEnd = async () => {
+      if (isDialogOpen() || resolved) return;
+      if (model.phase === FREE_ACTION_PHASE.FOCUSING || model.phase === FREE_ACTION_PHASE.READING) {
+        await showNotice({ mount: root, title: '選んだ行動を終えてから', body: '注目する点を選び、結果を読んでください。「次の行動を選ぶ」へ進んだあとで探索を切り上げられます。', okLabel: '行動に戻る' });
+        return;
+      }
+      const accepted = await showConfirm({ mount: root, title: '自由行動を切り上げますか？', body: `残り${model.remaining}回の行動を使わずに、次の場面へ進みます。この自由行動には戻れません。`, okLabel: '切り上げて進む', cancelLabel: '探索を続ける' });
+      if (accepted && !resolved) done();
+    };
+    root.addEventListener('click', (event) => {
+      if (event.target.closest?.('[data-free-help]') && !isDialogOpen()) showPlayGuide({ mount: root });
+    });
+    const pips = () => Array.from({ length: totalBlocks }, (_, index) => `<span class="fa-pip ${index < model.remaining ? 'is-full' : ''}"></span>`).join('');
+    const topbar = (title, extra = '') => `<div class="ku-topbar"><span class="ku-chip">自由行動</span><span class="ku-meta">第${args.day || 1}章${title ? ` ／ ${displayText(title)}` : ''}</span>${extra}<button class="ku-secondary fa-help" data-free-help>遊び方</button><button class="ku-close" aria-label="自由行動を切り上げる">×</button></div>`;
     const render = () => {
       if (model.phase === FREE_ACTION_PHASE.FINISHED) return done();
+      const goal = freeActionGoal(args.day || 1, actions, model.used);
+      if (briefing) {
+        stage.innerHTML = `${topbar('行動を選ぶ前に')}
+          <section class="fa-briefing" aria-labelledby="fa-goal-title">
+            <p class="fa-narrative-prompt">いまの目的</p><h1 id="fa-goal-title">${displayText(goal.title)}</h1>
+            <p>${displayText(goal.detail)}</p>
+            <p class="fa-suggestion">${displayText(goal.next)}</p>
+            <h2>行動の選び方</h2>
+            <ol><li>一覧で、行動の内容と数値の変化を読みます。</li><li>行動ボタンをクリック／タップすると開始。<strong>1つ選ぶと残り回数が1減ります。</strong></li><li>基本の手掛かりは行動自体で獲得します。そのうえで注目する点を選ぶと、追加の情報や危険が変わります。</li><li>結果を読んで次の行動へ。証拠は後の推理や反論に使えます。</li></ol>
+            <p>今回は<strong>${totalBlocks}回</strong>行動できます。読む・考える・見取り図を見るだけでは時間は進みません。すべてを調べる時間はないので、知りたいことを選んでください。</p>
+          </section><div class="ku-thumbzone"><button class="ku-primary" id="begin-exploration">行動一覧へ</button><span class="ku-primary-hint">この操作では行動回数を消費しません</span></div>`;
+        stage.querySelector('#begin-exploration').onclick = () => { briefing = false; render(); };
+        stage.querySelector('.ku-close').onclick = requestEnd;
+        stage.querySelector('#begin-exploration').focus();
+        return;
+      }
+
       if (model.phase === FREE_ACTION_PHASE.FOCUSING) {
         const action = model.currentAction;
         const focus = action.scenes.focus;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="freeaction-focus-guide">この行動で得られる主な手掛かりは確保しました。最後に、詳しく見るものを1つ選んでください。</p><h3>${displayText(focus.prompt, 'どこを見る？')}</h3><div class="freeaction-focuses">${focus.options.map((option) => `<button data-focus="${displayText(option.id)}">${displayText(option.label)}</button>`).join('')}</div></div></article>`;
-        modalView.main.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative"><p>${displayText(action.scenes.intro, action.narrative)}</p><p class="fa-narrative-prompt">${displayText(focus.prompt, 'どこを見る？')}</p><small>基本の手掛かりはこの行動で獲得済みです。さらに注目する点を1つ選んでください。</small></div><div class="ku-thumbzone"><div class="ku-hand">${focus.options.map((option) => `<button class="ku-card" data-focus="${displayText(option.id)}"><span class="ku-card-name">${displayText(option.label)}</span></button>`).join('')}</div></div>`;
+        stage.querySelectorAll('[data-focus]').forEach((button) => { button.onclick = () => { model = focusFreeAction(model, button.dataset.focus); render(); }; });
+        stage.querySelector('.ku-close').onclick = requestEnd;
         return;
       }
       if (model.phase === FREE_ACTION_PHASE.READING) {
@@ -214,43 +276,60 @@ export const freeAction = { async start(ctx, args = {}) {
         const notices = effectNotices([...(action.reward || []), ...(model.focusResult?.effects || [])]);
         const discovery = model.focusResult?.text || action.scenes?.discovery || action.narrative || `${displayText(action.desc, '情報')}を得た。`;
         const reaction = action.scenes?.reaction || '';
-        const acquiredNotice = notices.length ? `<div class="freeaction-acquired">${notices.map((notice) => `<p>${displayText(notice)}</p>`).join('')}</div>` : `<p class="freeaction-acquired">得たこと：${displayText(action.acquired, action.desc || '悟郎の質問の順序が読めるようになった')}</p>`;
-        modalView.main.innerHTML = `<article class="freeaction-narrative"><h2>${displayText(action.label)}</h2><div class="freeaction-narrative-body"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}</div><footer><button id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></footer></article>`;
-        modalView.main.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
+        const acquiredNotice = notices.length ? `<div class="fa-acquired">${notices.map((notice) => `<p>${displayText(notice)}</p>`).join('')}</div>` : `<p class="fa-acquired">得たこと：${displayText(action.acquired, action.desc || '悟郎の質問の順序が読めるようになった')}</p>`;
+        stage.innerHTML = `${topbar(action.label)}<div class="fa-narrative ku-scroll"><p>${displayText(discovery)}</p>${reaction ? `<p>${displayText(reaction)}</p>` : ''}${acquiredNotice}${pendingChangesMarkup(model)}</div><div class="ku-thumbzone"><button class="ku-primary" id="next">${model.remaining > 0 && actions.some((item) => !model.used.includes(item.id)) ? '次の行動を選ぶ' : '自由行動を終える'}</button></div>`;
+        stage.querySelector('#next').onclick = () => { model = continueFreeAction(model, actions); render(); };
+        stage.querySelector('.ku-close').onclick = requestEnd;
         return;
       }
       const choices = actions.filter((action) => !model.used.includes(action.id));
       if (model.remaining <= 0 || choices.length === 0) return done();
       const acquired = model.used.map((id) => actions.find((action) => action.id === id)?.label).filter(Boolean);
       const counts = hintsEnabled ? flagCounts(model.state) : null;
-      const countNotice = counts ? `<p class="freeaction-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
-      modalView.main.innerHTML = `${freeActionGuideMarkup(model.remaining)}${countNotice}${acquired.length ? `<p class="freeaction-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<h3 class="freeaction-map-heading">1. 地図から場所を選ぶ</h3><p class="freeaction-map-help">部屋を押すと、その場所でできる行動と見返り・代償を確認できます。</p>${mapMarkup(model, actions)}<h3 class="freeaction-list-heading">または、行動の一覧から直接選ぶ</h3><div class="action-list">${choices.map((action) => { const focused = action.room === model.selectedRoom ? ' is-focused' : ''; return `<button class="${focused.trim()}" data-id="${displayText(action.id)}"><strong>${displayText(action.label)}</strong><span class="freeaction-room">${displayText(roomName(action.room))}</span>${actionPreview(action, hintsEnabled)}</button>`; }).join('')}</div><p class="freeaction-stop-help">残り回数を使い切る必要はありません。ここまでで十分なら終了できます。</p><button id="done">自由行動をここで終える</button>`;
+      const countNotice = counts ? `<p class="fa-counts">所持：🕯 過去 ${counts.past}　📜 計画 ${counts.plan}　👁 生存 ${counts.alive}</p>` : '';
+      const filterTabs = hintsEnabled ? `<div class="fa-filters"><button class="fa-filter ${filter === 'all' ? 'is-selected' : ''}" data-filter="all">すべて ${choices.length}</button>${Object.entries(lineHint).map(([line, label]) => `<button class="fa-filter ${filter === line ? 'is-selected' : ''}" data-filter="${line}">${label} ${choices.filter((action) => actionLines(action).includes(line)).length}</button>`).join('')}</div>` : '';
+      const visible = hintsEnabled && filter !== 'all' ? choices.filter((action) => actionLines(action).includes(filter)) : choices;
+      const rows = visible.map((action) => {
+        const focused = action.room === model.selectedRoom;
+        const lines = hintsEnabled ? acquiredLineLabels(action) : [];
+        return `<button class="ku-card fa-row ${focused ? 'is-focused' : ''}" data-id="${displayText(action.id)}"><span class="ku-card-name">${displayText(action.label)}</span><span class="fa-row-meta">${displayText(roomName(action.room))}${lines.length ? ` ／ ${lines.join('・')}` : ''}</span>${actionPreview(action, hintsEnabled)}<span class="fa-row-cost">行動1回を消費して開始</span></button>`;
+      }).join('');
+      stage.innerHTML = `${topbar('', `<span class="fa-pips">残り ${model.remaining} / ${totalBlocks} 回<span aria-hidden="true">${pips()}</span></span>`)}
+        <div class="fa-body">
+          <div class="fa-main"><section class="fa-objective" aria-label="いまの目的"><strong>${displayText(goal.title)}</strong><p>${displayText(goal.next)}</p><small>行動ボタンで開始・1回消費。読む間は時間が進みません。</small></section>${pendingChangesMarkup(model)}${filterTabs}${countNotice}${acquired.length ? `<p class="fa-used">探索済み：${acquired.map(displayText).join('／')}</p>` : ''}<div class="fa-list">${rows}</div></div>
+          <aside class="fa-aside">${mapMarkup(model, actions)}</aside>
+        </div>
+        <div class="ku-thumbzone"><button class="ku-secondary" id="done">自由行動を切り上げる</button></div>`;
       const chooseAction = (id) => { model = selectFreeAction(model, choices.find((action) => action.id === id)); render(); };
-      modalView.main.querySelectorAll('[data-id]').forEach((button) => {
+      stage.querySelectorAll('[data-id]').forEach((button) => {
         button.onclick = () => chooseAction(button.dataset.id);
       });
-      modalView.main.querySelectorAll('[data-room]').forEach((room) => {
+      stage.querySelectorAll('[data-filter]').forEach((button) => {
+        button.onclick = () => { filter = button.dataset.filter; render(); };
+      });
+      stage.querySelectorAll('[data-room]').forEach((room) => {
         const open = () => { model = openRoomPanel(model, room.dataset.room); render(); };
         room.onclick = open;
         room.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } };
       });
-      modalView.main.querySelectorAll('[data-floor]').forEach((tab) => {
+      stage.querySelectorAll('[data-floor]').forEach((tab) => {
         const select = () => { model = { ...model, selectedRoom: roomsByFloor(tab.dataset.floor)[0].id }; render(); };
         tab.onclick = select;
         tab.onkeydown = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } };
       });
-      modalView.main.querySelector('#done').onclick = done;
+      stage.querySelector('#done').onclick = requestEnd;
+      stage.querySelector('.ku-close').onclick = requestEnd;
       if (model.openRoomId) {
         const roomPanel = document.createElement('section');
         roomPanel.className = 'mansion-room-modal';
         roomPanel.innerHTML = roomPanelMarkup(model, actions);
-        modalView.root.append(roomPanel);
+        root.append(roomPanel);
         const closePanel = () => {
           const roomId = model.openRoomId;
           roomPanel.remove();
           model = closeRoomPanel(model);
           render();
-          modalView.main.querySelector(`[data-room="${roomId}"]`)?.focus();
+          stage.querySelector(`[data-room="${roomId}"]`)?.focus();
         };
         roomPanel.querySelectorAll('.mansion-room-close, .mansion-room-return').forEach((button) => { button.onclick = closePanel; });
         roomPanel.querySelectorAll('[data-room-action]').forEach((button) => {
@@ -267,7 +346,6 @@ export const freeAction = { async start(ctx, args = {}) {
         (firstAction || roomPanel.querySelector('.mansion-room-close')).focus();
       }
     };
-    modalView.close.onclick = done;
     render();
   });
 } };

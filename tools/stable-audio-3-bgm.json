@@ -1,0 +1,83 @@
+{
+  "model": "stabilityai/stable-audio-3-medium",
+  "variant_key": "medium",
+  "duration": 60,
+  "steps": 8,
+  "cfg_scale": 1.5,
+  "sampler_type": "pingpong",
+  "loop_crossfade_seconds": 2,
+  "current_render": {
+    "date": "2026-08-17",
+    "encoding": "48 kHz stereo Ogg Vorbis q=7; measured 180-197 kbps",
+    "direct_generation": [
+      "bgm_arrival",
+      "bgm_storm",
+      "bgm_inquiry"
+    ],
+    "arrangements": {
+      "bgm_mansion": "Stable Audio 3 arrival alternate (seed 17082601); tempo 0.90, low-pass 6500 Hz, +2 dB at 180 Hz",
+      "bgm_reasoning": "bgm_inquiry source; tempo 1.25, high-pass 80 Hz, +2 dB at 3000 Hz, light compression",
+      "bgm_ending": "Stable Audio 3 true-ending anchor (seed 17082602); tempo 0.94, low-pass 9500 Hz",
+      "bgm_end_arrest": "bgm_inquiry source seconds 12-50; sample-rate shift 0.94, low-pass 5800 Hz",
+      "bgm_end_escape": "bgm_arrival source seconds 8-60; tempo 1.12, high-pass 130 Hz, short echo",
+      "bgm_end_rescue": "Stable Audio 3 true-ending anchor (seed 17082602); high-pass 50 Hz, low-pass 12000 Hz"
+    },
+    "comparison": "Compared every arrangement with an independently composed, dependency-free procedural candidate. Stable Audio 3 arrangements retained for wider dynamics and lower fatigue risk; see docs/音響設計メモ.md."
+  },
+  "tracks": [
+    {
+      "id": "bgm_arrival",
+      "seed": 2026081701,
+      "target_lufs": -22,
+      "prompt": "Instrumental Japanese mystery adventure game BGM for arriving at a remote mountain mansion in gentle rain, 76 BPM, D minor, intimate felt piano, warm cello, muted viola and restrained frame drum, quiet anticipation and human warmth, recurring eight-note home-song motif D5 F5 E5 C5 D5 A4 G4 D5 stated clearly but softly, spacious acoustic room, comfortable under dialogue, coherent 60-second loop, no vocals, not horror, no jump scares, no harsh synths, no industrial or machine sounds, no piercing highs, no distorted bass"
+    },
+    {
+      "id": "bgm_storm",
+      "seed": 2026081702,
+      "target_lufs": -22,
+      "prompt": "Instrumental Japanese mystery adventure game crisis BGM for a suspension bridge collapsing in a storm, 110 BPM, D minor, urgent low chamber strings, taiko-like low drums, timpani and bass clarinet gusts, decisive forward motion rather than horror, recurring home-song motif D5 F5 E5 C5 D5 A4 G4 D5 fragmented in the strings, dramatic but comfortable under dialogue, coherent 60-second loop, no vocals, no jump scares, no harsh synths, no industrial or machine sounds, no piercing highs, no distorted bass"
+    },
+    {
+      "id": "bgm_mansion",
+      "seed": 2026081703,
+      "target_lufs": -22,
+      "prompt": "Instrumental Japanese mystery adventure exploration BGM inside an old mountain mansion, 70 BPM, D minor, sparse felt piano, bass clarinet, cello harmonics, soft wood blocks like a distant clock, observant and curious rather than frightening, recurring home-song motif D5 F5 E5 C5 D5 A4 G4 with the final D withheld, low musical density for two hours of reading, coherent 60-second loop, no vocals, not horror, no jump scares, no harsh synths, no industrial or machine sounds, no piercing highs, no distorted bass"
+    },
+    {
+      "id": "bgm_inquiry",
+      "seed": 2026081704,
+      "target_lufs": -22,
+      "prompt": "Instrumental Japanese mystery adventure interrogation BGM, 84 BPM, D minor, measured pizzicato cello, dry low piano, brushed snare and subtle hand percussion, controlled psychological pressure with pauses for dialogue, recurring home-song motif D5 F5 E5 C5 D5 A4 G4 D5 questioned in short phrases, tense but not sinister, coherent 60-second loop, no vocals, not horror, no jump scares, no harsh synths, no industrial or machine sounds, no piercing highs, no distorted bass"
+    },
+    {
+      "id": "bgm_reasoning",
+      "seed": 2026081705,
+      "target_lufs": -22,
+      "prompt": "Instrumental Japanese mystery adventure deduction and rebuttal BGM, 118 BPM, D minor, agile staccato piano, chamber strings, bass clarinet and crisp restrained percussion, intellectual momentum and clue alignment without victory fanfare, recurring home-song motif D5 F5 F-sharp5 E5 C5 D5 A4 G4 D5 in half-time rhythmic fragments, energetic but comfortable under dialogue, coherent 60-second loop, no vocals, not horror, no harsh synths, no industrial or machine sounds, no piercing highs, no distorted bass"
+    },
+    {
+      "id": "bgm_ending",
+      "seed": 2026081706,
+      "target_lufs": -24,
+      "prompt": "Instrumental Japanese mystery adventure general ending BGM, 78 BPM, D minor, bittersweet felt piano, warm cello and breathy wooden flute, reflective aftermath with compassion and unresolved consequences, recurring home-song motif D5 F5 E5 C5 D5 A4 G4 D5 resolving only softly, gentle dynamics for long closing dialogue, coherent 60-second loop, no vocals, not horror, no melodramatic trailer swell, no harsh synths, no industrial or machine sounds, no piercing highs"
+    },
+    {
+      "id": "bgm_end_arrest",
+      "seed": 2026081707,
+      "target_lufs": -24,
+      "prompt": "Instrumental Japanese mystery adventure arrest ending BGM, 66 BPM, D minor, dry solitary piano, low cello and one soft wooden percussion accent, restrained grief and irreversible consequence, recurring home-song motif deliberately cut off after D5 F5 E5 C5 with no final resolving D, sparse and sober under closing dialogue, coherent 60-second loop, no vocals, not horror, no police sirens, no machine sounds, no harsh synths, no piercing highs"
+    },
+    {
+      "id": "bgm_end_escape",
+      "seed": 2026081708,
+      "target_lufs": -24,
+      "prompt": "Instrumental Japanese mystery adventure escape ending BGM, 96 BPM, D minor, light hand percussion, distant wooden flute, acoustic guitar harmonics and warm cello, open mountain road at dawn, relief mixed with unfinished truth rather than triumph, recurring home-song motif D5 F5 E5 C5 D5 A4 G4 left unresolved and receding, coherent 60-second loop, no vocals, not horror, no victory fanfare, no harsh synths, no industrial or machine sounds, no piercing highs"
+    },
+    {
+      "id": "bgm_end_rescue",
+      "seed": 2026081709,
+      "target_lufs": -24,
+      "prompt": "Instrumental Japanese mystery adventure true rescue ending BGM, 102 BPM, D major colored by remembered D minor, luminous felt piano, warm chamber strings, wooden flute and restrained celebratory hand percussion, truth restored and people choosing to return home, recurring home-song motif D5 F5 then F-sharp5 E5 C5 D5 A4 G4 D5 finally resolving with a clear sustained D, hopeful and earned rather than bombastic, coherent 60-second loop, no vocals, no pop song, no harsh synths, no industrial or machine sounds, no piercing highs"
+    }
+  ]
+}

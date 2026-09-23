@@ -1,0 +1,196 @@
+/* 反論・自由行動・手毬唄ボード共通の再設計トークン／土台。
+   他パート（共同推理・手帳・章まとめ・成績）は .parts-modal / .parts-panel のままとし、
+   このファイルでは触れない。 */
+
+:root {
+  --ku-bg: #0a0908;
+  --ku-bg-soft: #0e0c0b;
+  --ku-cream: #f2ead6;
+  --ku-cream-dim: rgba(242, 234, 214, .55);
+  --ku-cream-faint: rgba(242, 234, 214, .28);
+  --ku-vermillion: #c4432b;
+  --ku-vermillion-soft: rgba(196, 67, 43, .18);
+  --ku-vermillion-line: rgba(196, 67, 43, .5);
+  --ku-ember: #e08a72;
+  --ku-mincho: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif;
+  --ku-gothic: -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", system-ui, sans-serif;
+  --ku-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.ku-screen {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ku-bg);
+  color: var(--ku-cream);
+  font-family: var(--ku-gothic);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+.ku-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(118deg, rgba(255, 255, 255, .022) 0 9px, rgba(255, 255, 255, .006) 9px 18px);
+}
+.ku-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.ku-topbar {
+  position: absolute;
+  left: max(24px, env(safe-area-inset-left, 0));
+  right: max(24px, env(safe-area-inset-right, 0));
+  top: max(16px, env(safe-area-inset-top, 0));
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+.ku-chip {
+  flex: none;
+  padding: 7px 14px;
+  background: var(--ku-vermillion);
+  color: var(--ku-bg);
+  font: 700 15px/1 var(--ku-gothic);
+  letter-spacing: .14em;
+}
+.ku-title {
+  font-family: var(--ku-mincho);
+  font-size: 19px;
+  letter-spacing: .06em;
+  color: rgba(242, 234, 214, .8);
+}
+.ku-meta {
+  font: 13px/1 var(--ku-mono);
+  letter-spacing: .12em;
+  color: var(--ku-cream-dim);
+}
+.ku-spacer { margin-left: auto; }
+
+.ku-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  background: rgba(242, 234, 214, .08);
+  border: 1px solid rgba(242, 234, 214, .25);
+  color: var(--ku-cream);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ku-close:hover, .ku-close:focus-visible { border-color: var(--ku-cream); background: rgba(242, 234, 214, .16); }
+
+/* 常設の手順インジケータ：①②③のうち今の段だけが光る */
+.ku-steps { position: absolute; left: max(24px, env(safe-area-inset-left, 0)); top: 62px; z-index: 2; display: flex; align-items: stretch; border: 1px solid rgba(242, 234, 214, .16); background: rgba(12, 11, 10, .8); }
+.ku-step { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--ku-cream-dim); font-size: 15px; }
+.ku-step b { font: 700 13px var(--ku-mono); }
+.ku-step.is-active { background: var(--ku-vermillion); color: var(--ku-bg); font-weight: 700; }
+.ku-step.is-done { color: var(--ku-ember); }
+
+/* 下辺40%＝親指圏。操作対象はすべてここに集約する。 */
+.ku-thumbzone {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  padding: 0 max(24px, env(safe-area-inset-left, 0)) max(18px, env(safe-area-inset-bottom, 0)) max(24px, env(safe-area-inset-right, 0));
+  padding-top: 26px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ku-thumbzone::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 210px;
+  z-index: -1;
+  background: linear-gradient(rgba(10, 9, 8, 0), rgba(10, 9, 8, .94) 34%);
+  pointer-events: none;
+}
+.ku-hand-label { flex: 0 0 100%; display: flex; align-items: center; gap: 12px; font: 12px var(--ku-mono); letter-spacing: .14em; color: var(--ku-cream-dim); }
+.ku-hand { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; flex: 1 1 auto; min-width: 0; }
+
+.ku-card {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px 14px;
+  background: rgba(242, 234, 214, .1);
+  border: 1px solid rgba(242, 234, 214, .28);
+  color: var(--ku-cream);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ku-card:hover, .ku-card:focus-visible { border-color: rgba(242, 234, 214, .55); background: rgba(242, 234, 214, .16); }
+.ku-card:focus-visible { outline: 1px solid var(--ku-cream); outline-offset: 2px; }
+.ku-card .ku-card-kind { font: 11px var(--ku-mono); letter-spacing: .1em; color: var(--ku-cream-dim); }
+.ku-card .ku-card-name { font-family: var(--ku-mincho); font-size: 19px; line-height: 1.35; }
+.ku-card .ku-card-note { margin-top: auto; font-size: 12.5px; color: var(--ku-cream-dim); }
+.ku-card.is-selected { position: relative; background: rgba(196, 67, 43, .2); border: 2px solid var(--ku-vermillion); box-shadow: 0 0 0 4px rgba(196, 67, 43, .12); }
+.ku-card.is-selected .ku-card-kind { color: var(--ku-ember); }
+.ku-card.is-selected::after { content: "選択中"; position: absolute; right: -1px; top: -1px; padding: 3px 8px; background: var(--ku-vermillion); color: var(--ku-bg); font: 700 11px var(--ku-mono); }
+.ku-card.is-irrelevant { background: rgba(242, 234, 214, .04); border: 1px dashed rgba(242, 234, 214, .18); color: var(--ku-cream-faint); cursor: not-allowed; }
+.ku-card.is-irrelevant .ku-card-note { color: var(--ku-cream-faint); }
+.ku-card:disabled { cursor: not-allowed; }
+
+.ku-primary {
+  min-height: 44px;
+  padding: 16px 30px;
+  background: var(--ku-vermillion);
+  color: var(--ku-bg);
+  border: none;
+  font: 600 22px/1 var(--ku-mincho);
+  letter-spacing: .12em;
+  cursor: pointer;
+}
+.ku-primary:hover, .ku-primary:focus-visible { background: #d95538; }
+.ku-primary:disabled { background: rgba(242, 234, 214, .13); color: rgba(242, 234, 214, .55); cursor: not-allowed; }
+.ku-primary-hint { font: 12px var(--ku-mono); color: var(--ku-cream-faint); }
+
+.ku-secondary {
+  min-height: 44px;
+  padding: 12px 20px;
+  background: rgba(242, 234, 214, .1);
+  border: 1px solid rgba(242, 234, 214, .25);
+  color: var(--ku-cream);
+  font: 15px/1 var(--ku-gothic);
+  cursor: pointer;
+}
+.ku-secondary:hover, .ku-secondary:focus-visible { border-color: var(--ku-cream); background: rgba(242, 234, 214, .16); }
+
+.ku-gauges { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; }
+.ku-gauge { display: flex; align-items: center; gap: 9px; }
+.ku-gauge-label { font: 12px var(--ku-mono); letter-spacing: .12em; color: var(--ku-cream-dim); }
+.ku-gauge-bar { width: 150px; height: 8px; background: rgba(242, 234, 214, .14); position: relative; }
+.ku-gauge-bar > i { position: absolute; left: 0; top: 0; bottom: 0; display: block; background: linear-gradient(90deg, #7d2717, var(--ku-ember)); }
+.ku-gauge.is-danger .ku-gauge-bar > i { background: linear-gradient(90deg, #7d2717, #f0a48c); }
+.ku-gauge.is-danger .ku-gauge-label { color: var(--ku-ember); }
+.ku-gauge-value { font: 12px var(--ku-mono); color: var(--ku-cream-dim); }
+
+.ku-scroll { position: absolute; overflow-y: auto; overscroll-behavior: contain; }
+
+@media (max-width: 720px), (orientation: landscape) and (max-height: 480px) {
+  .ku-topbar { left: max(14px, env(safe-area-inset-left, 0)); right: max(14px, env(safe-area-inset-right, 0)); gap: 8px; }
+  .ku-steps { left: max(14px, env(safe-area-inset-left, 0)); }
+  .ku-thumbzone { padding-left: max(14px, env(safe-area-inset-left, 0)); padding-right: max(14px, env(safe-area-inset-right, 0)); gap: 10px; }
+  .ku-gauge-bar { width: 100px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ku-card, .ku-primary, .ku-secondary { transition: none !important; }
+}

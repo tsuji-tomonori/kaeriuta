@@ -43,11 +43,11 @@ test('initializeAppを2回呼んでもdocumentリスナが多重登録されな�
   };
   const first = await initializeApp(options);
   assert.equal(documentRef.listenerCount('keydown'), 1);
-  assert.equal(documentRef.listenerCount('wheel'), 1);
+  assert.equal(documentRef.listenerCount('wheel'), 0);
 
   const second = await initializeApp(options);
   assert.equal(documentRef.listenerCount('keydown'), 1);
-  assert.equal(documentRef.listenerCount('wheel'), 1);
+  assert.equal(documentRef.listenerCount('wheel'), 0);
 
   second.dispose();
   assert.equal(documentRef.listenerCount('keydown'), 0);

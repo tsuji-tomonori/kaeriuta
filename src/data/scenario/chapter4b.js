@@ -82,7 +82,7 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
 {t:'mono',text:'恩田さんの書き込み本には「初出なし」とあり、『冬の灯』の改稿前後を比べた紙には、別人の筆圧が残る。散らばっていた疑いが、律さんの机で初めて一冊の証拠になった。'},
 {t:'flag',id:'search_record'},{t:'item',id:'search_record_card'},{t:'flag',id:'lattice_shadow'},{t:'item',id:'lattice_shadow_card'},{t:'flag',id:'temariuta_murder_page'},{t:'item',id:'temariuta_murder_page'},{t:'flag',id:'award_photo_right_hand'},{t:'item',id:'award_photo_right_hand'},{t:'flag',id:'folklorist_reply'},{t:'item',id:'folklorist_reply'},{t:'flag',id:'onda_annotated_book'},{t:'item',id:'onda_annotated_book'},{t:'flag',id:'winter_lamp_style'},{t:'item',id:'winter_lamp_style'},
 {t:'flag',id:'manuscript_left_hand'},{t:'item',id:'manuscript_left_hand_card'},{t:'flag',id:'left_handed_pen'},{t:'item',id:'left_handed_pen'},{t:'flag',id:'original_title'},{t:'item',id:'original_title_card'},{t:'flag',id:'acrostic'},{t:'item',id:'acrostic_card'},
-{t:'mono',text:'表紙の『帰り唄』は刊行本にない題だった。五つの節の二行目を追う。きんの盃。りんと座した。はきもの片方。らせんの底。りょうしの鉄砲。頭文字は、四十年間を生き延びた署名だった。私は頁の上に指を置き、声にしないで名前を読んだ。霧原律。'},
+{t:'mono',text:'表紙の『帰り唄』は刊行本にない題だった。六つの節の二行目を追う。きんの盃。りんと座した。はきもの片方。らせんの底。りょうしの鉄砲。つくりばなし。頭文字は、四十年間を生き延びた署名だった。私は頁の上に指を置き、声にしないで名前を読んだ。霧原律。'},
 {t:'mono',text:'あの唄は、土地のものではなかった。閉じ込められた人が、館の形と自分の名を、子供の口に残るような短い節へ畳んだものだった。宗玄はそれを盗み、恐怖を飾る小道具にした。けれど盗んだ紙から、作者の指紋までは拭えない。二行目の頭文字は、ひどく小さく、それでいてどんな献辞より確かな帰り道だった。'},
 {t:'stage',text:'【壁の向こうで鍵が回る。原稿の端を揺らし、冷たい風が入る。】'},
 {t:'chara',id:'chara_sogen',expr:'shadow',pos:'center',action:'fadeIn'},
@@ -124,3 +124,4 @@ export const chapter4b={id:'chapter4b',title:'五番の夜',chapter:'第四章B�
  ]},
  {t:'label',id:'b3'},{t:'jump',scene:'end_b3'}
 ]};
+

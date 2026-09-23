@@ -8,6 +8,8 @@ const mainCss = read('../src/styles/main.css');
 const hudCss = read('../src/styles/hud.css');
 const menuCss = read('../src/styles/menu.css');
 const partsCss = read('../src/styles/parts.css');
+const freeActionCss = read('../src/styles/追加-freeaction.css');
+const boardCss = read('../src/styles/追加-board.css');
 
 const landscapeQuery = /@media\s*\(orientation:\s*landscape\)[^{]*(?:max-height|pointer:\s*coarse)/;
 
@@ -53,4 +55,15 @@ test('横向きではタイトル・セーブ・特殊パートも高さへ収�
   assert.match(partsCss, landscapeQuery);
   assert.match(partsCss, /height:calc\(100dvh - 1rem\)/);
   assert.match(partsCss, /\.mansion-map\s*\{\s*max-height:48vh/);
+});
+
+test('自由行動の一覧と見取り図は重ならず、それぞれの領域でスクロールする', () => {
+  assert.match(freeActionCss, /\.fa-main\s*\{[^}]*position:\s*relative/);
+  assert.match(freeActionCss, /\.fa-main\s*\{[^}]*overflow-y:\s*auto/);
+  assert.match(freeActionCss, /\.fa-aside\s*\{[^}]*overflow-x:\s*hidden/);
+});
+
+test('手毬唄ボードの上部バーは閉じるボタンをタブへ折り返さない', () => {
+  assert.match(boardCss, /\.ku-board-screen \.ku-topbar\s*\{[^}]*flex-wrap:\s*nowrap/);
+  assert.match(boardCss, /\.ku-board-screen \.ku-title\s*\{[^}]*text-overflow:\s*ellipsis/);
 });

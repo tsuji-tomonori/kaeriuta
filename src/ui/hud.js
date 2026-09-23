@@ -6,6 +6,7 @@ const BUTTONS = [
   ['skip', 'スキップ', 'onSkip'],
   ['auto', 'オート', 'onAuto'],
   ['config', '設定', 'onConfig'],
+  ['help', '遊び方', 'onHelp'],
   ['title', 'タイトルへ', 'onTitle'],
 ];
 

@@ -43,7 +43,7 @@ test('全行動は見返り、正本の危険、焦点を持ち、参照先が�
   }
 });
 test('全行動の代償表示は、常時効果と焦点ごとの実効果を区別して列挙する', () => {
-  const names = { suspicion:'疑い', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
+  const names = { suspicion:'疑惑', trust:'信頼', awareness:'警戒', overknow:'知りすぎ', conscience:'良心' };
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   for (const action of actions) {
     const fixed = action.risk.filter((effect) => effect.t === 'param').map((effect) => `${names[effect.key]}が${Math.abs(effect.delta)}${effect.delta >= 0 ? '増す' : '下がる'}`);
@@ -121,3 +121,4 @@ test('知らないふりの演じ直しは行動ブロックと良心を使い�
   assert.deepEqual(action.risk, [{t:'param',key:'conscience',delta:-1}]);
   assert.ok(action.scenes.focus.options.every((option) => option.effects.some((effect) => effect.t === 'param' && effect.key === 'overknow' && effect.delta === -1)));
 });
+
