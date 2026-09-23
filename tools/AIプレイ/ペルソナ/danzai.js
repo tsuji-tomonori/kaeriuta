@@ -1,6 +1,7 @@
 import { decideByScore, specialPartPolicy } from './共通.js';
 
 const profile = {
+  temariStrategy: 'condemn',
   reason: '真相を飾って返すより、宗玄が奪った時間を断罪して帳尻を合わせたい',
   advanceReason: '怒りの残る頁を読み進める',
   labels: { harmful:'断罪と対決', direct:'責任を問う行動', disruptive:'脚本を拒む行動', conceal:'言葉を飲み込む行動', care:'赦しや配慮' },
