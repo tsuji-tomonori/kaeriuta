@@ -82,7 +82,7 @@ export function showTitle(root, {
         <div class="kaeriuta-title__bookplate">
           <p class="kaeriuta-title__eyebrow">倒叙ミステリーアドベンチャー</p>
           <h1>帰り唄 <small>―手毬唄の館―</small></h1>
-          <p class="kaeriuta-title__premise">あなたは、交換殺人を約束した側の司書・鬼灯栞。<br>計画にいない少年探偵から罪を隠すか、館に仕組まれた真相を暴くかを選びます。</p>
+          <p class="kaeriuta-title__premise"><span>犯人の視点で辿る、館の三日間。</span><span>罪を隠し通すか、真実を話すか。</span></p>
           <nav class="kaeriuta-title__actions" aria-label="主メニュー">
             <button type="button" data-start>はじめから</button>
             <button type="button" data-play-guide>遊び方・目的</button>

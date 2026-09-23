@@ -82,3 +82,69 @@
   .fa-pips > span { display: none; }
   .fa-help { padding: 8px 12px; }
 }
+
+/* 一覧は目的一行と三行カード。詳しい説明は任意に開く。 */
+.fa-screen .fa-objective { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 6px 10px; margin-bottom: 8px; font-size: 14px; }
+.fa-rules { font-size: 12px; }
+.fa-rules summary { cursor: pointer; text-decoration: underline; }
+.fa-rules[open] { flex-basis: 100%; }
+.fa-screen .fa-filters { gap: 6px; margin-bottom: 6px; }
+.fa-screen .fa-filter { min-height: 32px; padding: 4px 10px; }
+.fa-screen .fa-counts { margin-bottom: 6px; line-height: 18px; }
+.fa-screen .fa-list { gap: 6px; }
+.fa-screen .fa-row { display: flex; gap: 3px; padding: 8px 12px; min-height: 84px; flex-shrink: 0; }
+.fa-screen .fa-row .ku-card-name { font-size: 17px; line-height: 24px; white-space: nowrap; }
+.fa-screen .freeaction-use { font-size: 13px; line-height: 19px; }
+.fa-screen .freeaction-cost { font-size: 12px; line-height: 18px; color: var(--ku-cream-dim); }
+.fa-screen .fa-narrative p { margin: 0 0 1em; }
+.fa-screen[data-phase="focusing"] .fa-narrative { bottom: 146px; }
+.fa-screen .ku-thumbzone { padding-top: 10px; }
+.fa-screen .ku-thumbzone::before { height: 100%; background: var(--ku-bg); }
+.fa-screen .ku-hand { flex-wrap: nowrap; }
+.fa-screen [data-focus] { flex: 1 1 0; min-width: 0; }
+.fa-focus-change { font-size: 12px; line-height: 1.5; }
+.fa-screen .ku-topbar { flex-wrap: nowrap; }
+.fa-screen .ku-meta { min-width: 0; }
+@media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
+  .fa-screen .fa-body, .fa-screen .fa-narrative { left: 14px; right: 14px; }
+  .fa-screen .fa-narrative { padding: 12px 16px; }
+  .fa-screen .ku-thumbzone { flex-wrap: nowrap; padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .fa-screen [data-focus] { padding: 8px 10px; }
+  .fa-screen [data-focus] .ku-card-name { font-size: 15px; line-height: 21px; }
+  .fa-screen[data-phase="focusing"] .fa-narrative { bottom: 118px; }
+  .fa-screen .ku-primary-hint { font-size: 11px; }
+  .fa-screen .ku-meta { font-size: 12px; }
+}
+@media (max-width: 520px) {
+  .fa-screen .fa-row .ku-card-name { font-size: 14px; }
+}
+
+.fa-screen .fa-param-guide { margin: 0 0 6px; font-size: 12px; line-height: 18px; color: var(--ku-cream-dim); }
+
+/* 結果の獲得物は本文スクロールから独立させる。 */
+.fa-screen[data-phase="reading"] .fa-narrative { right: 46%; max-width: 68ch; }
+.fa-takeaway { position: absolute; top: 96px; right: 24px; bottom: 100px; width: 40%; padding: 16px; background: var(--ku-bg-soft); border-left: 2px solid var(--ku-vermillion); font-size: 14px; line-height: 1.55; }
+.fa-reward-details { margin-top: 12px; max-height: 40%; overflow-y: auto; }
+.fa-takeaway h2 { margin: 0 0 10px; font-size: 20px; }
+.fa-takeaway .fa-acquired { margin-top: 10px; }
+.fa-result-summary { display: none; }
+@media (max-width: 900px), (max-height: 520px) {
+  .fa-takeaway { display: none; }
+  .fa-screen[data-phase="reading"] .fa-narrative { right: 14px; bottom: 126px; }
+  .fa-screen .fa-result-controls { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  .fa-result-summary { display: grid; gap: 2px; font-size: 12px; line-height: 16px; }
+  .fa-result-summary span { display: block; }
+  .fa-screen .fa-result-controls .ku-primary { justify-self: start; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .fa-screen .fa-body { top: 64px; bottom: 66px; }
+  .fa-screen .fa-objective { font-size: 12px; line-height: 18px; margin-bottom: 4px; padding: 2px 8px; }
+  .fa-screen .fa-row { display: grid; grid-template-columns: 1fr auto; gap: 1px 8px; min-height: 48px; padding: 4px 8px; }
+  .fa-screen .fa-row .ku-card-name { font-size: 14px; line-height: 20px; }
+  .fa-screen .fa-row .freeaction-use { grid-row: 2; grid-column: 1 / -1; font-size: 12px; line-height: 17px; }
+  .fa-screen .fa-row .freeaction-cost { grid-row: 1; grid-column: 2; font-size: 11px; line-height: 20px; }
+  .fa-screen .fa-list { gap: 4px; }
+  .fa-screen .fa-filter { min-height: 26px; }
+  .fa-screen .fa-focus-change { font-size: 11px; line-height: 15px; }
+  .fa-screen[data-phase="focusing"] .fa-narrative { bottom: 152px; }
+}

@@ -8,7 +8,7 @@ export const rebuttalCh4a = { id:'day3_show', title:'眠りの悟郎・推理シ
   {kind:'silence',label:'足跡の話を聞き流す',result:{effects:[{t:'param',key:'conviction',delta:9}],note:'沈黙は推測を補強する。'}},
   {kind:'redirect',label:'藤乃の濡れた裾を証言する',card:'other_plan',result:{effects:[{t:'param',key:'conviction',delta:-18},{t:'param',key:'conscience',delta:-3}],break:true,note:'唯一の逃げ道は、藤乃を推理の中心へ置くことだった。'}}]},
  {id:'n3',kind:'物証',claim:'凶器から栞さんの繊維が出た',responses:[
-  {kind:'rebut',label:'替え布の繊維鑑定を出す',card:'alibi_3',result:{effects:[{t:'param',key:'conviction',delta:-13}],break:true,note:'繊維は犯行を語らず、仕込まれた布を語る。'}},
+  {kind:'rebut',label:'袖口の繊維控えを出す',card:'alibi_3',result:{effects:[{t:'param',key:'conviction',delta:-13}],break:true,note:'繊維は犯行を語らず、仕込まれた布を語る。'}},
   {kind:'silence',label:'繊維の話には答えない',result:{effects:[{t:'param',key:'conviction',delta:8}],note:'ここで沈黙は逃げになる。'}},
   {kind:'rebut',label:'凶器の傷の向きを言い当てる',note:'知りすぎを承知で決定打を出す',result:{effects:[{t:'param',key:'conviction',delta:-16},{t:'param',key:'suspicion',delta:20},{t:'param',key:'overknow',delta:1}],break:true,overknow:true,note:'論破した瞬間、知るはずのない角度が残った。'}}]},
  {id:'n4',kind:'動機',claim:'被害者は栞さんを恐れていた',responses:[

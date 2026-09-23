@@ -1,3 +1,4 @@
+import { observationHint, observedResponse } from './observation.js';
 import { screenRoot, finish, stateOf, has, condition, displayText } from '../common.js';
 import { addTestimony } from '../notebook/index.js';
 import { items } from '../../data/items.js';
@@ -50,8 +51,9 @@ export const rebuttal = { async start(ctx, args) {
  const loadSource = rebuttalRegistry[args?.id];
  if (!loadSource) throw new Error(`未知の反論パートID: ${args?.id ?? '(なし)'}`);
  const source = await loadSource();
- const data = args?.nodes ? { ...source, ...args, testimony: args.testimony, nodes: args.nodes.map((node, index) => ({ ...source.nodes[index], ...node, kind: node.kind ?? node.type ?? source.nodes[index]?.kind ?? source.nodes[index]?.type })) } : source;
+ const baseData = args?.nodes ? { ...source, ...args, testimony: args.testimony, nodes: args.nodes.map((node, index) => ({ ...source.nodes[index], ...node, kind: node.kind ?? node.type ?? source.nodes[index]?.kind ?? source.nodes[index]?.type })) } : source;
  const s = stateOf(ctx);
+ const data = { ...baseData, nodes: baseData.nodes.map(node => ({ ...node, responses: node.responses.map(response => observedResponse(s, baseData.id, node.id, response)) })) };
  return new Promise(resolve => {
   const { root, stage } = screenRoot(ctx); let i = 0, effects = [], broken = [], conviction = args?.initialConviction ?? data.initialConviction ?? s.params?.conviction ?? 50, overknow = s.params?.overknow ?? 0, selected = null;
   const gaugesMarkup = (gaze) => `<div class="ku-gauges ku-spacer"><div class="ku-gauge"><span class="ku-gauge-label">悟郎の確信</span><span class="ku-gauge-bar"><i style="width:${displayText(conviction, 0)}%"></i></span><span class="ku-gauge-value">${displayText(conviction, 0)}%</span></div><div class="ku-gauge ${gaze >= 80 ? 'is-danger' : ''}"><span class="ku-gauge-label">コウナンの注視</span><span class="ku-gauge-bar"><i style="width:${gaze}%"></i></span><span class="ku-gauge-value">${gaze}%（${gazeWord(gaze)}）</span></div></div>`;
@@ -60,7 +62,7 @@ export const rebuttal = { async start(ctx, args) {
    const options = responseOptions(node.responses, { hasCard: card => has(ctx, card), meetsCondition: cond => condition(ctx, cond) });
    const cards = options.map(({ response, key, disabled }) => {
     const meta = response.card && cardMeta(response.card);
-    const details = [meta?.source ? `${displayText(meta.source)}で得た札` : '', `効き目：${effectivenessFor(response, broken)}`, ...costLabelsFor(response), ...exposureCostLabels(response.card), meta?.exposure ? `使うと${displayText(meta.exposure)}` : '', response.note ? displayText(response.note) : ''].filter(Boolean);
+    const details = [observationHint(s, data.id, response, broken), meta?.source ? `${displayText(meta.source)}で得た札` : '', `効き目：${effectivenessFor(response, broken)}`, ...costLabelsFor(response), ...exposureCostLabels(response.card), meta?.exposure ? `使うと${displayText(meta.exposure)}` : '', response.note ? displayText(response.note) : ''].filter(Boolean);
     return `<button class="ku-card ${disabled ? 'is-irrelevant' : ''} ${selected === key ? 'is-selected' : ''}" data-r="${key}"${disabled ? ' disabled aria-disabled="true"' : ''}><span class="ku-card-kind">${responsePrefix(response.kind)}</span><span class="ku-card-name">${meta ? displayText(meta.name) : displayText(response.label)}</span><span class="ku-card-note">${details.length ? details.map(displayText).join(' ／ ') : disabled ? 'この場では使えません' : displayText(response.label)}</span></button>`;
    }).join('');
    stage.innerHTML = `<div class="ku-topbar"><span class="ku-chip">反論</span><span class="ku-meta">${displayText(data.title)}</span>${gaugesMarkup(gaze)}<button class="ku-close" aria-label="尋問を終える">×</button></div>

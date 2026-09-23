@@ -15,14 +15,14 @@ test('自由行動ログから未選択の頁を逆算する', () => {
 
 test('章末サマリは増減と実行済み行動の原因だけを表示する', () => {
   const result = buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{ free_action_day1:'study,explore', study_focus:'binding', explore_focus:'road' } }, {
-    chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎を調べる',risk:[{t:'param',key:'suspicion',delta:10}]},{id:'explore',label:'館を探索する'}], watch:['suspicion','overknow','trust'],
+    chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎で初版本の痕を読む',risk:[{t:'param',key:'suspicion',delta:10}]},{id:'explore',label:'二階廊下から壁と裏道を探る'}], watch:['suspicion','overknow','trust'],
   });
-  assert.equal(watchText(result.watch), '疑い +18（書斎を調べる、館を探索する） ／ 知りすぎ +1（書斎を調べる）');
-  assert.doesNotMatch(watchText(result.watch), /信頼/);
+  assert.equal(watchText(result.watch), '疑い +18（書斎で初版本の痕を読む、二階廊下から壁と裏道を探る） ／ 知りすぎ +1（書斎で初版本の痕を読む） ／ 信頼 +3（書斎で初版本の痕を読む）');
+  assert.doesNotMatch(watchText(result.watch), /剛蔵/);
 });
 
 test('未選択行動がなければ選ばなかった頁の節を出さない', () => {
-  const html = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{ free_action_day1:'study' } }, { chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎を調べる'}] }));
+  const html = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{ free_action_day1:'study' } }, { chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎で初版本の痕を読む'}] }));
   assert.doesNotMatch(html, /選ばなかった頁/);
   assert.doesNotMatch(html, /書斎には、まだ読んでいない頁がある/);
 });
@@ -49,8 +49,8 @@ test('END解説は共同推理の内部IDを表示しない', () => {
 });
 
 test('報告用: 各章の章末サマリ表示例を実出力する', () => {
-  const first = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{free_action_day1:'study,explore',study_focus:'binding',explore_focus:'road'}}, { chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎を調べる',risk:[{t:'param',key:'suspicion',delta:10}]},{id:'explore',label:'館を探索する'}], watch:['suspicion','overknow'] }));
-  const second = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{free_action_day2:'morgue,doctor',morgue_focus:'hand',doctor_focus:'words'}}, { chapter:2, actionsLogKey:'free_action_day2', actions:[{id:'morgue',label:'死体安置室に忍び込む',risk:[{t:'param',key:'overknow',delta:1}]},{id:'doctor',label:'主治医を探る',risk:[{t:'param',key:'suspicion',delta:5}]}], watch:['suspicion','overknow'] }));
+  const first = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{free_action_day1:'study,explore',study_focus:'binding',explore_focus:'road'}}, { chapter:1, actionsLogKey:'free_action_day1', actions:[{id:'study',label:'書斎で初版本の痕を読む',risk:[{t:'param',key:'suspicion',delta:10}]},{id:'explore',label:'二階廊下から壁と裏道を探る'}], watch:['suspicion','overknow'] }));
+  const second = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:[],alive:[]}, items:[], params:{}, logs:{free_action_day2:'morgue,doctor',morgue_focus:'hand',doctor_focus:'words'}}, { chapter:2, actionsLogKey:'free_action_day2', actions:[{id:'morgue',label:'安置室で死者の手を確かめる',risk:[{t:'param',key:'overknow',delta:1}]},{id:'doctor',label:'佐伯の部屋で歯型の記録を問う',risk:[{t:'param',key:'suspicion',delta:5}]}], watch:['suspicion','overknow'] }));
   const third = renderChapterSummary(buildChapterSummary({ flags:{past:[],plan:['other_plan'],alive:[]}, items:[], params:{}, logs:{route:'confession',chapter3_final:'song'}}, { chapter:3, kind:'route' }));
   for (const [chapter, html] of [['第一章', first], ['第二章', second], ['第三章', third]]) console.log(`${chapter}章末サマリ例: ${html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()}`);
 });

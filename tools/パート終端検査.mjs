@@ -14,7 +14,10 @@ const slots = ['dead', 'actor', 'meaning'];
 
 function mustTerminate(name, advance, complete) {
   for (let step = 0; step < maxSteps; step++) {
-    if (complete()) return console.log(`${name}: ${step}操作で終端`);
+    if (complete()) {
+      assert.ok(step > 0, `${name}: 0操作で終端していない`);
+      return console.log(`${name}: ${step}操作で終端`);
+    }
     advance();
   }
   assert.fail(`${name}: ${maxSteps}操作以内に終端しなかった`);

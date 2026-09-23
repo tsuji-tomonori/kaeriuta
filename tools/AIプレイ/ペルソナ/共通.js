@@ -3,12 +3,12 @@
 const WORDS = {
   investigate: ['調', '探', '見', '読', '聞', '覗', '観察', '確認', '証', '記録', '書斎', '部屋', '本', '手掛', '真相'],
   conceal: ['黙', '沈黙', '知ら', '曖昧', '笑', '伏せ', '隠', 'ごまか', '逸ら', 'やり過ご', '答えを遅'],
-  prepare: ['準備', '片付', '当番', '厨房', 'カップ', '白湯', 'アリバイ', '計画', '旧道', '逃', '戻', '閉じ'],
+  prepare: ['指示書', '準備', '片付', '当番', '厨房', 'カップ', '白湯', 'アリバイ', '計画', '旧道', '逃', '戻', '閉じ'],
   care: ['助', '寄り添', '話', '謝', '告白', '自首', '蘭子', '母', '心', '信', '待', '守'],
   dialogue: ['話', '聞', '答', '任せ', '座', '伝', '問', '返事', '呼'],
   harmful: ['転嫁', '売', '偽', '毒', '殺', '危険', '隠', '逃', '出さない', '黙'],
   safe: ['待', '戻', '任せ', '穏', 'そのまま', '聞き流', '閉じ', '離れない'],
-  disruptive: ['転嫁', '出さない', '無視', '拒', '壊', '逃', '隠', '黙', '逆ら', '問い返'],
+  disruptive: ['盗み', '転嫁', '出さない', '無視', '拒', '壊', '逃', '隠', '黙', '逆ら', '問い返'],
   direct: ['自首', '告白', '示す', '話す', '答える', '向かう', '入る', '調べる'],
   own: ['自分', '提示', '反証', '暴く'],
   proxy: ['コウナン', '任せ'],
@@ -295,7 +295,8 @@ function optionScore(option, observation, memory, profile, index) {
     grounds.push(profile.specificityReason || '文言の具体性を補助基準にする');
   }
   if (profile.indexReason && profile.indexWeight) grounds.push(profile.indexReason);
-  const route = requiredRouteScore(profile, label);
+  const route = observation.kind === 'choice' || observation.part?.name === 'freeAction'
+    ? requiredRouteScore(profile, label) : { score: 0, grounds: [] };
   score += route.score;
   grounds.push(...route.grounds);
   if (profile.adjust) {
@@ -333,6 +334,9 @@ export function decideByScore(observation, memory, profile) {
   // 特殊パートはボタンの役割（反証、代理、遺品、沈黙など）も明示的な方針根拠。
   const grounded = selected.grounds.length > 0 && (!runnerUp || margin >= 0.05);
   memory.lastLabel = selected.option.label;
+  if (observation.part?.name === 'freeAction') memory.acquiredClues = [...new Set([
+    ...(memory.acquiredClues || []), ...[...selected.option.label.matchAll(/手掛かり「([^」]+)」/g)].map(m => m[1]),
+  ])];
   if (selected.option.meta?.action === 'card') memory.temariCards = [...new Set([...(memory.temariCards || []), selected.option.meta.cardId])];
   if (selected.option.meta?.action === 'slot' && observation.part?.name === 'temariBoard') {
     const selectedCard = observation.part.temari?.cards?.find((card) => card.selected);

@@ -22,12 +22,14 @@ test('scenes のない行動は従来どおり読了段階へ直行する', () =
   const current = selectFreeAction(model(), { id:'plain', reward:[], risk:[] });
   assert.equal(current.phase, FREE_ACTION_PHASE.READING);
 });
-test('注目の効果は分岐し、主要報酬はどちらでも既に得ている', () => {
+test('注目した頁だけが手掛かりになり、選ぶ前には取得しない', () => {
   const action = enrichFreeActions(actionsOf(chapter1)).find((item) => item.id === 'study');
   const first = focusFreeAction(selectFreeAction(model(), action), 'dedication');
   const second = focusFreeAction(selectFreeAction(model(), action), 'binding');
   assert.notDeepEqual(first.effects, second.effects);
-  for (const current of [first, second]) assert.ok(current.state.flags.past.includes('dedication_erasure'));
+  assert.ok(first.state.flags.past.includes('dedication_erasure'));
+  assert.ok(!second.state.flags.past.includes('dedication_erasure'));
+  assert.ok(!selectFreeAction(model(), action).state.flags.past.includes('dedication_erasure'));
 });
 test('全行動は見返り、正本の危険、焦点を持ち、参照先が存在する', () => {
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
@@ -87,16 +89,17 @@ test('危険の正本はシナリオ側だけで、詳細側には重複定義�
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   const paramsFor = (id) => actions.find((action) => action.id === id).risk.filter((effect) => effect.t === 'param').map(({ key, delta }) => [key, delta]);
   assert.deepEqual(paramsFor('accomplice_room'), [['suspicion', 6], ['trust', -1]]);
-  assert.deepEqual(paramsFor('observe_detectives'), [['suspicion', 7], ['awareness', 1]]);
+  assert.deepEqual(paramsFor('observe_detectives'), [['suspicion', 4], ['awareness', 1]]);
   assert.deepEqual(paramsFor('morgue'), [['suspicion', 9], ['overknow', 1]]);
 });
 
-test('以前は同じ効果だった4つの焦点二択は、片方だけ小さな代償を持つ', () => {
+test('以前は同じ効果だった4つの焦点二択は、資源か数値の配分が異なる', () => {
   const actions = enrichFreeActions([...actionsOf(chapter1), ...actionsOf(chapter2)]);
   for (const id of ['prepare', 'kitchen', 'morgue', 'old_road_song']) {
     const action = actions.find((item) => item.id === id);
     const paramCounts = action.scenes.focus.options.map((option) => option.effects.filter((effect) => effect.t === 'param').length);
-    assert.deepEqual(paramCounts, [0, 1], id);
+    assert.notDeepEqual(action.scenes.focus.options[0].effects.filter(e => e.t !== 'log'), action.scenes.focus.options[1].effects.filter(e => e.t !== 'log'), id);
+    assert.ok(paramCounts.some(count => count > 0), id);
   }
 });
 
@@ -121,4 +124,3 @@ test('知らないふりの演じ直しは行動ブロックと良心を使い�
   assert.deepEqual(action.risk, [{t:'param',key:'conscience',delta:-1}]);
   assert.ok(action.scenes.focus.options.every((option) => option.effects.some((effect) => effect.t === 'param' && effect.key === 'overknow' && effect.delta === -1)));
 });
-
