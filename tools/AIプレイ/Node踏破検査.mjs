@@ -13,7 +13,7 @@ import { staticDocument } from './lib/静的DOM.mjs';
 import { text, observedTemari, observedOption } from './lib/観測.js';
 import { stepTemariBoard, createTemariProgress } from '../ブラウザ検証/進行基盤.js';
 
-export async function playPersona(persona) {
+export async function playPersona(persona, { onNode } = {}) {
   const previous = globalThis.document;
   globalThis.document = staticDocument();
   let state = createGameState(), chapter = '', steps = 0;
@@ -71,6 +71,8 @@ export async function playPersona(persona) {
     while(++steps<10000) {
       const scene=scenes[state.sceneId], node=currentNode(scene,state);
       assert.ok(node,`${persona.id}: ${state.sceneId}を読み尽くした`);
+      // 観測用コピーを渡し、検査側からシナリオや実行状態を変更させない。
+      onNode?.({ node:structuredClone(node), state:structuredClone(state) });
       if(node.t==='end')return {ending:node.endingId,params:state.params,flags:state.flags,steps,decisions,checkpoints,warnings};
       if(node.t==='chapterTitle')chapter=node.text;
       if(node.t==='jump'){state.sceneId=node.scene;state=resetExecution(state);checkpoints.push({scene:state.sceneId,params:state.params});continue;}
