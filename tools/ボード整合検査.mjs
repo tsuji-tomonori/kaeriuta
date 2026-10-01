@@ -67,7 +67,8 @@ for (const { args, location } of calls) {
 // 画面の board-axis と自動プレイの抽出器は、同じ三つの観測項目を必ず持つ。
 // 片方の表示語だけを変えると、この静的検査で止まる。
 const axisSource = fs.readFileSync(new URL('../src/systems/temariuta-board/index.js', import.meta.url), 'utf8');
-const readerSource = fs.readFileSync(new URL('./AIプレイ/自動プレイ.js', import.meta.url), 'utf8');
+// PR50で抽出器を分離した。呼び出し側ではなく、表示文字列を読む実装を検査する。
+const readerSource = fs.readFileSync(new URL('./AIプレイ/lib/観測.js', import.meta.url), 'utf8');
 for (const label of ['表の読みへの一致', 'まことの盤の正確さ', '見せる盤の栞の名指し']) {
   if (!axisSource.includes(label)) errors.push(`board-axis: 観測項目 ${label} を表示していない`);
   if (!readerSource.includes(label)) errors.push(`自動プレイ: 観測項目 ${label} を読み取っていない`);
