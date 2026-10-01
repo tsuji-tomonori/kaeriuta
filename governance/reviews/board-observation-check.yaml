@@ -1,0 +1,30 @@
+change_id: board-observation-check
+summary: "盤面観測の抽出器移設にボード整合検査を追従させる"
+origin:
+  base_commit: bbd31c709bd9294b7da34863959648afdebbc3fa
+  related_pr: https://github.com/tsuji-tomonori/kaeriuta/pull/50
+  symptom: "移設された表示語3項目を旧ファイルで調べるためmainの整合検査が失敗する"
+requirement_impact:
+  judgement: "なし"
+  requirement_ids: "none"
+  reason: "既存検査の参照先修正。ゲームの表示語、状態、採点、END条件は変更しない。"
+design_impact:
+  judgement: "なし"
+  targets: "none"
+  reason: "PR50で確立した既存の抽出器配置へ追従するだけで、観測APIや検査の責務は変わらない。"
+verification:
+  passed:
+    - "node --test: 202件成功（追加4件）。"
+    - "ボード整合検査: 修正前3件失敗、修正後OK。"
+    - "抽出器から3つの表示語を各1つずつ除く否定例は、いずれもexit 1。"
+    - "シナリオ・統合・到達可能性・END条件・パート終端・構文検査、git diff --check"
+  not_run:
+    - "実ブラウザ: 本変更は参照先だけの検査修正。クラウドのシェルChromium起動がsocket Operation not permittedで制限される。"
+  ci: "workflow定義なし。CI成功とは扱わない。"
+  source_of_truth: "ローカルの決定的検査。外部CIの証跡なし。"
+compatibility:
+  - "srcと自動プレイ実装、ペルソナ判断、保存形式は変更なし。"
+  - "mainから分離し、PR51・52・53の変更を含めない。"
+residual_risk:
+  - "この検査は表示語の静的な整合検査。関数の呼出しや実ブラウザでの数値観測を完全には保証しない。"
+  - "既存の観測関数の動作はai-play-temari-measurement.test.jsが別途検査する。"
