@@ -1,0 +1,47 @@
+change_id: pacing-measurement
+summary: "Issue 15・16の意味ある行動間隔を11ペルソナのNode経路で測定する"
+origin:
+  sources:
+    - https://github.com/tsuji-tomonori/kaeriuta/issues/15
+    - https://github.com/tsuji-tomonori/kaeriuta/issues/16
+  base_commit: bbd31c709bd9294b7da34863959648afdebbc3fa
+requirement_impact:
+  judgement: "なし"
+  requirement_ids: "none"
+  reason: "既存Issueの時間基準を診断する検査追加。本文、ゲーム効果、END条件、受入基準は変更しない。"
+design_impact:
+  judgement: "あり"
+  targets: "検証基盤の観測インターフェース"
+  detail:
+    - "playPersonaに任意のonNodeを追加。シナリオと状態のコピーを渡して正本と実行状態への変異を防ぐ。"
+    - "MAG境界はIssueで指定された選択のみ。背景変更と章題は候補として保存し、MAGをリセットしない。"
+    - "表示本文を実行分岐どおり1回ずつ数え、stageの括弧をmain.jsと同じ方法で正規化する。"
+verification:
+  passed:
+    - "node --test: 205件成功（追加7件）。11ペルソナ・全7END・警告なしをNodeで確認。"
+    - "シナリオ検証、統合検証、到達可能性検査、END到達条件検査、パート終端検査"
+    - "構文検査、git diff --check"
+  failed_preexisting:
+    - "ボード整合検査: mainと同一のツールが自動プレイ.jsを直接grepするため、PR50でlib/観測.jsへ移った3項目を誤検出。今回未変更。"
+  not_run:
+    - "実ブラウザ代表経路と11ペルソナ: クラウド実行環境のChromiumがsocket Operation not permittedで起動できない。"
+    - "人間の初見理解、判断材料分類、実機の聴感・アクセシビリティ"
+  ci: "リポジトリのworkflow定義は未設置。対象SHAのPR workflow/statusは0件。CI成功とは扱わない。"
+  source_of_truth: "この変更はローカルの決定的検査で確認。外部CIの検証証跡はなし。"
+measurements:
+  prologue:
+    sampled_characters: [3212, 3296]
+    sampled_standard_seconds: [295.1, 302.8]
+    time_gate: "全11経路fail（合格上限160秒、不合格240秒超）"
+  chapter3:
+    sampled_characters: [1489, 1778]
+    sampled_standard_seconds: [136.8, 163.4]
+    time_gate: "全11経路pass（時間だけの判定、合格上限240秒）"
+compatibility:
+  - "任意のonNodeを省略した既存の呼び出しは変わらない。"
+  - "src、シナリオ、音源、保存形式、盤のDOM、ペルソナの判断ロジックは未変更。"
+residual_risk:
+  - "11経路の範囲は、全到達可能状態の最短・最長を証明しない。"
+  - "出来事境界候補の意味、判断材料比率、未外部化チャンク、初心者理解は未評価。Issue 15・16は未完了。"
+  - "表示本文以外の話者名、章題、選択肢は文字数に含めない。次の選択が可能になるまでの本文を計測する。"
+  - "演出に強制待機を追加した場合は計測契約の更新が必要。本文内の『数秒、静止』を秒数へ推測変換しない。"
